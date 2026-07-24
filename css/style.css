@@ -1,0 +1,475 @@
+/* ==========================================
+   NeoScale
+   Sistema Inteligente de Pesagem
+   CSS PRINCIPAL
+========================================== */
+
+
+/* ===============================
+   VARIÁVEIS DO SISTEMA
+================================ */
+
+:root {
+
+    --primary: #2563EB;
+
+    --primary-dark: #1D4ED8;
+
+    --secondary: #22C55E;
+
+    --danger: #EF4444;
+
+    --background: #F8FAFC;
+
+    --surface: #FFFFFF;
+
+    --sidebar: #0F172A;
+
+    --text: #1F2937;
+
+    --text-light: #64748B;
+
+    --border: #E2E8F0;
+
+    --shadow:
+    0 10px 30px rgba(15,23,42,0.08);
+
+    --radius: 18px;
+
+    --transition: .3s ease;
+
+}
+
+
+/* ===============================
+   RESET
+================================ */
+
+* {
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+}
+
+
+body {
+
+    font-family:
+    'Inter',
+    Arial,
+    Helvetica,
+    sans-serif;
+
+    background:var(--background);
+
+    color:var(--text);
+
+    min-height:100vh;
+
+}
+
+
+/* ===============================
+   LOGIN
+================================ */
+
+
+.login-container {
+
+    width:100%;
+
+    min-height:100vh;
+
+    display:flex;
+
+}
+
+
+/* ===============================
+   LADO ESQUERDO
+================================ */
+
+
+.login-left {
+
+
+    flex:1;
+
+    background:
+
+    linear-gradient(
+        135deg,
+        #2563EB,
+        #1E40AF
+    );
+
+
+    color:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    justify-content:center;
+
+    align-items:center;
+
+    padding:40px;
+
+    text-align:center;
+
+
+}
+
+
+.brand h1 {
+
+
+    font-size:55px;
+
+    font-weight:700;
+
+    letter-spacing:-2px;
+
+
+}
+
+
+.brand span {
+
+
+    display:block;
+
+    margin-top:10px;
+
+    font-size:18px;
+
+    opacity:.9;
+
+
+}
+
+
+
+.welcome {
+
+
+    margin-top:80px;
+
+    max-width:400px;
+
+
+}
+
+
+.welcome h2 {
+
+
+    font-size:32px;
+
+    margin-bottom:15px;
+
+
+}
+
+
+.welcome p {
+
+
+    font-size:18px;
+
+    line-height:1.6;
+
+    opacity:.9;
+
+
+}
+
+
+
+/* ===============================
+   LADO DIREITO
+================================ */
+
+
+.login-right {
+
+
+    flex:1;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    padding:40px;
+
+
+}
+
+
+
+/* ===============================
+   CARD LOGIN
+================================ */
+
+
+.login-card {
+
+
+    background:var(--surface);
+
+    width:100%;
+
+    max-width:420px;
+
+    padding:45px;
+
+    border-radius:var(--radius);
+
+    box-shadow:var(--shadow);
+
+
+}
+
+
+.login-card h2 {
+
+
+    font-size:32px;
+
+    margin-bottom:10px;
+
+
+}
+
+
+.login-card p {
+
+
+    color:var(--text-light);
+
+    margin-bottom:30px;
+
+
+}
+
+
+/* ===============================
+   INPUTS
+================================ */
+
+
+.input-group {
+
+
+    margin-bottom:22px;
+
+
+}
+
+
+
+.input-group label {
+
+
+    display:flex;
+
+    align-items:center;
+
+    gap:8px;
+
+    font-size:14px;
+
+    font-weight:600;
+
+    margin-bottom:8px;
+
+
+}
+
+
+
+.input-group input {
+
+
+    width:100%;
+
+    padding:14px 16px;
+
+    border:1px solid var(--border);
+
+    border-radius:12px;
+
+    font-size:15px;
+
+    outline:none;
+
+    transition:var(--transition);
+
+
+}
+
+
+
+.input-group input:focus {
+
+
+    border-color:var(--primary);
+
+    box-shadow:
+
+    0 0 0 4px rgba(37,99,235,.12);
+
+
+}
+
+
+
+/* ===============================
+   BOTÃO LOGIN
+================================ */
+
+
+.btn-login {
+
+
+    width:100%;
+
+    padding:15px;
+
+    border:none;
+
+    border-radius:12px;
+
+    background:var(--primary);
+
+    color:white;
+
+    font-size:16px;
+
+    font-weight:600;
+
+    cursor:pointer;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    gap:10px;
+
+    transition:var(--transition);
+
+
+}
+
+
+
+.btn-login:hover {
+
+
+    background:var(--primary-dark);
+
+    transform:translateY(-2px);
+
+
+}
+
+
+
+/* ===============================
+   FOOTER
+================================ */
+
+
+.footer {
+
+
+    text-align:center;
+
+    margin-top:30px;
+
+    color:var(--text-light);
+
+
+}
+
+
+
+/* ===============================
+   RESPONSIVO
+================================ */
+
+
+@media(max-width:900px){
+
+
+    .login-container {
+
+
+        flex-direction:column;
+
+
+    }
+
+
+    .login-left {
+
+
+        min-height:40vh;
+
+
+    }
+
+
+    .brand h1 {
+
+
+        font-size:42px;
+
+
+    }
+
+
+    .welcome {
+
+
+        margin-top:30px;
+
+
+    }
+
+
+}
+
+
+
+@media(max-width:500px){
+
+
+    .login-card {
+
+
+        padding:30px;
+
+
+    }
+
+
+    .login-right {
+
+
+        padding:20px;
+
+
+    }
+
+
+}

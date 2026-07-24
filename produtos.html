@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+
+<title>NeoScale | Produtos</title>
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
+
+
+<link rel="stylesheet"
+href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+
+<link rel="stylesheet" href="css/style.css">
+
+<link rel="stylesheet" href="css/sidebar.css">
+
+<link rel="stylesheet" href="css/tabela.css">
+
+<link rel="icon" type="image/png" href="img/favicon.png">
+
+</head>
+
+
+<body>
+
+
+<div class="layout">
+
+
+<aside class="sidebar">
+
+
+<div class="sidebar-logo">
+
+<h1>NeoScale</h1>
+
+<span>Pesagem Inteligente</span>
+
+</div>
+
+
+
+<nav class="sidebar-menu">
+
+
+<a href="dashboard.html">
+
+<i class="bi bi-grid"></i>
+
+<span>Dashboard</span>
+
+</a>
+
+
+
+<a href="pesagem.html">
+
+<i class="bi bi-speedometer2"></i>
+
+<span>Pesagem</span>
+
+</a>
+
+
+
+<a href="produtos.html" class="active">
+
+<i class="bi bi-basket"></i>
+
+<span>Produtos</span>
+
+</a>
+
+
+
+<a href="historico.html">
+
+<i class="bi bi-clock-history"></i>
+
+<span>Histórico</span>
+
+</a>
+
+
+
+<a href="configuracoes.html">
+
+<i class="bi bi-gear"></i>
+
+<span>Configurações</span>
+
+</a>
+
+
+</nav>
+
+
+</aside>
+
+
+
+
+
+<main class="content">
+
+
+<header class="page-header">
+
+
+<h2>
+
+Produtos
+
+</h2>
+
+
+<p>
+
+Cadastro dos itens de pesagem
+
+</p>
+
+
+</header>
+
+
+
+
+
+<section class="form-card">
+
+
+<h3>
+
+Novo Produto
+
+</h3>
+
+
+
+<div class="form-grid">
+
+
+<div>
+
+<label>
+
+Nome
+
+</label>
+
+
+<input
+
+id="nomeProduto"
+
+type="text"
+
+placeholder="Ex: Buffet Almoço"
+
+>
+
+</div>
+
+
+
+
+
+<div>
+
+<label>
+
+Preço por Kg
+
+</label>
+
+
+<input
+
+id="precoProduto"
+
+type="number"
+
+step="0.01"
+
+placeholder="89.90"
+
+>
+
+</div>
+
+
+
+
+
+<div>
+
+<label>
+
+Categoria
+
+</label>
+
+
+<input
+
+id="categoriaProduto"
+
+type="text"
+
+placeholder="Refeição"
+
+>
+
+</div>
+
+
+
+</div>
+
+
+
+
+<button
+
+id="btnSalvarProduto"
+
+class="btn-login">
+
+<i class="bi bi-plus-circle"></i>
+
+Salvar Produto
+
+</button>
+
+
+</section>
+
+
+
+
+
+
+
+<section class="table-card">
+
+
+<h3>
+
+Produtos cadastrados
+
+</h3>
+
+
+<table>
+
+
+<thead>
+
+<tr>
+
+<th>
+
+Produto
+
+</th>
+
+
+<th>
+
+Categoria
+
+</th>
+
+
+<th>
+
+Preço/Kg
+
+</th>
+
+
+<th>
+
+Status
+
+</th>
+
+
+</tr>
+
+</thead>
+
+
+
+<tbody id="listaProdutos">
+
+
+</tbody>
+
+
+</table>
+
+
+</section>
+
+
+
+</main>
+
+
+</div>
+
+
+
+
+<script type="module" src="js/produtos.js"></script>
+
+
+</body>
+
+</html>

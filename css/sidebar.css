@@ -1,0 +1,331 @@
+/* ==========================================
+   NeoScale
+   SIDEBAR
+========================================== */
+
+
+/* ===============================
+   CONTAINER PRINCIPAL
+================================ */
+
+.layout {
+
+    display:flex;
+
+    min-height:100vh;
+
+}
+
+
+/* ===============================
+   SIDEBAR
+================================ */
+
+
+.sidebar {
+
+
+    width:260px;
+
+    background:#0F172A;
+
+    color:white;
+
+    display:flex;
+
+    flex-direction:column;
+
+    padding:25px 18px;
+
+    position:fixed;
+
+    top:0;
+
+    left:0;
+
+    bottom:0;
+
+
+}
+
+
+
+/* ===============================
+   LOGO
+================================ */
+
+
+.sidebar-logo {
+
+
+    text-align:center;
+
+    margin-bottom:40px;
+
+
+}
+
+
+.sidebar-logo h1 {
+
+
+    font-size:32px;
+
+    font-weight:700;
+
+    letter-spacing:-1px;
+
+
+}
+
+
+
+.sidebar-logo span {
+
+
+    font-size:12px;
+
+    color:#94A3B8;
+
+
+}
+
+
+
+/* ===============================
+   MENU
+================================ */
+
+
+.sidebar-menu {
+
+
+    flex:1;
+
+
+}
+
+
+
+.sidebar-menu a {
+
+
+    display:flex;
+
+    align-items:center;
+
+    gap:14px;
+
+    padding:14px 16px;
+
+    margin-bottom:8px;
+
+    color:#CBD5E1;
+
+    text-decoration:none;
+
+    border-radius:12px;
+
+    transition:.3s ease;
+
+    font-size:15px;
+
+
+}
+
+
+
+.sidebar-menu a i {
+
+
+    font-size:20px;
+
+
+}
+
+
+
+.sidebar-menu a:hover {
+
+
+    background:#1E293B;
+
+    color:white;
+
+
+}
+
+
+
+/* ITEM ATIVO */
+
+
+.sidebar-menu a.active {
+
+
+    background:#2563EB;
+
+    color:white;
+
+
+}
+
+
+
+/* ===============================
+   RODAPÉ
+================================ */
+
+
+.sidebar-footer {
+
+
+    border-top:1px solid rgba(255,255,255,.1);
+
+    padding-top:20px;
+
+
+}
+
+
+
+.sidebar-footer button {
+
+
+    width:100%;
+
+    background:none;
+
+    border:none;
+
+    color:#CBD5E1;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:14px;
+
+    cursor:pointer;
+
+    border-radius:12px;
+
+    font-size:15px;
+
+    transition:.3s;
+
+
+}
+
+
+
+.sidebar-footer button:hover {
+
+
+    background:#1E293B;
+
+    color:white;
+
+
+}
+
+
+
+/* ===============================
+   CONTEÚDO PRINCIPAL
+================================ */
+
+
+.content {
+
+
+    margin-left:260px;
+
+    width:calc(100% - 260px);
+
+    padding:30px;
+
+
+}
+
+
+
+/* ===============================
+   MOBILE
+================================ */
+
+
+@media(max-width:900px){
+
+
+    .sidebar {
+
+
+        width:80px;
+
+        padding:20px 10px;
+
+
+    }
+
+
+    .sidebar-logo span,
+
+    .sidebar-menu a span,
+
+    .sidebar-footer span {
+
+
+        display:none;
+
+
+    }
+
+
+
+    .sidebar-logo h1 {
+
+
+        font-size:22px;
+
+
+    }
+
+
+
+    .sidebar-menu a {
+
+
+        justify-content:center;
+
+        padding:14px;
+
+
+    }
+
+
+
+    .sidebar-footer button {
+
+
+        justify-content:center;
+
+
+    }
+
+
+
+    .content {
+
+
+        margin-left:80px;
+
+        width:calc(100% - 80px);
+
+
+    }
+
+
+}

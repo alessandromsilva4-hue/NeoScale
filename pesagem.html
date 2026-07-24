@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeoScale | Pesagem</title>
+    <link rel="icon" type="image/png" href="img/favicon.png">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/sidebar.css">
+    <link rel="stylesheet" href="css/pesagem.css">
+</head>
+<body class="tela-pesagem">
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="sidebar-logo">
+                <h1>NeoScale</h1>
+                <span>Pesagem Inteligente</span>
+            </div>
+            <nav class="sidebar-menu">
+                <a href="dashboard.html">Dashboard</a>
+                <a href="pesagem.html" class="active">Pesagem</a>
+                <a href="produtos.html">Produtos</a>
+                <a href="historico.html">Histórico</a>
+                <a href="configuraçoes.html">Configurações</a>
+            </nav>
+        </aside>
+
+        <main class="content pesagem-content">
+            <header class="page-header">
+                <div>
+                    <span class="eyebrow">BALANÇA CONECTADA</span>
+                    <h2>Pesagem automática</h2>
+                    <p>Buffet por quilo</p>
+                </div>
+                <span class="status-balanca"><i></i> Conecte a balança</span>
+                <button id="alternarTelaCheia" class="btn-tela-cheia" type="button" title="Alternar tela cheia">⛶ Tela cheia</button>
+            </header>
+
+            <section class="terminal-pesagem" aria-label="Terminal de pesagem">
+                <div class="faixa-medidas">
+                    <div class="medida-item">
+                        <span>Tarifa do prato</span>
+                        <strong id="taraDisplay">0,000 kg</strong>
+                    </div>
+                    <div class="medida-item medida-preco">
+                        <span>Preço por quilo</span>
+                        <strong id="precoKgDisplay">R$ 89,90</strong>
+                    </div>
+                    <div class="medida-item">
+                        <span>Peso da refeição</span>
+                        <strong id="pesoDisplay">0,000 kg</strong>
+                    </div>
+                </div>
+
+                <div class="terminal-corpo">
+                    <div class="prato-ilustracao" aria-hidden="true">
+                        <div class="comida comida-verde"></div>
+                        <div class="comida comida-vermelha"></div>
+                        <div class="comida comida-amarela"></div>
+                        <div class="comida comida-marrom"></div>
+                    </div>
+
+                    <div class="orientacao-pesagem">
+                        <span class="passo">PASSO 01</span>
+                        <h3>Posicione o prato<br>na balança</h3>
+                        <p>O peso será calculado automaticamente.</p>
+                    </div>
+
+                    <div class="valor-pagar">
+                        <span>Valor a pagar</span>
+                        <strong id="valorDisplay">R$ 0,00</strong>
+                        <small>Pronto para emitir a comanda</small>
+                    </div>
+                </div>
+
+                <div class="terminal-rodape">
+                    <span>NEOSCALE</span>
+                    <span>•</span>
+                    <span>Experiência de pesagem inteligente</span>
+                </div>
+            </section>
+
+            <section class="acoes-pesagem">
+                <button id="iniciarPesagem" class="btn-primario">Conectar balança</button>
+                <button id="emitirComanda" class="btn-secundario">Emitir comanda agora</button>
+            </section>
+
+            <section class="comanda-preview">
+                <div class="preview-cabecalho">
+                    <div>
+                        <span class="eyebrow">ÚLTIMA LEITURA</span>
+                        <h3>Prévia da comanda</h3>
+                    </div>
+                    <span class="preview-status">Aguardando</span>
+                </div>
+                <div id="previewComanda">Inicie uma pesagem para visualizar os dados da comanda.</div>
+            </section>
+        </main>
+    </div>
+    <script type="module" src="js/firebase.js"></script>
+    <script type="module" src="js/frases.js"></script>
+    <script type="module" src="voz.js"></script>
+    <script type="module" src="js/pesagem.js"></script>
+    <script type="module" src="js/impressao.js"></script>
+</body>
+</html>

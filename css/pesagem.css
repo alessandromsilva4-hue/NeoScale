@@ -1,0 +1,53 @@
+/* Terminal de pesagem: interface inspirada em totens de self-service. */
+.pesagem-content { max-width: 1500px; margin: 0 auto 0 260px; padding: 32px 48px 52px; }
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+.page-header h2 { font-size:32px; letter-spacing:-1px; margin:5px 0; color:#172033; }
+.page-header p { color:#718096; }
+.eyebrow { display:block; color:#1574a3; font-size:11px; font-weight:800; letter-spacing:1.1px; }
+.status-balanca { display:flex; align-items:center; gap:8px; background:#e9f8ef; color:#18824a; padding:10px 14px; border-radius:99px; font-size:13px; font-weight:700; }
+.status-balanca i { width:8px; height:8px; border-radius:50%; background:#2ac66b; box-shadow:0 0 0 4px rgba(42,198,107,.16); }
+
+.terminal-pesagem { overflow:hidden; border:1px solid #cbd4dc; border-radius:18px; background:#18212a; box-shadow:0 22px 40px rgba(15,23,42,.18); }
+.faixa-medidas { display:grid; grid-template-columns:repeat(3,1fr); min-height:86px; background:linear-gradient(100deg,#f4f6f7,#dce3e8); }
+.medida-item { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; border-right:1px solid #c4ced5; color:#6a7e8e; }
+.medida-item:last-child { border:0; }
+.medida-item span { font-size:13px; }
+.medida-item strong { color:#11688f; font-size:18px; }
+.medida-preco { background:rgba(255,255,255,.34); }
+
+.terminal-corpo { position:relative; isolation:isolate; min-height:390px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:30px; padding:42px clamp(25px,6vw,88px); overflow:hidden; background:radial-gradient(circle at 50% 52%,rgba(255,255,255,.2) 0 6%,transparent 7%), radial-gradient(ellipse at 50% 55%,#f8f3e6 0 21%,#cbd5ca 22% 27%,transparent 28%), linear-gradient(125deg,#526751,#b6b38c 42%,#986e58 100%); }
+.terminal-corpo:before { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(90deg,rgba(11,22,23,.5),transparent 35%,transparent 65%,rgba(11,22,23,.35)); }
+.terminal-corpo:after { content:""; position:absolute; z-index:-1; width:600px; height:600px; left:50%; top:52%; transform:translate(-50%,-50%); border:30px solid rgba(255,255,255,.29); border-radius:50%; box-shadow:inset 0 0 35px rgba(83,59,38,.2); }
+.prato-ilustracao { position:absolute; z-index:-1; width:260px; aspect-ratio:1; left:50%; top:52%; transform:translate(-50%,-50%); border-radius:50%; background:radial-gradient(circle at 48% 46%,#fffdf9 0 34%,#e2ddd1 35% 49%,#faf8f2 50% 59%,#b9b2a9 60%); box-shadow:0 12px 30px rgba(0,0,0,.3); }
+.comida { position:absolute; border-radius:50%; filter:drop-shadow(1px 3px 2px rgba(0,0,0,.22)); }
+.comida-verde { width:80px; height:58px; background:#67933f; top:35px; right:34px; transform:rotate(22deg); }
+.comida-vermelha { width:69px; height:60px; background:#cc4f3a; left:33px; top:76px; }
+.comida-amarela { width:75px; height:47px; background:#dea62d; left:88px; bottom:35px; }
+.comida-marrom { width:64px; height:83px; background:#864d2d; right:38px; bottom:50px; transform:rotate(-24deg); }
+.orientacao-pesagem,.valor-pagar { position:relative; z-index:1; backdrop-filter:blur(6px); border:1px solid rgba(255,255,255,.46); box-shadow:0 12px 26px rgba(0,0,0,.18); }
+.orientacao-pesagem { justify-self:start; max-width:280px; padding:25px; border-radius:8px; color:#fff; background:rgba(202,158,24,.92); }
+.passo { font-size:10px; font-weight:800; letter-spacing:1.2px; opacity:.8; }
+.orientacao-pesagem h3 { margin:8px 0; font-size:23px; line-height:1.12; }
+.orientacao-pesagem p { font-size:13px; line-height:1.45; opacity:.94; }
+.valor-pagar { justify-self:end; display:flex; flex-direction:column; padding:23px 28px; border-radius:8px; background:rgba(249,251,251,.92); color:#71808c; }
+.valor-pagar span { font-size:13px; }.valor-pagar strong { margin:3px 0; font-size:28px; color:#11688f; }.valor-pagar small { font-size:10px; color:#81909a; }
+.terminal-rodape { height:52px; display:flex; justify-content:center; align-items:center; gap:10px; color:#bbcad2; font-size:12px; background:#122029; }.terminal-rodape span:first-child { font-size:16px; font-weight:900; color:#fff; letter-spacing:.4px; }
+
+.acoes-pesagem { display:flex; justify-content:center; gap:14px; margin:26px 0; }.acoes-pesagem button { padding:14px 24px; border-radius:9px; border:1px solid transparent; font-size:15px; font-weight:750; cursor:pointer; transition:transform .2s, box-shadow .2s; }.acoes-pesagem button:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(15,23,42,.15); }.btn-primario { color:white; background:#126e96; }.btn-secundario { color:#155d7d; border-color:#b9ced9!important; background:white; }
+.comanda-preview { max-width:820px; margin:0 auto; padding:23px; border:1px solid #e0e8ed; border-radius:14px; background:#fff; box-shadow:0 8px 22px rgba(15,23,42,.06); }.preview-cabecalho { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }.preview-cabecalho h3 { margin-top:4px; color:#263443; }.preview-status { padding:6px 9px; border-radius:6px; color:#788795; background:#edf1f3; font-size:11px; font-weight:700; }#previewComanda { min-height:72px; padding:16px; border-radius:8px; color:#70808e; background:#f6f8f9; font-family:ui-monospace,Consolas,monospace; white-space:pre-line; }
+@media(max-width:1100px){.pesagem-content{padding:28px 30px}.terminal-corpo{grid-template-columns:1fr 1fr}.valor-pagar{grid-column:2}.prato-ilustracao{opacity:.75}}
+@media(max-width:760px){.pesagem-content{margin-left:80px;padding:22px 16px}.page-header{align-items:flex-start;gap:12px;flex-direction:column}.faixa-medidas{grid-template-columns:1fr}.medida-item{min-height:66px;border-right:0;border-bottom:1px solid #c4ced5}.terminal-corpo{min-height:460px;grid-template-columns:1fr;padding:28px}.orientacao-pesagem{justify-self:start}.valor-pagar{grid-column:auto;justify-self:start}.prato-ilustracao{left:76%;top:48%;opacity:.42}.terminal-corpo:after{left:76%;opacity:.35}.acoes-pesagem{flex-direction:column}.acoes-pesagem button{width:100%}}
+
+/* Modo quiosque: a pesagem ocupa toda a tela, sem a navegação administrativa. */
+.tela-pesagem .sidebar { display:none; }
+.tela-pesagem .layout { display:block; }
+.tela-pesagem .pesagem-content { width:100%; max-width:1800px; min-height:100vh; margin:0 auto; padding:28px clamp(28px,4vw,76px); }
+.tela-pesagem .terminal-pesagem { min-height:calc(100vh - 245px); }
+.tela-pesagem .terminal-corpo { min-height:calc(100vh - 383px); }
+.btn-tela-cheia { margin-left:10px; padding:10px 13px; color:#155d7d; border:1px solid #b9ced9; border-radius:9px; background:#fff; font-size:13px; font-weight:700; cursor:pointer; }
+.btn-tela-cheia:hover { background:#edf7fb; }
+.tela-pesagem:fullscreen .pesagem-content { max-width:none; padding:28px 5vw; }
+.tela-pesagem:fullscreen .page-header { display:none; }
+.tela-pesagem:fullscreen .terminal-pesagem { min-height:calc(100vh - 135px); }
+.tela-pesagem:fullscreen .terminal-corpo { min-height:calc(100vh - 273px); }
+@media(max-width:760px){.tela-pesagem .pesagem-content{margin:0;padding:18px 14px}.tela-pesagem .terminal-pesagem,.tela-pesagem .terminal-corpo{min-height:auto}.btn-tela-cheia{margin-left:0}.tela-pesagem .page-header{gap:8px}}

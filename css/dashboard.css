@@ -1,0 +1,414 @@
+/* ==========================================
+   NeoScale
+   DASHBOARD CSS
+========================================== */
+
+
+/* ===============================
+   CABEÇALHO
+================================ */
+
+.dashboard-header {
+
+    display:flex;
+
+    justify-content:space-between;
+
+    align-items:center;
+
+    margin-bottom:35px;
+
+}
+
+
+.dashboard-header h2 {
+
+    font-size:32px;
+
+    font-weight:700;
+
+    color:#0F172A;
+
+}
+
+
+.dashboard-header p {
+
+    margin-top:5px;
+
+    color:#64748B;
+
+    font-size:16px;
+
+}
+
+
+
+/* ===============================
+   DATA E HORA
+================================ */
+
+
+.date-time {
+
+    background:white;
+
+    padding:15px 25px;
+
+    border-radius:16px;
+
+    box-shadow:
+
+    0 8px 25px rgba(15,23,42,.06);
+
+    display:flex;
+
+    flex-direction:column;
+
+    text-align:right;
+
+}
+
+
+.date-time span {
+
+    color:#64748B;
+
+    font-size:14px;
+
+}
+
+
+.date-time strong {
+
+    font-size:22px;
+
+    color:#2563EB;
+
+}
+
+
+
+/* ===============================
+   CARDS
+================================ */
+
+
+.cards {
+
+    display:grid;
+
+    grid-template-columns:
+
+    repeat(4,1fr);
+
+    gap:25px;
+
+    margin-bottom:35px;
+
+}
+
+
+
+.card {
+
+    background:white;
+
+    border-radius:20px;
+
+    padding:25px;
+
+    display:flex;
+
+    align-items:center;
+
+    gap:20px;
+
+    box-shadow:
+
+    0 10px 30px rgba(15,23,42,.06);
+
+    transition:.3s ease;
+
+}
+
+
+.card:hover {
+
+    transform:translateY(-5px);
+
+}
+
+
+
+.card span {
+
+    color:#64748B;
+
+    font-size:14px;
+
+}
+
+
+
+.card h3 {
+
+    margin-top:8px;
+
+    font-size:28px;
+
+    color:#0F172A;
+
+}
+
+
+
+/* ===============================
+   ÍCONES DOS CARDS
+================================ */
+
+
+.card-icon {
+
+    width:60px;
+
+    height:60px;
+
+    border-radius:16px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    font-size:28px;
+
+    color:white;
+
+}
+
+
+
+.card-icon.blue {
+
+    background:#2563EB;
+
+}
+
+
+.card-icon.green {
+
+    background:#22C55E;
+
+}
+
+
+.card-icon.orange {
+
+    background:#F59E0B;
+
+}
+
+
+.card-icon.purple {
+
+    background:#8B5CF6;
+
+}
+
+
+
+/* ===============================
+   FRASE DO DIA
+================================ */
+
+
+.frase-card {
+
+
+    background:
+
+    linear-gradient(
+        135deg,
+        #2563EB,
+        #1E40AF
+    );
+
+
+    color:white;
+
+    border-radius:22px;
+
+    padding:35px;
+
+    text-align:center;
+
+    margin-bottom:35px;
+
+
+}
+
+
+
+.frase-card i {
+
+
+    font-size:35px;
+
+    opacity:.8;
+
+
+}
+
+
+
+.frase-card p {
+
+
+    margin:20px auto;
+
+    font-size:22px;
+
+    font-style:italic;
+
+    max-width:700px;
+
+
+}
+
+
+
+.frase-card span {
+
+
+    opacity:.8;
+
+    font-size:15px;
+
+
+}
+
+
+
+/* ===============================
+   ÁREA DO GRÁFICO
+================================ */
+
+
+.chart-area {
+
+
+    background:white;
+
+    border-radius:22px;
+
+    padding:30px;
+
+    box-shadow:
+
+    0 10px 30px rgba(15,23,42,.06);
+
+
+}
+
+
+
+.chart-area h3 {
+
+
+    margin-bottom:25px;
+
+    font-size:20px;
+
+
+}
+
+
+
+.chart-placeholder {
+
+
+    height:280px;
+
+    background:#F8FAFC;
+
+    border-radius:18px;
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    color:#94A3B8;
+
+    font-size:18px;
+
+
+}
+
+
+
+/* ===============================
+   RESPONSIVO
+================================ */
+
+
+@media(max-width:1200px){
+
+
+    .cards {
+
+
+        grid-template-columns:
+
+        repeat(2,1fr);
+
+
+    }
+
+
+}
+
+
+
+@media(max-width:700px){
+
+
+    .dashboard-header {
+
+
+        flex-direction:column;
+
+        align-items:flex-start;
+
+        gap:20px;
+
+
+    }
+
+
+
+    .cards {
+
+
+        grid-template-columns:1fr;
+
+
+    }
+
+
+    .date-time {
+
+
+        width:100%;
+
+        text-align:left;
+
+
+    }
+
+
+
+}

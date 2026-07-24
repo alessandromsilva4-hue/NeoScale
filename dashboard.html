@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>NeoScale | Dashboard</title>
+
+
+    <!-- Fonte -->
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+
+    <!-- Ícones -->
+
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+
+
+    <!-- CSS -->
+
+    <link rel="stylesheet" href="css/style.css">
+
+    <link rel="stylesheet" href="css/sidebar.css">
+
+    <link rel="stylesheet" href="css/dashboard.css">
+
+    <link rel="icon" type="image/png" href="img/favicon.png">
+
+</head>
+
+
+<body>
+
+
+<div class="layout">
+
+
+<!-- =========================
+     SIDEBAR
+========================= -->
+
+
+<aside class="sidebar">
+
+
+    <div class="sidebar-logo">
+
+        <h1>NeoScale</h1>
+
+        <span>Pesagem Inteligente</span>
+
+    </div>
+
+
+
+    <nav class="sidebar-menu">
+
+
+        <a href="dashboard.html" class="active">
+
+            <i class="bi bi-grid"></i>
+
+            <span>Dashboard</span>
+
+        </a>
+
+
+
+        <a href="pesagem.html">
+
+            <i class="bi bi-speedometer2"></i>
+
+            <span>Pesagem</span>
+
+        </a>
+
+
+
+        <a href="produtos.html">
+
+            <i class="bi bi-basket"></i>
+
+            <span>Produtos</span>
+
+        </a>
+
+
+
+        <a href="historico.html">
+
+            <i class="bi bi-clock-history"></i>
+
+            <span>Histórico</span>
+
+        </a>
+
+
+
+        <a href="configuracoes.html">
+
+            <i class="bi bi-gear"></i>
+
+            <span>Configurações</span>
+
+        </a>
+
+
+
+    </nav>
+
+
+
+    <div class="sidebar-footer">
+
+
+        <button>
+
+            <i class="bi bi-box-arrow-right"></i>
+
+            <span>Sair</span>
+
+        </button>
+
+
+    </div>
+
+
+</aside>
+
+
+
+
+
+<!-- =========================
+     CONTEÚDO
+========================= -->
+
+
+<main class="content">
+
+
+<header class="dashboard-header">
+
+
+    <div>
+
+        <h2 id="saudacao">
+
+            Bom dia!
+
+        </h2>
+
+
+        <p>
+
+            Bem-vindo ao NeoScale
+
+        </p>
+
+
+    </div>
+
+
+
+    <div class="date-time">
+
+
+        <span id="dataAtual"></span>
+
+        <strong id="horaAtual"></strong>
+
+
+    </div>
+
+
+
+</header>
+
+
+
+
+
+<section class="cards">
+
+
+
+<div class="card">
+
+
+    <div class="card-icon blue">
+
+        <i class="bi bi-receipt"></i>
+
+    </div>
+
+
+    <div>
+
+        <span>Pesagens Hoje</span>
+
+        <h3 id="totalPesagens">
+
+            0
+
+        </h3>
+
+    </div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+    <div class="card-icon green">
+
+        <i class="bi bi-currency-dollar"></i>
+
+    </div>
+
+
+    <div>
+
+        <span>Faturamento</span>
+
+        <h3 id="faturamento">
+
+            R$ 0,00
+
+        </h3>
+
+    </div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+    <div class="card-icon orange">
+
+        <i class="bi bi-speedometer"></i>
+
+    </div>
+
+
+    <div>
+
+        <span>Peso Médio</span>
+
+        <h3 id="pesoMedio">
+
+            0 kg
+
+        </h3>
+
+    </div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+    <div class="card-icon purple">
+
+        <i class="bi bi-people"></i>
+
+    </div>
+
+
+    <div>
+
+        <span>Clientes</span>
+
+        <h3 id="clientes">
+
+            0
+
+        </h3>
+
+    </div>
+
+
+</div>
+
+
+
+</section>
+
+
+
+
+
+<section class="frase-card">
+
+
+    <i class="bi bi-quote"></i>
+
+
+    <p id="fraseDia">
+
+        "A simplicidade é o último grau da sofisticação."
+
+    </p>
+
+
+    <span>
+
+        Leonardo da Vinci
+
+    </span>
+
+
+</section>
+
+
+
+
+
+
+<section class="chart-area">
+
+
+    <h3>
+
+        Movimento do dia
+
+    </h3>
+
+
+    <div class="chart-placeholder">
+
+        Gráfico será carregado aqui
+
+    </div>
+
+
+</section>
+
+
+
+
+</main>
+
+
+
+</div>
+
+
+
+<script type="module" src="js/dashboard.js"></script>
+
+
+</body>
+
+</html>
