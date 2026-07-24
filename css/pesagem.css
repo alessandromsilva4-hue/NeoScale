@@ -8,11 +8,11 @@
 .status-balanca i { width:8px; height:8px; border-radius:50%; background:#2ac66b; box-shadow:0 0 0 4px rgba(42,198,107,.16); }
 
 .terminal-pesagem { overflow:hidden; border:1px solid #cbd4dc; border-radius:18px; background:#18212a; box-shadow:0 22px 40px rgba(15,23,42,.18); }
-.faixa-medidas { display:grid; grid-template-columns:repeat(3,1fr); min-height:86px; background:linear-gradient(100deg,#f4f6f7,#dce3e8); }
-.medida-item { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:4px; border-right:1px solid #c4ced5; color:#6a7e8e; }
+.faixa-medidas { display:grid; grid-template-columns:repeat(3,1fr); min-height:140px; background:linear-gradient(100deg,#f4f6f7,#dce3e8); }
+.medida-item { display:flex; flex-direction:column; justify-content:center; align-items:center; gap:6px; border-right:1px solid #c4ced5; color:#6a7e8e; }
 .medida-item:last-child { border:0; }
-.medida-item span { font-size:13px; }
-.medida-item strong { color:#11688f; font-size:18px; }
+.medida-item span { font-size:19px; }
+.medida-item strong { color:#11688f; font-size:34px; }
 .medida-preco { background:rgba(255,255,255,.34); }
 
 .terminal-corpo { position:relative; isolation:isolate; min-height:390px; display:grid; grid-template-columns:1fr auto 1fr; align-items:center; gap:30px; padding:42px clamp(25px,6vw,88px); overflow:hidden; background:radial-gradient(circle at 50% 52%,rgba(255,255,255,.2) 0 6%,transparent 7%), radial-gradient(ellipse at 50% 55%,#f8f3e6 0 21%,#cbd5ca 22% 27%,transparent 28%), linear-gradient(125deg,#526751,#b6b38c 42%,#986e58 100%); }
@@ -29,8 +29,8 @@
 .passo { font-size:10px; font-weight:800; letter-spacing:1.2px; opacity:.8; }
 .orientacao-pesagem h3 { margin:8px 0; font-size:23px; line-height:1.12; }
 .orientacao-pesagem p { font-size:13px; line-height:1.45; opacity:.94; }
-.valor-pagar { justify-self:end; display:flex; flex-direction:column; padding:23px 28px; border-radius:8px; background:rgba(249,251,251,.92); color:#71808c; }
-.valor-pagar span { font-size:13px; }.valor-pagar strong { margin:3px 0; font-size:28px; color:#11688f; }.valor-pagar small { font-size:10px; color:#81909a; }
+.valor-pagar { justify-self:end; display:flex; flex-direction:column; padding:40px 50px; border-radius:12px; background:rgba(249,251,251,.92); color:#71808c; }
+.valor-pagar span { font-size:20px; }.valor-pagar strong { margin:7px 0; font-size:50px; color:#11688f; }.valor-pagar small { font-size:14px; color:#81909a; }
 .terminal-rodape { height:52px; display:flex; justify-content:center; align-items:center; gap:10px; color:#bbcad2; font-size:12px; background:#122029; }.terminal-rodape span:first-child { font-size:16px; font-weight:900; color:#fff; letter-spacing:.4px; }
 
 .acoes-pesagem { display:flex; justify-content:center; gap:14px; margin:26px 0; }.acoes-pesagem button { padding:14px 24px; border-radius:9px; border:1px solid transparent; font-size:15px; font-weight:750; cursor:pointer; transition:transform .2s, box-shadow .2s; }.acoes-pesagem button:hover { transform:translateY(-2px); box-shadow:0 8px 16px rgba(15,23,42,.15); }.btn-primario { color:white; background:#126e96; }.btn-secundario { color:#155d7d; border-color:#b9ced9!important; background:white; }

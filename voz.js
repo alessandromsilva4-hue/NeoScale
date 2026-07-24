@@ -20,11 +20,93 @@ const configuracaoVoz = {
 
     idioma: "pt-BR",
 
+    // Ritmo levemente mais calmo para uma locução natural e acolhedora.
     velocidade: 1,
 
-    tom: 1.35
+    // Evita o tom agudo e robótico da configuração anterior.
+    tom: 1
 
 };
+
+
+
+// ==========================================
+// SELEÇÃO DA VOZ
+// ==========================================
+
+
+let vozSelecionada = null;
+
+
+
+function escolherVoz(){
+
+
+    const vozes = window.speechSynthesis?.getVoices() || [];
+
+
+
+    const vozesPortugues = vozes.filter((voz) =>
+
+        voz.lang.toLowerCase().startsWith("pt")
+
+    );
+
+
+
+    const vozesBrasil = vozesPortugues.filter((voz) =>
+
+        voz.lang.toLowerCase() === "pt-br"
+
+    );
+
+
+
+    const nomesPreferidos = [
+
+        "francisca",
+        "google portugu\u00eas do brasil",
+        "microsoft francisca",
+        "microsoft antonio",
+        "google portugu\u00eas"
+
+    ];
+
+
+
+    vozSelecionada = nomesPreferidos
+
+        .map((nome) => vozesBrasil.find((voz) =>
+
+            voz.name.toLowerCase().includes(nome)
+
+        ))
+
+        .find(Boolean)
+
+        || vozesBrasil[0]
+
+        || vozesPortugues[0]
+
+        || null;
+
+
+}
+
+
+
+if(window.speechSynthesis){
+
+
+    escolherVoz();
+
+
+
+    // Alguns navegadores disponibilizam as vozes de forma assíncrona.
+    window.speechSynthesis.onvoiceschanged = escolherVoz;
+
+
+}
 
 
 
@@ -90,6 +172,23 @@ function falar(texto){
     mensagem.pitch =
 
     configuracaoVoz.tom;
+
+
+
+
+    if(vozSelecionada){
+
+        mensagem.voice = vozSelecionada;
+
+        mensagem.lang = vozSelecionada.lang;
+
+    }
+
+
+
+    // Pequena pausa deixa as respostas menos abruptas, no estilo de uma
+    // assistente virtual, sem imitar uma voz proprietária.
+    mensagem.volume = 1;
 
 
 
