@@ -7,8 +7,9 @@ function aplicarTema(tema) {
 }
 
 const temaSalvo = localStorage.getItem(chaveTema) || "azul";
+aplicarTema(temaSalvo);
+
 if (seletorTema) {
     seletorTema.value = temaSalvo;
-    aplicarTema(temaSalvo);
     seletorTema.addEventListener("change", () => aplicarTema(seletorTema.value));
 }
