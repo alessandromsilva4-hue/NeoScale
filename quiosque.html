@@ -3,37 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoScale | Pesagem</title>
+    <title>NeoScale | Quiosque</title>
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/quiosque.css">
 </head>
-<body class="quiosque pesagem-quiosque">
-    <main class="quiosque-tela" aria-label="Terminal de pesagem">
+<body class="quiosque">
+    <main class="quiosque-tela" aria-label="Terminal de autoatendimento">
         <header class="quiosque-cabecalho">
             <div>
                 <span>Bem-vindo(a), esse é o nosso</span>
                 <strong>Autoatendimento</strong>
             </div>
             <div class="quiosque-acoes">
-                <div class="seletor-tema">
-                    <label for="temaQuiosque">Tema</label>
-                    <select id="temaQuiosque" aria-label="Escolher tema de cores">
-                        <option value="azul">Azul</option>
-                        <option value="verde">Verde</option>
-                        <option value="roxo">Roxo</option>
-                        <option value="laranja">Laranja</option>
-                        <option value="turquesa">Turquesa</option>
-                        <option value="rosa">Rosa</option>
-                        <option value="grafite">Grafite</option>
-                    </select>
-                </div>
-                <div class="botoes-pesagem">
-                    <a class="abrir-quiosque" href="quiosque.html">Abrir quiosque</a>
-                    <button id="iniciarPesagem" type="button">Conectar balança</button>
-                    <button id="emitirComanda" type="button">Emitir comanda</button>
-                    <button id="emitirComandaTeste" type="button">Comanda teste</button>
-                </div>
+                <label for="temaQuiosque">Tema</label>
+                <select id="temaQuiosque" aria-label="Escolher tema de cores">
+                    <option value="azul">Azul</option>
+                    <option value="verde">Verde</option>
+                    <option value="roxo">Roxo</option>
+                    <option value="laranja">Laranja</option>
+                    <option value="turquesa">Turquesa</option>
+                    <option value="rosa">Rosa</option>
+                    <option value="grafite">Grafite</option>
+                </select>
+                <button id="iniciarPesagem" type="button">Conectar balança</button>
             </div>
         </header>
 
@@ -60,6 +53,7 @@
         <div class="quiosque-rodape">NEOSCALE <span>•</span> Experiência de pesagem inteligente</div>
     </main>
 
+    <button id="emitirComanda" class="controle-oculto" type="button">Emitir</button>
     <div id="previewComanda" class="controle-oculto"></div>
     <script src="js/quiosque.js"></script>
     <script type="module" src="js/firebase.js"></script>

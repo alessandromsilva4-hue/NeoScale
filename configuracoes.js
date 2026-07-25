@@ -81,6 +81,14 @@ document.getElementById(
 
 
 
+const temaQuiosque =
+
+document.getElementById(
+"temaQuiosque"
+);
+
+
+
 const botaoSalvar =
 
 document.getElementById(
@@ -139,6 +147,12 @@ async function salvarConfiguracao(){
 
 
 
+        temaQuiosque:
+
+        temaQuiosque?.value || "azul",
+
+
+
         atualizadoEm:
 
         new Date()
@@ -161,6 +175,13 @@ async function salvarConfiguracao(){
 
         dados
 
+    );
+
+
+
+    localStorage.setItem(
+        "neoscale-tema-quiosque",
+        dados.temaQuiosque
     );
 
 
@@ -259,6 +280,12 @@ async function carregarConfiguracao(){
 
 
 
+        if (temaQuiosque) {
+            temaQuiosque.value = dados.temaQuiosque || localStorage.getItem("neoscale-tema-quiosque") || "azul";
+        }
+
+
+
     });
 
 
@@ -304,4 +331,10 @@ document.addEventListener(
     carregarConfiguracao();
 
 
+});
+
+
+
+temaQuiosque?.addEventListener("change", () => {
+    localStorage.setItem("neoscale-tema-quiosque", temaQuiosque.value);
 });

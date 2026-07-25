@@ -15,6 +15,7 @@ const valorDisplay = document.getElementById("valorDisplay");
 const precoKgDisplay = document.getElementById("precoKgDisplay");
 const iniciar = document.getElementById("iniciarPesagem");
 const emitir = document.getElementById("emitirComanda");
+const emitirTeste = document.getElementById("emitirComandaTeste");
 const statusBalanca = document.querySelector(".status-balanca");
 const previewStatus = document.querySelector(".preview-status");
 const botaoTelaCheia = document.getElementById("alternarTelaCheia");
@@ -185,4 +186,5 @@ emitir?.addEventListener("click", () => {
     }
     concluirPesagemAutomatica();
 });
+emitirTeste?.addEventListener("click", () => window.imprimirComanda?.({ teste: true }));
 carregarConfiguracao();
