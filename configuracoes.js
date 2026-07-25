@@ -97,6 +97,14 @@ document.getElementById(
 
 
 
+const iniciarPesagem =
+
+document.getElementById(
+"iniciarPesagem"
+);
+
+
+
 
 
 
@@ -337,4 +345,10 @@ document.addEventListener(
 
 temaQuiosque?.addEventListener("change", () => {
     localStorage.setItem("neoscale-tema-quiosque", temaQuiosque.value);
+});
+
+
+
+iniciarPesagem?.addEventListener("click", () => {
+    window.location.assign("pesagem.html");
 });
