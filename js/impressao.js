@@ -25,7 +25,19 @@ const FRASES_RESERVA = [
     { frase: "Alimente seus planos com bons momentos.", autor: "NeoScale" },
     { frase: "Sabor que combina com o seu dia.", autor: "NeoScale" },
     { frase: "Que a sua pausa seja deliciosa.", autor: "NeoScale" },
-    { frase: "Uma boa refeição começa com bons ingredientes.", autor: "NeoScale" }
+    { frase: "Uma boa refeição começa com bons ingredientes.", autor: "NeoScale" },
+    { frase: "Amor é fogo que se arde sem se ver.", autor: "Luís de Camões" },
+    { frase: "Mudam-se os tempos, mudam-se as vontades.", autor: "Luís de Camões" },
+    { frase: "Tudo vale a pena se a alma não é pequena.", autor: "Fernando Pessoa" },
+    { frase: "Para viajar basta existir.", autor: "Fernando Pessoa" },
+    { frase: "Matamos o tempo; o tempo nos enterra.", autor: "Machado de Assis" },
+    { frase: "Cada qual sabe amar a seu modo; o modo pouco importa.", autor: "Machado de Assis" },
+    { frase: "Sobre a nudez forte da verdade, o manto diáfano da fantasia.", autor: "Eça de Queiroz" },
+    { frase: "Ser poeta é ser mais alto, é ser maior.", autor: "Florbela Espanca" },
+    { frase: "Viver é a coisa mais rara do mundo. A maioria das pessoas apenas existe.", autor: "Oscar Wilde" },
+    { frase: "Sabemos o que somos, mas não sabemos o que poderemos ser.", autor: "William Shakespeare" },
+    { frase: "Minha arte e minha profissão é viver.", autor: "Michel de Montaigne" },
+    { frase: "Para viajar longe, não há melhor nave que um livro.", autor: "Emily Dickinson" }
 ];
 
 let ultimaFrase = "";
