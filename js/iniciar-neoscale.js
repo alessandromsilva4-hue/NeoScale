@@ -2,7 +2,7 @@ const http = require("http");
 const fs = require("fs");
 const path = require("path");
 
-const root = __dirname;
+const root = path.resolve(__dirname, "..");
 const port = 4180;
 const contentTypes = {
   ".css": "text/css; charset=utf-8",
