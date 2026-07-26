@@ -1,3 +1,12 @@
+// ==========================================
+// APLICAR TEMA DO QUIOSQUE
+// ==========================================
+
+const tema = localStorage.getItem("neoscale-tema-quiosque") || "azul";
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.dataset.tema = tema;
+});
 const seletorTema = document.getElementById("temaQuiosque");
 const chaveTema = "neoscale-tema-quiosque";
 

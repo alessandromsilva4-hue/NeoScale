@@ -27,7 +27,7 @@
 
     width:260px;
 
-    background:#0F172A;
+    background:var(--sidebar);
 
     color:white;
 
@@ -145,13 +145,11 @@
 
 
 
-.sidebar-menu a:hover {
+.sidebar-menu a:hover{
 
-
-    background:#1E293B;
+    background:var(--primary-dark);
 
     color:white;
-
 
 }
 
@@ -160,13 +158,11 @@
 /* ITEM ATIVO */
 
 
-.sidebar-menu a.active {
+.sidebar-menu a.active{
 
-
-    background:#2563EB;
+    background:var(--primary);
 
     color:white;
-
 
 }
 
@@ -221,13 +217,11 @@
 
 
 
-.sidebar-footer button:hover {
+.sidebar-footer button:hover{
 
-
-    background:#1E293B;
+    background:var(--primary-dark);
 
     color:white;
-
 
 }
 

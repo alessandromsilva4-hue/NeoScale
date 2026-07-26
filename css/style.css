@@ -11,9 +11,8 @@
 
 :root {
 
-    --primary: #2563EB;
-
-    --primary-dark: #1D4ED8;
+   --primary:#2563EB;
+--primary-dark:#1D4ED8;
 
     --secondary: #22C55E;
 
@@ -472,4 +471,132 @@ body {
     }
 
 
+}
+/* ==========================================
+   TEMAS DO QUIOSQUE
+========================================== */
+/* Azul */
+body[data-tema="azul"]{
+    --primary:#2563EB;
+    --primary-dark:#1D4ED8;
+    --sidebar:#0F172A;
+}
+
+/* Verde */
+body[data-tema="verde"]{
+    --primary:#16A34A;
+    --primary-dark:#15803D;
+    --sidebar:#14532D;
+}
+
+/* Roxo */
+body[data-tema="roxo"]{
+    --primary:#7C3AED;
+    --primary-dark:#6D28D9;
+    --sidebar:#4C1D95;
+}
+
+/* Laranja */
+body[data-tema="laranja"]{
+    --primary:#EA580C;
+    --primary-dark:#C2410C;
+    --sidebar:#7C2D12;
+}
+
+/* Turquesa */
+body[data-tema="turquesa"]{
+    --primary:#0891B2;
+    --primary-dark:#0E7490;
+    --sidebar:#164E63;
+}
+
+/* Rosa */
+body[data-tema="rosa"]{
+    --primary:#DB2777;
+    --primary-dark:#BE185D;
+    --sidebar:#831843;
+}
+
+/* Grafite */
+body[data-tema="grafite"]{
+    --primary:#374151;
+    --primary-dark:#1F2937;
+    --sidebar:#111827;
+}
+
+/* Preto */
+body[data-tema="preto"]{
+    --primary:#111827;
+    --primary-dark:#000000;
+    --sidebar:#000000;
+}
+
+/* Vermelho */
+body[data-tema="vermelho"]{
+    --primary:#DC2626;
+    --primary-dark:#B91C1C;
+    --sidebar:#7F1D1D;
+}
+
+/* Amarelo */
+body[data-tema="amarelo"]{
+    --primary:#CA8A04;
+    --primary-dark:#A16207;
+    --sidebar:#713F12;
+}
+
+/* Ciano */
+body[data-tema="ciano"]{
+    --primary:#06B6D4;
+    --primary-dark:#0891B2;
+    --sidebar:#164E63;
+}
+
+/* Esmeralda */
+body[data-tema="esmeralda"]{
+    --primary:#059669;
+    --primary-dark:#047857;
+    --sidebar:#064E3B;
+}
+
+/* Oceano */
+body[data-tema="oceano"]{
+    --primary:#1D4ED8;
+    --primary-dark:#1E3A8A;
+    --sidebar:#172554;
+}
+
+/* Vinho */
+body[data-tema="vinho"]{
+    --primary:#881337;
+    --primary-dark:#701A2E;
+    --sidebar:#4A044E;
+}
+
+/* Marrom */
+body[data-tema="marrom"]{
+    --primary:#92400E;
+    --primary-dark:#78350F;
+    --sidebar:#451A03;
+}
+
+/* Cinza */
+body[data-tema="cinza"]{
+    --primary:#6B7280;
+    --primary-dark:#4B5563;
+    --sidebar:#374151;
+}
+
+/* Dourado */
+body[data-tema="dourado"]{
+    --primary:#D97706;
+    --primary-dark:#B45309;
+    --sidebar:#78350F;
+}
+
+/* Prata */
+body[data-tema="prata"]{
+    --primary:#9CA3AF;
+    --primary-dark:#6B7280;
+    --sidebar:#475569;
 }
