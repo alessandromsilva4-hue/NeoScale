@@ -1,0 +1,30 @@
+<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NeoScale | Caixa</title><link rel="icon" href="img/favicon.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/caixa.css"></head><body><div class="layout"><aside class="sidebar">
+  <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
+  <nav class="sidebar-menu">
+    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
+    <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
+    <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
+    <a href="caixa.html" class="active"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
+    <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
+    <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
+    <a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
+    <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
+    <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
+    <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
+  </nav>
+  <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
+</aside><main class="content caixa-page"><header class="caixa-head"><div><h2>Caixa</h2><p>Abra, acompanhe e feche o caixa do operador.</p></div><div class="caixa-badge"><span id="dot" class="dot off"></span><span id="badgeStatus">CAIXA FECHADO</span></div></header><div id="msg"></div><section class="metrics"><div class="metric status"><span>Status</span><strong id="status">FECHADO</strong></div><div class="metric"><span>Valor inicial</span><strong id="inicial">R$ 0,00</strong></div><div class="metric"><span>Total esperado</span><strong id="esperado">R$ 0,00</strong></div><div class="metric"><span>Diferença</span><strong id="diferenca">R$ 0,00</strong></div></section><section class="panel-caixa" id="abrir"><h3><i class="bi bi-unlock"></i> Abrir caixa</h3><p>Informe o operador e o valor inicial disponível no caixa.</p><div class="form-caixa"><div class="field"><label for="operador">OPERADOR</label><input id="operador" value="Operador"></div><div class="field"><label for="valorInicial">VALOR INICIAL</label><input id="valorInicial" type="number" step="0.01" min="0" value="0"></div><button class="btn-caixa" id="btnAbrir"><i class="bi bi-unlock"></i> Abrir caixa</button></div></section><section class="panel-caixa hidden" id="fechar"><h3><i class="bi bi-lock"></i> Fechamento do caixa atual</h3><p>Conte o dinheiro disponível e informe o valor contado para conferir a diferença.</p><div class="form-caixa"><div class="field"><label for="valorContado">VALOR CONTADO</label><input id="valorContado" type="number" step="0.01" min="0" value="0"></div><div class="info"><span>Operador</span><strong id="operadorAtual">—</strong></div><button class="btn-caixa btn-fechar" id="btnFechar"><i class="bi bi-lock"></i> Fechar caixa</button></div></section><section class="panel-caixa hidden" id="movimentacoesPanel">
+<h3><i class="bi bi-arrow-left-right"></i> Movimentações do caixa</h3>
+<p>Registre retiradas de dinheiro (sangria) ou entradas adicionais (suprimento) durante o expediente.</p>
+<div class="mov-tabs" role="tablist">
+<button type="button" class="mov-tab active" data-tipo="SANGRIA"><i class="bi bi-arrow-down-left"></i> Sangria</button>
+<button type="button" class="mov-tab" data-tipo="SUPRIMENTO"><i class="bi bi-arrow-up-right"></i> Suprimento</button>
+</div>
+<div class="mov-form">
+<div class="field"><label for="movValor">VALOR</label><input id="movValor" type="number" step="0.01" min="0.01" placeholder="0,00"></div>
+<div class="field"><label for="movDescricao">DESCRIÇÃO</label><input id="movDescricao" type="text" maxlength="120" placeholder="Ex.: retirada para depósito"></div>
+<button class="btn-caixa" id="btnMovimentar"><i class="bi bi-check2-circle"></i> Registrar sangria</button>
+</div>
+<div class="mov-hint" id="movHint"><i class="bi bi-info-circle"></i> A sangria reduz o valor esperado do caixa.</div>
+<div class="mov-list" id="movList"></div>
+</section><section class="panel-caixa"><h3><i class="bi bi-info-circle"></i> Resumo do caixa</h3><p>Os valores abaixo são calculados a partir das movimentações registradas pelo PDV.</p><div class="info-grid"><div class="info"><span>Entradas</span><strong id="entradas">R$ 0,00</strong></div><div class="info"><span>Saídas</span><strong id="saidas">R$ 0,00</strong></div><div class="info"><span>Caixa</span><strong id="caixaId">—</strong></div></div></section></main></div><script type="module" src="js/caixa-page.js"></script></body></html>

@@ -88,9 +88,15 @@ catch(error){
 console.error(error);
 
 
-alert(
-"Usuário ou senha inválidos."
-);
+let mensagem = "Usuário ou senha inválidos.";
+
+if(error.code === "auth/user-not-found") mensagem = "Usuário não encontrado. Use Criar primeiro acesso.";
+if(error.code === "auth/wrong-password") mensagem = "Senha incorreta.";
+if(error.code === "auth/invalid-credential") mensagem = "E-mail ou senha incorretos.";
+if(error.code === "auth/invalid-email") mensagem = "E-mail inválido.";
+if(error.code === "auth/too-many-requests") mensagem = "Muitas tentativas. Aguarde alguns minutos e tente novamente.";
+
+alert(mensagem);
 
 
 }

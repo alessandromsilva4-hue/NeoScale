@@ -1,6 +1,7 @@
-/* Leitura automática da balança e emissão da comanda. */
+/* NeoScale - terminal de pesagem */
 import { db } from "./firebase.js";
-import { collection, addDoc, serverTimestamp, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { criarComanda } from "./comandas.js";
 
 let precoKg = 89.90;
 let pesoAtual = 0;
@@ -9,6 +10,7 @@ let leitorAtivo = false;
 let comandaEmProcessamento = false;
 let precisaZerarBalanca = false;
 let leiturasRecentes = [];
+let ultimaComanda = null;
 
 const pesoDisplay = document.getElementById("pesoDisplay");
 const valorDisplay = document.getElementById("valorDisplay");
@@ -32,38 +34,18 @@ function atualizarStatus(texto, ativo = false) {
 async function carregarConfiguracao() {
     try {
         const dados = await getDoc(doc(db, "configuracoes", "principal"));
-        if (dados.exists()) precoKg = dados.data().precoKg || precoKg;
+        if (dados.exists()) precoKg = Number(dados.data().precoKg || precoKg);
     } catch (erro) {
         console.error("Não foi possível carregar o preço por kg.", erro);
     }
     if (precoKgDisplay) precoKgDisplay.textContent = formatarMoeda(precoKg);
 }
 
-async function gerarPreview(valor) {
-    let frase = { frase: "Uma boa refeição transforma momentos.", autor: "NeoScale" };
-    if (window.NeoFrases) frase = await window.NeoFrases.buscarFrase();
-
-    document.getElementById("previewComanda").textContent =
-        `NEOSCALE\nBuffet por quilo\n\nPeso: ${formatarPeso(pesoAtual)}\nValor: ${formatarMoeda(valor)}\n\n“${frase.frase}”\n— ${frase.autor}`;
-}
-
 function atualizarLeitura(peso) {
     pesoAtual = peso;
     const valor = pesoAtual * precoKg;
-    pesoDisplay.textContent = formatarPeso(pesoAtual);
-    valorDisplay.textContent = formatarMoeda(valor);
-    gerarPreview(valor);
-}
-
-async function salvarPesagem() {
-    if (pesoAtual <= 0) return false;
-    await addDoc(collection(db, "historico"), {
-        produto: "Buffet Almoço",
-        peso: pesoAtual,
-        valor: pesoAtual * precoKg,
-        data: serverTimestamp()
-    });
-    return true;
+    if (pesoDisplay) pesoDisplay.textContent = formatarPeso(pesoAtual);
+    if (valorDisplay) valorDisplay.textContent = formatarMoeda(valor);
 }
 
 async function concluirPesagemAutomatica() {
@@ -71,18 +53,30 @@ async function concluirPesagemAutomatica() {
 
     comandaEmProcessamento = true;
     precisaZerarBalanca = true;
-    atualizarStatus("Peso confirmado — emitindo comanda", true);
-    if (previewStatus) previewStatus.textContent = "Emitindo automaticamente";
+    atualizarStatus("Peso confirmado — gerando comanda", true);
+    if (previewStatus) previewStatus.textContent = "Gravando comanda";
 
     try {
-        await salvarPesagem();
-        window.imprimirComanda?.();
-        if (previewStatus) previewStatus.textContent = "Comanda emitida";
-        atualizarStatus("Aguarde retirar o prato", false);
+        const total = pesoAtual * precoKg;
+        const comanda = await criarComanda({
+            peso: pesoAtual,
+            precoKg,
+            total,
+            produto: "Buffet por quilo"
+        });
+
+        ultimaComanda = comanda;
+        window.imprimirComanda?.({ comanda });
+
+        if (previewStatus) previewStatus.textContent = `Comanda ${comanda.numero} emitida`;
+        atualizarStatus(`Comanda ${comanda.numero} emitida — retire o prato`, false);
+        if (typeof window.mostrarComandaGerada === "function") {
+            window.mostrarComandaGerada(comanda);
+        }
     } catch (erro) {
-        console.error("Erro ao emitir a comanda.", erro);
-        if (previewStatus) previewStatus.textContent = "Erro ao emitir";
-        atualizarStatus("Falha ao salvar a pesagem", false);
+        console.error("Erro ao gerar a comanda.", erro);
+        if (previewStatus) previewStatus.textContent = "Erro ao gerar comanda";
+        atualizarStatus("Falha ao salvar a comanda", false);
         precisaZerarBalanca = false;
     } finally {
         comandaEmProcessamento = false;
@@ -110,7 +104,7 @@ function receberPeso(peso) {
 }
 
 function extrairPeso(texto) {
-    const encontrado = texto.replace(",", ".").match(/-?\d+(?:\.\d+)?/);
+    const encontrado = String(texto).replace(",", ".").match(/-?\d+(?:\.\d+)?/);
     if (!encontrado) return null;
     let peso = Number(encontrado[0]);
     if (peso > 10) peso /= 1000;
@@ -149,8 +143,10 @@ async function conectarBalanca() {
         portaBalanca = await navigator.serial.requestPort();
         await portaBalanca.open({ baudRate: 9600 });
         leitorAtivo = true;
-        iniciar.textContent = "Balança conectada";
-        iniciar.disabled = true;
+        if (iniciar) {
+            iniciar.textContent = "Balança conectada";
+            iniciar.disabled = true;
+        }
         atualizarStatus("Aguardando prato", true);
         lerBalanca();
     } catch (erro) {
@@ -161,11 +157,8 @@ async function conectarBalanca() {
 
 async function alternarTelaCheia() {
     try {
-        if (document.fullscreenElement) {
-            await document.exitFullscreen();
-        } else {
-            await document.documentElement.requestFullscreen();
-        }
+        if (document.fullscreenElement) await document.exitFullscreen();
+        else await document.documentElement.requestFullscreen();
     } catch (erro) {
         console.error("Não foi possível alternar a tela cheia.", erro);
     }
@@ -179,12 +172,24 @@ document.addEventListener("fullscreenchange", () => {
 
 iniciar?.addEventListener("click", conectarBalanca);
 botaoTelaCheia?.addEventListener("click", alternarTelaCheia);
+
 emitir?.addEventListener("click", () => {
     if (pesoAtual <= 0.02) {
-        window.imprimirComanda?.({ teste: true });
+        alert("Coloque um peso sobre a balança antes de emitir a comanda.");
         return;
     }
     concluirPesagemAutomatica();
 });
-emitirTeste?.addEventListener("click", () => window.imprimirComanda?.({ teste: true }));
+
+emitirTeste?.addEventListener("click", () => {
+    window.imprimirComanda?.({ teste: true, comanda: {
+        numero: "TESTE",
+        codigoBarras: "2000000000",
+        peso: pesoAtual || 0.500,
+        precoKg,
+        total: (pesoAtual || 0.500) * precoKg,
+        produto: "Buffet por quilo"
+    }});
+});
+
 carregarConfiguracao();

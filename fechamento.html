@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>NeoScale | Fechamento Geral</title>
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/fechamento.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
+  <nav class="sidebar-menu">
+    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
+    <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
+    <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
+    <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
+    <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
+    <a href="fechamento.html" class="active"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
+    <a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
+    <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
+    <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
+    <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
+  </nav>
+  <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
+</aside>
+<main class="content fechamento-page">
+  <div class="fechamento-header">
+    <div>
+      <div class="eyebrow"><i class="bi bi-bar-chart-line"></i> Gestão financeira</div>
+      <h2>Fechamento Geral</h2>
+      <p>Consolide os caixas, confira as vendas e acompanhe as diferenças.</p>
+    </div>
+    <button class="btn-atualizar" id="atualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+  </div>
+
+  <section class="resumo-grid">
+    <article class="resumo-card destaque"><div class="resumo-icon"><i class="bi bi-shop"></i></div><div><span>Caixas</span><strong id="qtd">0</strong><small>registrados no sistema</small></div></article>
+    <article class="resumo-card"><div class="resumo-icon"><i class="bi bi-receipt"></i></div><div><span>Vendas</span><strong id="vendas">R$ 0,00</strong><small>total vendido</small></div></article>
+    <article class="resumo-card"><div class="resumo-icon"><i class="bi bi-arrow-down-circle"></i></div><div><span>Entradas</span><strong id="entradas">R$ 0,00</strong><small>movimentações de entrada</small></div></article>
+    <article class="resumo-card"><div class="resumo-icon saida"><i class="bi bi-arrow-up-circle"></i></div><div><span>Saídas</span><strong id="saidas">R$ 0,00</strong><small>movimentações de saída</small></div></article>
+  </section>
+
+  <section class="painel-fechamento">
+    <div class="painel-topo">
+      <div><h3>Resumo dos caixas</h3><p>Histórico de abertura e fechamento dos operadores.</p></div>
+      <div class="legenda"><span><i class="dot fechado"></i> Fechado</span><span><i class="dot aberto"></i> Aberto</span></div>
+    </div>
+    <div class="tabela-wrap">
+      <table class="tabela-fechamento">
+        <thead><tr><th>Operador</th><th>Abertura</th><th>Fechamento</th><th>Status</th><th>Inicial</th><th>Contado</th><th>Diferença</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="7" class="carregando"><i class="bi bi-arrow-repeat"></i> Carregando caixas...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="painel-conciliacao">
+    <div class="conciliacao-topo">
+      <div>
+        <div class="eyebrow conc-eyebrow"><i class="bi bi-check2-square"></i> Conferência financeira</div>
+        <h3>Conciliação do caixa</h3>
+        <p>Compare os valores registrados no NeoScale com os relatórios das maquininhas e confira se o caixa realmente bateu.</p>
+      </div>
+      <div class="conc-controles">
+        <label for="caixaConciliacao">Caixa</label>
+        <select id="caixaConciliacao"></select>
+        <button class="btn-conciliar" id="carregarConciliacao"><i class="bi bi-search"></i> Conferir</button>
+      </div>
+    </div>
+
+    <div class="conc-alerta" id="concAlerta"><i class="bi bi-info-circle"></i> Selecione um caixa fechado para iniciar a conciliação.</div>
+
+    <div class="conc-grid">
+      <div class="conc-card">
+        <div class="conc-card-head"><span>Dinheiro</span><i class="bi bi-cash-stack"></i></div>
+        <div class="conc-linha"><span>Esperado no sistema</span><strong id="sysDinheiro">R$ 0,00</strong></div>
+        <label>Valor contado</label><input id="maqDinheiro" type="number" min="0" step="0.01" placeholder="0,00">
+        <div class="conc-diff"><span>Diferença</span><strong id="difDinheiro">R$ 0,00</strong></div>
+      </div>
+      <div class="conc-card">
+        <div class="conc-card-head"><span>PIX</span><i class="bi bi-qr-code"></i></div>
+        <div class="conc-linha"><span>Registrado no sistema</span><strong id="sysPix">R$ 0,00</strong></div>
+        <label>Valor no relatório</label><input id="maqPix" type="number" min="0" step="0.01" placeholder="0,00">
+        <div class="conc-diff"><span>Diferença</span><strong id="difPix">R$ 0,00</strong></div>
+      </div>
+      <div class="conc-card">
+        <div class="conc-card-head"><span>Débito</span><i class="bi bi-credit-card"></i></div>
+        <div class="conc-linha"><span>Registrado no sistema</span><strong id="sysDebito">R$ 0,00</strong></div>
+        <label>Valor na maquininha</label><input id="maqDebito" type="number" min="0" step="0.01" placeholder="0,00">
+        <div class="conc-diff"><span>Diferença</span><strong id="difDebito">R$ 0,00</strong></div>
+      </div>
+      <div class="conc-card">
+        <div class="conc-card-head"><span>Crédito</span><i class="bi bi-credit-card-2-front"></i></div>
+        <div class="conc-linha"><span>Registrado no sistema</span><strong id="sysCredito">R$ 0,00</strong></div>
+        <label>Valor na maquininha</label><input id="maqCredito" type="number" min="0" step="0.01" placeholder="0,00">
+        <div class="conc-diff"><span>Diferença</span><strong id="difCredito">R$ 0,00</strong></div>
+      </div>
+    </div>
+
+    <div class="conc-observacao">
+      <div class="conc-observacao-head">
+        <div>
+          <label for="obsConciliacao"><i class="bi bi-chat-left-text"></i> Observações / justificativa</label>
+          <p>Registre o motivo quando houver diferença ou qualquer informação importante sobre a conferência.</p>
+        </div>
+        <span>Opcional quando o caixa bater</span>
+      </div>
+      <textarea id="obsConciliacao" rows="4" maxlength="1000" placeholder="Ex.: Diferença de R$ 10,00 referente a uma taxa da maquininha / sangria registrada posteriormente / valor conferido manualmente..."></textarea>
+      <div class="obs-contador"><span id="contadorObs">0</span>/1000</div>
+    </div>
+
+    <div class="conc-resumo">
+      <div><span>Total sistema</span><strong id="concTotalSistema">R$ 0,00</strong></div>
+      <div><span>Total conferido</span><strong id="concTotalMaquina">R$ 0,00</strong></div>
+      <div class="resultado-conc" id="resultadoConc"><span>Status da conciliação</span><strong id="statusConc">Pendente</strong></div>
+      <button class="btn-salvar-conc" id="salvarConciliacao"><i class="bi bi-check2-circle"></i> Salvar conciliação</button>
+    </div>
+  </section>
+  <div class="rodape-info"><i class="bi bi-shield-check"></i> Dados consolidados diretamente do Firestore</div>
+</main>
+</div>
+<script type="module" src="js/fechamento.js"></script>
+</body>
+</html>

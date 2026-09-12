@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Frente de Loja</title>
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/pdv.css">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+  <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
+  <nav class="sidebar-menu">
+    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
+    <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
+    <a href="pdv.html" class="active"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
+    <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
+    <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
+    <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
+    <a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
+    <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
+    <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
+    <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
+  </nav>
+  <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
+</aside>
+<main class="content pdv-page">
+  <div class="pdv-topbar">
+    <div class="pdv-title"><h2>Frente de Loja</h2><p>Venda rápida, leitura de comanda e recebimento.</p></div>
+    <div class="pdv-status">
+      <div class="status-pill"><span id="statusDot" class="status-dot"></span><span>Caixa <strong id="numeroCaixa">01</strong> · <strong id="statusCaixa">verificando...</strong></span></div>
+      <div class="status-pill"><i class="bi bi-person"></i><span>Operador <strong id="operadorNome">Operador</strong></span></div>
+      <div class="status-pill"><i class="bi bi-clock"></i><strong id="relogio">--:--</strong></div>
+    </div>
+  </div>
+  <div class="pdv-tabs"><button type="button" class="pdv-tab active" data-tab="comanda"><i class="bi bi-upc-scan"></i> Comanda / Pesagem</button><button type="button" class="pdv-tab" data-tab="produtos"><i class="bi bi-basket2"></i> Produtos</button></div>
+  <div class="pdv-shortcuts"><span class="shortcut">F2 · Comanda</span><span class="shortcut">Enter · Buscar</span><span class="shortcut">F6 · Pagamento</span><span class="shortcut">F8 · Cancelar</span><span class="shortcut">ESC · Limpar</span></div>
+
+  <div class="kpi-strip">
+    <div class="kpi"><span>Comanda atual</span><strong id="kpiComanda">—</strong></div>
+    <div class="kpi"><span>Itens da venda</span><strong id="kpiItens">0</strong></div>
+    <div class="kpi"><span>Valor da venda</span><strong id="kpiValor">R$ 0,00</strong></div>
+  </div>
+
+  <section class="scanner-card" id="painelComandaPDV">
+    <div class="scanner-head"><strong><i class="bi bi-upc-scan"></i> Ler comanda</strong><span>O leitor pode enviar o código automaticamente</span></div>
+    <div class="scanner-row">
+      <div class="scanner-input-wrap"><i class="bi bi-upc"></i><input id="codigoComanda" class="scanner-input" autocomplete="off" autofocus placeholder="Passe o código de barras ou digite o nº da comanda"></div>
+      <button id="btnBuscar" class="scanner-btn"><i class="bi bi-search"></i> Buscar</button>
+    </div>
+    <div id="mensagem" class="message"></div>
+  </section>
+
+
+  <section class="products-panel panel" id="painelProdutosPDV">
+    <div class="panel-head">
+      <div><h3><i class="bi bi-basket2"></i> Venda de produtos</h3><small>Produtos vendidos à parte da pesagem</small></div>
+      <span class="products-mode">UNIDADES</span>
+    </div>
+    <div class="products-toolbar">
+      <div class="product-search">
+        <i class="bi bi-search"></i>
+        <input id="buscaProdutoPDV" type="search" placeholder="Buscar produto, marmita, bebida..." autocomplete="off">
+      </div>
+      <div id="categoriasPDV" class="product-categories">
+        <button class="category-btn active" data-category="Todos" type="button">Todos</button>
+      </div>
+    </div>
+    <div id="listaProdutosPDV" class="products-grid">
+      <div class="products-loading"><i class="bi bi-arrow-repeat"></i> Carregando produtos...</div>
+    </div>
+  </section>
+
+  <div class="pdv-grid">
+    <section class="panel">
+      <div class="panel-head"><h3><i class="bi bi-receipt"></i> Venda atual</h3><small id="horaVenda">Aguardando comanda</small></div>
+      <div id="ticketEmpty" class="ticket-empty"><i class="bi bi-cart3"></i><strong>Nenhuma comanda carregada</strong><span>Leia uma comanda para a refeição por peso ou adicione produtos diretamente nesta venda.</span></div>
+      <div id="ticket" class="ticket">
+        <div class="ticket-meta">
+          <div class="meta-box"><span>Comanda</span><strong id="numeroComanda">—</strong></div>
+          <div class="meta-box"><span>Status</span><strong id="statusComanda">ABERTA</strong></div>
+          <div class="meta-box"><span>Origem</span><strong>NeoScale</strong></div>
+        </div>
+        <table class="items-table">
+          <thead><tr><th>Produto</th><th>Quantidade</th><th>Peso</th><th>Preço/kg</th><th>Total</th></tr></thead>
+          <tbody id="itensVenda"><tr><td id="produtoComanda">—</td><td>1</td><td id="pesoComanda" class="weight-value">—</td><td id="precoComanda" class="price-value">—</td><td id="totalComanda" class="weight-value">—</td></tr></tbody>
+        </table>
+        <div class="ticket-footer"><button id="btnLimpar" class="btn-outline"><i class="bi bi-arrow-counterclockwise"></i> Nova venda</button><button id="btnCancelar" class="btn-danger"><i class="bi bi-x-circle"></i> Cancelar</button></div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <div class="panel-head"><h3><i class="bi bi-calculator"></i> Resumo e pagamento</h3><small>Recebimento</small></div>
+      <div class="summary">
+        <div class="summary-row"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
+        <div class="summary-row"><span>Desconto</span><strong>R$ 0,00</strong></div>
+        <div class="summary-total"><span>Total a pagar</span><strong id="totalGrande">R$ 0,00</strong></div>
+        <div class="payment-title">Forma de pagamento</div>
+        <div class="pay-grid">
+          <button class="pay-btn" data-pay="Dinheiro"><i class="bi bi-cash-coin"></i> Dinheiro</button>
+          <button class="pay-btn" data-pay="PIX"><i class="bi bi-qr-code"></i> PIX</button>
+          <button class="pay-btn" data-pay="Débito"><i class="bi bi-credit-card"></i> Débito</button>
+          <button class="pay-btn" data-pay="Crédito"><i class="bi bi-credit-card-2-front"></i> Crédito</button>
+        </div>
+        <div id="trocoBox" class="change-box"><label for="valorRecebido">VALOR RECEBIDO</label><input id="valorRecebido" type="number" min="0" step="0.01" placeholder="0,00"><div class="change-result">Troco: <span id="troco">R$ 0,00</span></div></div>
+        <button id="finalizar" class="finish-btn" disabled><i class="bi bi-check-circle"></i> FINALIZAR VENDA</button>
+      </div>
+    </aside>
+  </div>
+</main>
+</div>
+<div id="modalCancel" class="modal"><div class="modal-card"><h3>Cancelar venda?</h3><p>A comanda continuará disponível para ser consultada e finalizada depois.</p><div class="modal-actions"><button id="fecharModal" class="btn-outline">Voltar</button><button id="confirmarCancelar" class="btn-danger">Cancelar venda</button></div></div></div>
+<script type="module" src="js/pdv.js"></script>
+</body>
+</html>

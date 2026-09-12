@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criar acesso | NeoScale</title>
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="css/style.css">
+<style>
+.setup-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;background:#f4f7fb;padding:24px;font-family:Inter,Arial,sans-serif}
+.setup-card{width:min(460px,100%);background:#fff;border-radius:18px;padding:34px;box-shadow:0 18px 50px rgba(15,23,42,.12)}
+.setup-card h1{margin:0 0 8px;color:#0f172a}.setup-card p{color:#64748b;margin:0 0 24px;line-height:1.5}
+.field{margin-bottom:16px}.field label{display:block;margin-bottom:7px;font-weight:600;color:#334155}.field input{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #d8e0ec;border-radius:10px;font-size:15px;outline:none}.field input:focus{border-color:#2563eb;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.btn{width:100%;border:0;border-radius:10px;background:#2563eb;color:white;padding:14px;font-size:15px;font-weight:700;cursor:pointer}.btn:disabled{opacity:.65;cursor:wait}
+.msg{margin-top:16px;padding:12px;border-radius:10px;display:none;line-height:1.4}.msg.ok{display:block;background:#ecfdf5;color:#047857}.msg.err{display:block;background:#fef2f2;color:#b91c1c}.back{display:block;text-align:center;margin-top:18px;color:#2563eb;text-decoration:none;font-weight:600}
+.note{font-size:12px;color:#64748b;margin-top:18px}
+</style>
+</head>
+<body>
+<div class="setup-wrap">
+  <div class="setup-card">
+    <h1>Criar primeiro acesso</h1>
+    <p>Cadastre o usuário administrador que será usado para entrar no NeoScale.</p>
+    <form id="setupForm">
+      <div class="field"><label for="email">E-mail</label><input id="email" type="email" placeholder="admin@empresa.com" required></div>
+      <div class="field"><label for="senha">Senha</label><input id="senha" type="password" minlength="6" placeholder="Mínimo de 6 caracteres" required></div>
+      <div class="field"><label for="confirmar">Confirmar senha</label><input id="confirmar" type="password" minlength="6" placeholder="Repita a senha" required></div>
+      <button class="btn" id="btnCriar" type="submit">Criar acesso</button>
+    </form>
+    <div id="mensagem" class="msg"></div>
+    <a class="back" href="index.html">← Voltar para o login</a>
+    <div class="note">Depois de criar o acesso, use o mesmo e-mail e senha na tela de login. Não compartilhe sua senha.</div>
+  </div>
+</div>
+<script type="module">
+import { auth } from "./js/firebase.js";
+import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+const form=document.getElementById('setupForm');
+const msg=document.getElementById('mensagem');
+const btn=document.getElementById('btnCriar');
+form.addEventListener('submit',async(e)=>{
+ e.preventDefault(); msg.className='msg'; msg.textContent='';
+ const email=document.getElementById('email').value.trim();
+ const senha=document.getElementById('senha').value;
+ const confirmar=document.getElementById('confirmar').value;
+ if(senha!==confirmar){msg.className='msg err';msg.textContent='As senhas não são iguais.';return;}
+ if(senha.length<6){msg.className='msg err';msg.textContent='A senha precisa ter pelo menos 6 caracteres.';return;}
+ btn.disabled=true; btn.textContent='Criando acesso...';
+ try{
+   const cred=await createUserWithEmailAndPassword(auth,email,senha);
+   await updateProfile(cred.user,{displayName:'Administrador'});
+   msg.className='msg ok'; msg.textContent='Acesso criado com sucesso! Você já pode entrar no NeoScale.';
+   form.reset();
+ }catch(error){
+   console.error(error);
+   const mensagens={
+     'auth/email-already-in-use':'Este e-mail já possui um acesso no Firebase.',
+     'auth/invalid-email':'Digite um e-mail válido.',
+     'auth/weak-password':'A senha informada é muito fraca.',
+     'auth/operation-not-allowed':'O login por E-mail/senha não está habilitado no Firebase.'
+   };
+   msg.className='msg err'; msg.textContent=mensagens[error.code] || ('Não foi possível criar o acesso. Código: '+error.code);
+ }finally{btn.disabled=false;btn.textContent='Criar acesso';}
+});
+</script>
+</body>
+</html>
