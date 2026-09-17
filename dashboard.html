@@ -1,61 +1,27 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
-
-    <meta charset="UTF-8">
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>NeoScale | Dashboard</title>
-
-
-    <!-- Fonte -->
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
-        rel="stylesheet">
-
-
-    <!-- Ícones -->
-
-    <link rel="stylesheet"
-        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-
-
-    <!-- CSS -->
-
-    <link rel="stylesheet" href="css/style.css">
-
-    <link rel="stylesheet" href="css/sidebar.css">
-
-    <link rel="stylesheet" href="css/dashboard.css">
-
-    <link rel="icon" type="image/png" href="img/favicon.png">
-
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/dashboard.css">
+<link rel="icon" type="image/png" href="img/favicon.png">
 </head>
-
-
 <body>
-
-
 <div class="layout">
-
-
-<!-- =========================
-     SIDEBAR
-========================= -->
-
-
 <aside class="sidebar">
   <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
   <nav class="sidebar-menu">
     <a href="dashboard.html" class="active"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
     <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
     <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
+    <a href="delivery.html"><i class="bi bi-bicycle"></i><span>Delivery</span></a>
     <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
     <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
     <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
@@ -66,241 +32,96 @@
   </nav>
   <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
 </aside>
-
-
-
-
-
-<!-- =========================
-     CONTEÚDO
-========================= -->
-
-
-<main class="content">
-
-
-<header class="dashboard-header">
-
-
-    <div>
-
-        <h2 id="saudacao">
-
-            Bom dia!
-
-        </h2>
-
-
-        <p>
-
-            Bem-vindo ao NeoScale
-
-        </p>
-
-
+<main class="content dashboard-page">
+<header class="topbar">
+  <div class="welcome"><div class="online-pill"><i></i> Sistema Online</div><h2 id="saudacao">Bom dia!</h2><p>Bem-vindo ao NeoScale. Aqui está o resumo da operação de hoje.</p></div>
+  <div class="topbar-right">
+    <div class="top-action-wrap">
+      <button type="button" class="store top-action" id="btnLoja" aria-expanded="false" aria-haspopup="true">
+        <div class="top-icon"><i class="bi bi-shop"></i></div>
+        <div><strong>Loja Principal</strong><small>Sistema de Pesagem e Vendas</small></div>
+        <i class="bi bi-chevron-down top-chevron"></i>
+      </button>
+      <div class="top-dropdown store-dropdown" id="menuLoja" hidden>
+        <div class="dropdown-title">Loja selecionada</div>
+        <button type="button" class="dropdown-item active" data-store="principal">
+          <span class="dropdown-icon"><i class="bi bi-shop"></i></span>
+          <span><strong>Loja Principal</strong><small>Sistema de Pesagem e Vendas</small></span>
+          <i class="bi bi-check2"></i>
+        </button>
+        <button type="button" class="dropdown-item" data-action="configuracoes">
+          <span class="dropdown-icon"><i class="bi bi-gear"></i></span>
+          <span><strong>Configurações da loja</strong><small>Gerenciar operação</small></span>
+        </button>
+      </div>
     </div>
 
-
-
-    <div class="date-time">
-
-
-        <span id="dataAtual"></span>
-
-        <strong id="horaAtual"></strong>
-
-
+    <div class="clock-card" title="Data e hora atual">
+      <i class="bi bi-calendar3"></i>
+      <div><span id="dataAtual"></span><strong id="horaAtual"></strong></div>
     </div>
 
+    <div class="top-action-wrap">
+      <button type="button" class="user-card top-action" id="btnUsuario" aria-expanded="false" aria-haspopup="true">
+        <div class="avatar"><i class="bi bi-person"></i></div>
+        <div><strong>Administrador</strong><small><i></i> Online</small></div>
+        <i class="bi bi-chevron-down top-chevron"></i>
+      </button>
+      <div class="top-dropdown user-dropdown" id="menuUsuario" hidden>
+        <div class="user-menu-head">
+          <div class="avatar"><i class="bi bi-person"></i></div>
+          <div><strong>Administrador</strong><small>Usuário conectado</small></div>
+        </div>
+        <button type="button" class="dropdown-item" data-action="configuracoes">
+          <span class="dropdown-icon"><i class="bi bi-gear"></i></span>
+          <span><strong>Configurações</strong><small>Ajustar o NeoScale</small></span>
+        </button>
+        <button type="button" class="dropdown-item" data-action="historico">
+          <span class="dropdown-icon"><i class="bi bi-clock-history"></i></span>
+          <span><strong>Histórico</strong><small>Consultar movimentações</small></span>
+        </button>
+        <div class="dropdown-divider"></div>
+        <button type="button" class="dropdown-item danger" data-action="sair">
+          <span class="dropdown-icon"><i class="bi bi-box-arrow-right"></i></span>
+          <span><strong>Sair</strong><small>Voltar para o login</small></span>
+        </button>
+      </div>
+    </div>
 
-
+    <button type="button" class="refresh-btn" id="btnAtualizar" title="Atualizar dados">
+      <i class="bi bi-arrow-clockwise"></i><span>Atualizar</span>
+    </button>
+  </div>
 </header>
-
-
-
-
-
-<section class="cards">
-
-
-
-<div class="card">
-
-
-    <div class="card-icon blue">
-
-        <i class="bi bi-receipt"></i>
-
+<section class="hero-grid">
+  <div class="hero-banner">
+    <div class="hero-copy"><span class="eyebrow">TECNOLOGIA PARA O SEU NEGÓCIO</span><h1>Mais agilidade.<br><strong>Mais controle.</strong></h1><p>Uma operação simples, precisa e inteligente para o seu dia a dia.</p><div class="hero-tags"><span><i class="bi bi-speedometer2"></i> Precisão</span><span><i class="bi bi-shield-check"></i> Segurança</span><span><i class="bi bi-graph-up-arrow"></i> Controle</span></div></div>
+    <div class="hero-image"><img src="img/restaurante-quiosque.jpg" alt="Operação NeoScale"><div class="image-overlay"></div></div>
+  </div>
+  <aside class="quick-panel"><div class="panel-title"><i class="bi bi-lightning-charge-fill"></i><div><strong>Acesso rápido</strong><small>Principais operações</small></div></div>
+    <div class="quick-grid">
+      <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Nova pesagem</span><b>›</b></a>
+      <a href="caixa.html"><i class="bi bi-cash-register"></i><span>Abrir caixa</span><b>›</b></a>
+      <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de loja</span><b>›</b></a>
+      <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span><b>›</b></a>
+      <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span><b>›</b></a>
+      <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span><b>›</b></a>
     </div>
-
-
-    <div>
-
-        <span>Pesagens Hoje</span>
-
-        <h3 id="totalPesagens">
-
-            0
-
-        </h3>
-
-    </div>
-
-
-</div>
-
-
-
-
-<div class="card">
-
-
-    <div class="card-icon green">
-
-        <i class="bi bi-currency-dollar"></i>
-
-    </div>
-
-
-    <div>
-
-        <span>Faturamento</span>
-
-        <h3 id="faturamento">
-
-            R$ 0,00
-
-        </h3>
-
-    </div>
-
-
-</div>
-
-
-
-
-<div class="card">
-
-
-    <div class="card-icon orange">
-
-        <i class="bi bi-speedometer"></i>
-
-    </div>
-
-
-    <div>
-
-        <span>Peso Médio</span>
-
-        <h3 id="pesoMedio">
-
-            0 kg
-
-        </h3>
-
-    </div>
-
-
-</div>
-
-
-
-
-<div class="card">
-
-
-    <div class="card-icon purple">
-
-        <i class="bi bi-people"></i>
-
-    </div>
-
-
-    <div>
-
-        <span>Clientes</span>
-
-        <h3 id="clientes">
-
-            0
-
-        </h3>
-
-    </div>
-
-
-</div>
-
-
-
+  </aside>
 </section>
-
-
-
-
-
-<section class="frase-card">
-
-
-    <i class="bi bi-quote"></i>
-
-
-    <p id="fraseDia">
-
-        "A simplicidade é o último grau da sofisticação."
-
-    </p>
-
-
-    <span>
-
-        Leonardo da Vinci
-
-    </span>
-
-
+<section class="metric-grid">
+  <article class="metric-card"><div class="metric-icon green"><i class="bi bi-speedometer2"></i></div><div class="metric-body"><span>Pesagens hoje</span><strong id="totalPesagens">0</strong><small id="pesagensSub">Nenhuma pesagem registrada hoje</small></div><i class="bi bi-chevron-right metric-arrow"></i><div class="spark green-spark"></div></article>
+  <article class="metric-card"><div class="metric-icon emerald"><i class="bi bi-currency-dollar"></i></div><div class="metric-body"><span>Faturamento hoje</span><strong id="faturamento">R$ 0,00</strong><small id="faturamentoSub">Sem vendas no período</small></div><i class="bi bi-chevron-right metric-arrow"></i><div class="spark emerald-spark"></div></article>
+  <article class="metric-card"><div class="metric-icon blue"><i class="bi bi-box-seam"></i></div><div class="metric-body"><span>Peso médio</span><strong id="pesoMedio">0,000 kg</strong><small id="pesoSub">Sem pesagens no período</small></div><i class="bi bi-chevron-right metric-arrow"></i><div class="spark blue-spark"></div></article>
+  <article class="metric-card"><div class="metric-icon purple"><i class="bi bi-people-fill"></i></div><div class="metric-body"><span>Clientes hoje</span><strong id="clientes">0</strong><small id="clientesSub">Comandas finalizadas</small></div><i class="bi bi-chevron-right metric-arrow"></i><div class="spark purple-spark"></div></article>
 </section>
-
-
-
-
-
-
-<section class="chart-area">
-
-
-    <h3>
-
-        Movimento do dia
-
-    </h3>
-
-
-    <div class="chart-placeholder">
-
-        Gráfico será carregado aqui
-
-    </div>
-
-
+<section class="main-grid">
+  <article class="panel chart-panel"><div class="section-head"><div class="section-title"><div class="section-icon"><i class="bi bi-activity"></i></div><div><h3>Movimento do dia</h3><p>Pesagens e faturamento por horário</p></div></div><div class="period-controls"><button class="period active">Hoje</button><button class="period">7 dias</button><button class="period">30 dias</button><button class="date-control"><i class="bi bi-calendar3"></i><span id="chartDate"></span><i class="bi bi-chevron-down"></i></button></div></div><div class="chart-wrap"><div class="y-axis"><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span></div><div class="chart"><div class="grid-lines"></div><div id="bars" class="bars"></div><svg id="lineChart" class="line-chart" preserveAspectRatio="none"></svg><div id="xLabels" class="x-labels"></div></div></div><div class="legend"><span><i class="dot pesagens"></i> Pesagens</span><span><i class="dot faturamento"></i> Faturamento</span></div><div class="summary-row"><div><i class="bi bi-speedometer2"></i><span>Total de Pesagens</span><strong id="sumPesagens">0</strong><small>Hoje</small></div><div><i class="bi bi-currency-dollar"></i><span>Faturamento Total</span><strong id="sumFaturamento">R$ 0,00</strong><small>Hoje</small></div><div><i class="bi bi-box-seam"></i><span>Peso Total</span><strong id="sumPeso">0,000 kg</strong><small>Hoje</small></div><div><i class="bi bi-people"></i><span>Clientes Atendidos</span><strong id="sumClientes">0</strong><small>Comandas</small></div></div></article>
+  <article class="panel sales-panel"><div class="section-head compact"><div class="section-title"><div class="section-icon"><i class="bi bi-receipt"></i></div><div><h3>Últimas vendas</h3><p>Movimentações mais recentes</p></div></div><a href="historico.html">Ver todas <i class="bi bi-chevron-right"></i></a></div><div id="salesList" class="sales-list"><div class="empty-state"><i class="bi bi-inbox"></i><strong>Nenhuma venda registrada hoje</strong><span>As vendas finalizadas aparecerão aqui.</span></div></div></article>
 </section>
-
-
-
-
-</main>
-
-
-
-</div>
-
-
-
+<section class="bottom-grid"><div class="status-panel"><div class="status-title">Status da operação</div><div class="status-item"><i class="bi bi-speedometer2"></i><div><strong>Balança</strong><span id="balancaStatus">Pronta para conectar</span></div></div><div class="status-item"><i class="bi bi-printer"></i><div><strong>Impressora</strong><span>Disponível</span></div></div><div class="status-item"><i class="bi bi-shield-check"></i><div><strong>Sistema</strong><span class="ok">Online</span></div></div><div class="status-item"><i class="bi bi-database-check"></i><div><strong>Banco de dados</strong><span class="ok">Sincronizado</span></div></div></div><div class="quote-panel"><i class="bi bi-quote"></i><div><strong id="fraseDia">“A simplicidade é o último grau da sofisticação.”</strong><span id="autorFrase">Leonardo da Vinci</span></div></div></section>
+<footer class="dashboard-footer"><span>NeoScale v1.0 &nbsp;|&nbsp; Gestão Inteligente para o seu negócio</span><span><i></i> Sistema Online</span></footer>
+</main></div>
 <script type="module" src="js/dashboard.js"></script>
-
-
-</body>
-
-</html>
+<script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("dashboard");</script>
+</body></html>

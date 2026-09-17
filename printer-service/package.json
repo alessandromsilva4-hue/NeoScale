@@ -1,0 +1,7 @@
+{
+  "name": "neoscale-printer-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ponte HTTP para impressoras térmicas ESC/POS TCP 9100 do NeoScale",
+  "scripts": {"start":"node server.js"}
+}

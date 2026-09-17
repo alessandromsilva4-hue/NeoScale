@@ -1,0 +1,70 @@
+/* =====================================================
+   NeoScale — Tema Verde Unificado
+   Aplicado às telas internas para manter a mesma identidade
+   visual do Dashboard.
+===================================================== */
+:root{
+  --primary:#00A879;
+  --primary-dark:#007D5D;
+  --primary-deep:#063F34;
+  --primary-soft:#E8F8F2;
+  --primary-border:#CFEDE2;
+  --background:#F3FAF7;
+  --surface:#FFFFFF;
+  --text:#102A26;
+  --text-light:#647B75;
+  --border:#DDECE6;
+  --sidebar:#062B25;
+}
+
+/* Fundos e textos principais */
+body:not(.quiosque){background:var(--background)!important;color:var(--text)!important}
+
+/* Elementos que normalmente usam o azul de ação */
+button.primary,.btn-primary,.primary,.action-primary,.submit-btn,
+.btn-confirmar,.btn-salvar,.btn-finalizar,.btn-abrir,
+button[type="submit"]{
+  background:var(--primary)!important;
+  border-color:var(--primary)!important;
+  color:#fff!important;
+}
+button.primary:hover,.btn-primary:hover,.primary:hover,.action-primary:hover,
+.btn-confirmar:hover,.btn-salvar:hover,.btn-finalizar:hover,.btn-abrir:hover,
+button[type="submit"]:hover{background:var(--primary-dark)!important;border-color:var(--primary-dark)!important}
+
+/* Links e títulos de ação */
+a.action,a.primary-link,.link-primary,.text-primary{color:var(--primary-dark)!important}
+
+/* Campos focados */
+input:focus,select:focus,textarea:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px rgba(0,168,121,.12)!important;outline:none}
+
+/* Sidebar igual ao Dashboard */
+.sidebar{background:var(--sidebar)!important}
+.sidebar-menu a.active{background:var(--primary)!important;box-shadow:0 7px 18px rgba(0,168,121,.22)!important}
+.sidebar-menu a:hover,.sidebar-footer button:hover{background:#075C49!important;color:#fff!important}
+
+/* Badges, cabeçalhos e pequenos destaques */
+.badge-primary,.status-primary,.tag-primary,.pill-primary{background:var(--primary-soft)!important;color:var(--primary-dark)!important;border-color:var(--primary-border)!important}
+
+/* Barras de progresso / seleção */
+.progress-bar,.tab.active,.nav-tab.active,.filter.active,.category-btn.active{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}
+
+/* Cabeçalhos de tabelas e cartões de destaque */
+.card-header.primary,.section-header.primary{border-left-color:var(--primary)!important}
+
+/* Ícones de ação em verde */
+.icon-primary,.action-icon,.status-icon{color:var(--primary)!important}
+
+/* Paginação */
+.pagination .active{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}
+
+/* Scrollbar */
+*{scrollbar-color:#79CDB5 #EAF4F0}
+::-webkit-scrollbar-thumb{background:#79CDB5!important}
+::-webkit-scrollbar-track{background:#EAF4F0!important}
+
+/* Mensagens positivas / conexão */
+.connected,.online,.status-online{color:#087B5A!important}
+
+/* Mantém o quiosque com o verde NeoScale */
+body.quiosque-puro .quiosque-tela{background:var(--primary-deep)}

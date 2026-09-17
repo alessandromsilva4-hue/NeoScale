@@ -1,7 +1,11 @@
 import { auth } from './firebase.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { caixaAberto,abrirCaixa,fecharCaixa,listarMovimentos,calcularCaixa,registrarMovimento } from './caixa.js';
-const $=id=>document.getElementById(id), br=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); let atual=null; let tipoMov='SANGRIA';
+const $=id=>document.getElementById(id), br=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); let atual=null; let tipoMov='SANGRIA'; let movimentosAtuais=[];
+function formaNormalizada(v){ const x=String(v||'').trim().toLowerCase(); if(x==='dinheiro')return'Dinheiro'; if(x==='pix')return'PIX'; if(x==='débito'||x==='debito')return'Débito'; if(x==='crédito'||x==='credito')return'Crédito'; return'Outros'; }
+function resumoPagamentos(movs){ const r={Dinheiro:0,PIX:0,'Débito':0,'Crédito':0,Outros:0}; movs.filter(m=>m.tipo==='VENDA').forEach(m=>{r[formaNormalizada(m.forma)]+=Number(m.valor||0);}); return r; }
+function resumoDinheiro(c,movs){ const r=resumoPagamentos(movs); const supr=movs.filter(m=>m.tipo==='SUPRIMENTO').reduce((a,m)=>a+Number(m.valor||0),0); const sang=movs.filter(m=>m.tipo==='SANGRIA').reduce((a,m)=>a+Number(m.valor||0),0); return Number(c?.valorInicial||0)+r.Dinheiro+supr-sang; }
+function renderPagamentos(movs){ const r=resumoPagamentos(movs); $('totalDinheiro').textContent=br(r.Dinheiro); $('totalPix').textContent=br(r.PIX); $('totalDebito').textContent=br(r['Débito']); $('totalCredito').textContent=br(r['Crédito']); $('totalOutros').textContent=br(r.Outros); $('conferenciaPagamento').innerHTML=`<div class="conferencia-item"><span>Dinheiro esperado no caixa</span><strong>${br(resumoDinheiro(atual,movs))}</strong></div><div class="conferencia-item"><span>Recebido em PIX</span><strong>${br(r.PIX)}</strong></div><div class="conferencia-item"><span>Recebido em cartões</span><strong>${br(r['Débito']+r['Crédito'])}</strong></div>`; }
 function msg(t,ok=false){$('msg').innerHTML=`<div class="alert ${ok?'ok':'err'}">${t}</div>`}
 function clearMsg(){ $('msg').innerHTML=''; }
 function setStatus(aberto){ $('status').textContent=aberto?'ABERTO':'FECHADO'; $('status').className=aberto?'ok':'bad'; $('badgeStatus').textContent=aberto?'CAIXA ABERTO':'CAIXA FECHADO'; $('dot').classList.toggle('off',!aberto); }
@@ -9,8 +13,8 @@ async function render(){
  try{
   atual=await caixaAberto(); const aberto=!!atual; setStatus(aberto); $('abrir').classList.toggle('hidden',aberto); $('fechar').classList.toggle('hidden',!aberto);
   $('movimentacoesPanel').classList.toggle('hidden',!aberto);
-  if(!aberto){ $('inicial').textContent=br(0); $('esperado').textContent=br(0); $('diferenca').textContent=br(0); $('entradas').textContent=br(0); $('saidas').textContent=br(0); $('caixaId').textContent='—'; return; }
-  const m=await listarMovimentos(atual.id), c=calcularCaixa(atual,m); $('inicial').textContent=br(atual.valorInicial); $('esperado').textContent=br(c.esperado); $('diferenca').textContent=br(Number($('valorContado').value||0)-c.esperado); $('entradas').textContent=br(c.entrada); $('saidas').textContent=br(c.saida); $('caixaId').textContent=atual.id.slice(0,10)+'…'; $('operadorAtual').textContent=atual.operador||'Operador'; await carregarMovimentos(m);
+  if(!aberto){ $('inicial').textContent=br(0); $('esperado').textContent=br(0); $('dinheiroEsperado').textContent=br(0); $('diferenca').textContent=br(0); $('entradas').textContent=br(0); $('saidas').textContent=br(0); $('caixaId').textContent='—'; $('totalDinheiro').textContent=br(0); $('totalPix').textContent=br(0); $('totalDebito').textContent=br(0); $('totalCredito').textContent=br(0); $('totalOutros').textContent=br(0); $('conferenciaPagamento').innerHTML=''; return; }
+  const m=await listarMovimentos(atual.id), c=calcularCaixa(atual,m); movimentosAtuais=m; const dinheiro=resumoDinheiro(atual,m); $('inicial').textContent=br(atual.valorInicial); $('esperado').textContent=br(c.esperado); $('dinheiroEsperado').textContent=br(dinheiro); $('diferenca').textContent=br(Number($('valorContado').value||0)-dinheiro); $('entradas').textContent=br(c.entrada); $('saidas').textContent=br(c.saida); $('caixaId').textContent=atual.id.slice(0,10)+'…'; $('operadorAtual').textContent=atual.operador||'Operador'; renderPagamentos(m); await carregarMovimentos(m);
  }catch(e){ console.error(e); msg('Não foi possível acessar o Caixa no Firebase. Se você já entrou no sistema, verifique as regras do Firestore para permitir acesso aos usuários autenticados.'); }
 }
 $('btnAbrir').onclick=async()=>{clearMsg(); try{const op=$('operador').value.trim()||'Operador'; await abrirCaixa($('valorInicial').value,op); msg('Caixa aberto com sucesso. O PDV já poderá registrar as vendas neste caixa.',true); await render();}catch(e){console.error(e);msg(e.message||'Não foi possível abrir o caixa.')}};
@@ -41,8 +45,8 @@ function imprimirRelatorioVendas(caixa,movs,calculo,valorContado){
  popup.document.close();
 }
 
-$('btnFechar').onclick=async()=>{if(!atual)return;clearMsg();try{const m=await listarMovimentos(atual.id),c=calcularCaixa(atual,m),cont=Number($('valorContado').value||0);await fecharCaixa(atual.id,cont);imprimirRelatorioVendas(atual,m,c,cont);msg(`Caixa fechado com sucesso. Diferença apurada: ${br(cont-c.esperado)}. Relatório de vendas aberto para impressão.`,true);await render();}catch(e){console.error(e);msg(e.message||'Não foi possível fechar o caixa.')}};
-$('valorContado').oninput=()=>{if(!atual)return; listarMovimentos(atual.id).then(m=>{const c=calcularCaixa(atual,m);$('diferenca').textContent=br(Number($('valorContado').value||0)-c.esperado)}).catch(()=>{});};
+$('btnFechar').onclick=async()=>{if(!atual)return;clearMsg();try{const m=await listarMovimentos(atual.id),c=calcularCaixa(atual,m),cont=Number($('valorContado').value||0),dinheiro=resumoDinheiro(atual,m),dif=cont-dinheiro;if(cont<0){msg('Informe um valor contado válido.');return;} if(!confirm(`Conferência do caixa\n\nDinheiro esperado: ${br(dinheiro)}\nDinheiro contado: ${br(cont)}\nDiferença: ${br(dif)}\n\nConfirma o fechamento?`))return; await fecharCaixa(atual.id,cont);imprimirRelatorioVendas(atual,m,c,cont);msg(`Caixa fechado com sucesso. Diferença em dinheiro: ${br(dif)}. Relatório de vendas aberto para impressão.`,true);await render();}catch(e){console.error(e);msg(e.message||'Não foi possível fechar o caixa.')}};
+$('valorContado').oninput=()=>{if(!atual)return; const dinheiro=resumoDinheiro(atual,movimentosAtuais); $('diferenca').textContent=br(Number($('valorContado').value||0)-dinheiro);};
 onAuthStateChanged(auth,user=>{if(!user){window.location.href='index.html';return;} render();});
 
 function atualizarAbaMov(){

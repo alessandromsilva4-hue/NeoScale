@@ -10,3 +10,11 @@ IMPORTANTE:
 - O projeto configurado é neoscale-6f7af.
 - Se aparecer "operation-not-allowed", habilite Authentication > Sign-in method > E-mail/Password no Firebase.
 - Depois que o administrador for criado, o arquivo criar-acesso.html pode ser removido do site para impedir novos cadastros públicos.
+
+
+PERMISSÕES DO DELIVERY:
+- ADMINISTRADOR: acesso ao Delivery e às integrações.
+- CAIXA: acesso à Central de Delivery para acompanhar pedidos e caixa.
+- OPERADOR: acesso à Central de Delivery para operação dos pedidos.
+
+Se um usuário já estava logado quando esta versão foi publicada, saia e entre novamente para carregar o perfil atualizado.

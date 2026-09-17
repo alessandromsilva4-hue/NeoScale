@@ -11,18 +11,19 @@
 
 :root {
 
-   --primary:#2563EB;
---primary-dark:#1D4ED8;
+    --primary: #16A34A;
+
+    --primary-dark: #15803D;
 
     --secondary: #22C55E;
 
     --danger: #EF4444;
 
-    --background: #F8FAFC;
+    --background: #F3FAF7;
 
     --surface: #FFFFFF;
 
-    --sidebar: #0F172A;
+    --sidebar: #14532D;
 
     --text: #1F2937;
 
@@ -31,12 +32,11 @@
     --border: #E2E8F0;
 
     --shadow:
-    0 10px 30px rgba(15,23,42,0.08);
+        0 10px 30px rgba(15, 23, 42, 0.08);
 
     --radius: 18px;
 
     --transition: .3s ease;
-
 }
 
 
@@ -45,30 +45,30 @@
 ================================ */
 
 * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-    margin:0;
 
-    padding:0;
-
-    box-sizing:border-box;
-
+html {
+    min-height: 100%;
 }
 
 
 body {
 
     font-family:
-    'Inter',
-    Arial,
-    Helvetica,
-    sans-serif;
+        'Inter',
+        Arial,
+        Helvetica,
+        sans-serif;
 
-    background:var(--background);
+    background: var(--background);
 
-    color:var(--text);
+    color: var(--text);
 
-    min-height:100vh;
-
+    min-height: 100vh;
 }
 
 
@@ -76,527 +76,1015 @@ body {
    LOGIN
 ================================ */
 
-
 .login-container {
 
-    width:100%;
+    width: 100%;
 
-    min-height:100vh;
+    min-height: 100vh;
 
-    display:flex;
-
+    display: flex;
 }
 
 
 /* ===============================
    LADO ESQUERDO
+   VERDE NEOSCALE
 ================================ */
-
 
 .login-left {
 
-
-    flex:1;
+    flex: 1;
 
     background:
+        linear-gradient(
+            135deg,
+            #062F22 0%,
+            #0B4A36 45%,
+            #137A56 100%
+        );
 
-    linear-gradient(
-        135deg,
-        #2563EB,
-        #1E40AF
-    );
+    color: #FFFFFF;
+
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    align-items: center;
+
+    padding: 40px;
+
+    text-align: center;
+}
 
 
-    color:white;
+/* ===============================
+   MARCA
+================================ */
 
-    display:flex;
+.brand {
 
-    flex-direction:column;
+    display: flex;
 
-    justify-content:center;
+    flex-direction: column;
 
-    align-items:center;
+    align-items: center;
 
-    padding:40px;
+    justify-content: center;
+}
 
-    text-align:center;
+
+.brand-icon {
+
+    width: 82px;
+
+    height: 82px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    margin-bottom: 20px;
+
+    border-radius: 22px;
+
+    background: rgba(255, 255, 255, 0.12);
+
+    border: 1px solid rgba(255, 255, 255, 0.18);
+
+    box-shadow:
+        0 15px 35px rgba(0, 0, 0, 0.18);
+}
 
 
+.brand-icon i {
+
+    font-size: 42px;
+
+    color: #FFFFFF;
 }
 
 
 .brand h1 {
 
+    font-size: 55px;
 
-    font-size:55px;
+    font-weight: 800;
 
-    font-weight:700;
+    letter-spacing: -2px;
 
-    letter-spacing:-2px;
+    line-height: 1;
 
-
+    color: #FFFFFF;
 }
 
 
-.brand span {
+.brand p {
 
+    margin-top: 12px;
 
-    display:block;
+    font-size: 15px;
 
-    margin-top:10px;
+    font-weight: 500;
 
-    font-size:18px;
-
-    opacity:.9;
-
-
+    color: rgba(255, 255, 255, 0.78);
 }
 
 
+/* ===============================
+   BOAS-VINDAS
+================================ */
 
 .welcome {
 
+    margin-top: 80px;
 
-    margin-top:80px;
-
-    max-width:400px;
-
-
+    max-width: 400px;
 }
 
 
 .welcome h2 {
 
+    font-size: 30px;
 
-    font-size:32px;
+    font-weight: 700;
 
-    margin-bottom:15px;
+    line-height: 1.2;
 
+    color: #FFFFFF;
 
+    margin-bottom: 14px;
 }
 
 
 .welcome p {
 
+    font-size: 16px;
 
-    font-size:18px;
+    line-height: 1.7;
 
-    line-height:1.6;
-
-    opacity:.9;
-
-
+    color: rgba(255, 255, 255, 0.78);
 }
 
+
+/* ===============================
+   BENEFÍCIOS
+================================ */
+
+.benefits {
+
+    margin-top: 35px;
+
+    width: 100%;
+
+    max-width: 400px;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 16px;
+}
+
+
+.benefit {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 14px;
+
+    text-align: left;
+
+    padding: 12px 16px;
+
+    border-radius: 12px;
+
+    background: rgba(255, 255, 255, 0.07);
+
+    border: 1px solid rgba(255, 255, 255, 0.10);
+}
+
+
+.benefit-icon {
+
+    width: 40px;
+
+    height: 40px;
+
+    min-width: 40px;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    border-radius: 10px;
+
+    background: rgba(255, 255, 255, 0.12);
+}
+
+
+.benefit-icon i {
+
+    font-size: 19px;
+
+    color: #FFFFFF;
+}
+
+
+.benefit span {
+
+    font-size: 14px;
+
+    line-height: 1.4;
+
+    color: rgba(255, 255, 255, 0.90);
+}
 
 
 /* ===============================
    LADO DIREITO
 ================================ */
 
-
 .login-right {
 
+    flex: 1;
 
-    flex:1;
+    background: #FFFFFF;
 
-    display:flex;
+    display: flex;
 
-    align-items:center;
+    align-items: center;
 
-    justify-content:center;
+    justify-content: center;
 
-    padding:40px;
-
-
+    padding: 40px;
 }
 
 
-
 /* ===============================
-   CARD LOGIN
+   CARD DE LOGIN
 ================================ */
-
 
 .login-card {
 
+    width: 100%;
 
-    background:var(--surface);
+    max-width: 420px;
 
-    width:100%;
+    background: var(--surface);
 
-    max-width:420px;
+    padding: 45px;
 
-    padding:45px;
+    border-radius: var(--radius);
 
-    border-radius:var(--radius);
-
-    box-shadow:var(--shadow);
-
-
+    box-shadow:
+        0 20px 50px rgba(15, 23, 42, 0.10);
 }
 
 
 .login-card h2 {
 
+    font-size: 28px;
 
-    font-size:32px;
+    font-weight: 700;
 
-    margin-bottom:10px;
+    color: var(--text);
 
-
+    margin-bottom: 8px;
 }
 
 
-.login-card p {
+.login-card > p {
 
+    color: var(--text-light);
 
-    color:var(--text-light);
+    font-size: 14px;
 
-    margin-bottom:30px;
+    line-height: 1.6;
 
-
+    margin-bottom: 30px;
 }
 
 
 /* ===============================
-   INPUTS
+   FORMULÁRIO
 ================================ */
+
+.form-group {
+
+    margin-bottom: 20px;
+}
+
+
+.form-group label {
+
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-size: 14px;
+
+    font-weight: 600;
+
+    color: var(--text);
+}
 
 
 .input-group {
 
+    position: relative;
 
-    margin-bottom:22px;
-
-
+    width: 100%;
 }
 
 
+.input-group i {
 
-.input-group label {
+    position: absolute;
 
+    left: 15px;
 
-    display:flex;
+    top: 50%;
 
-    align-items:center;
+    transform: translateY(-50%);
 
-    gap:8px;
+    color: var(--text-light);
 
-    font-size:14px;
+    font-size: 18px;
 
-    font-weight:600;
-
-    margin-bottom:8px;
-
-
+    pointer-events: none;
 }
-
 
 
 .input-group input {
 
+    width: 100%;
 
-    width:100%;
+    height: 50px;
 
-    padding:14px 16px;
+    padding:
+        0 45px;
 
-    border:1px solid var(--border);
+    border: 1px solid var(--border);
 
-    border-radius:12px;
+    border-radius: 12px;
 
-    font-size:15px;
+    outline: none;
 
-    outline:none;
+    background: #FFFFFF;
 
-    transition:var(--transition);
+    color: var(--text);
 
+    font-family: inherit;
 
+    font-size: 14px;
+
+    transition: var(--transition);
 }
 
+
+.input-group input::placeholder {
+
+    color: #94A3B8;
+}
 
 
 .input-group input:focus {
 
-
-    border-color:var(--primary);
+    border-color: var(--primary);
 
     box-shadow:
-
-    0 0 0 4px rgba(37,99,235,.12);
-
-
+        0 0 0 4px rgba(22, 163, 74, 0.12);
 }
 
+
+/* ===============================
+   MOSTRAR SENHA
+================================ */
+
+.password-toggle {
+
+    position: absolute;
+
+    right: 14px;
+
+    top: 50%;
+
+    transform: translateY(-50%);
+
+    border: 0;
+
+    background: transparent;
+
+    cursor: pointer;
+
+    color: var(--text-light);
+
+    font-size: 18px;
+
+    padding: 4px;
+}
+
+
+.password-toggle:hover {
+
+    color: var(--primary);
+}
+
+
+/* ===============================
+   LINK ESQUECI SENHA
+================================ */
+
+.forgot-password {
+
+    display: flex;
+
+    justify-content: flex-end;
+
+    margin-top: -8px;
+
+    margin-bottom: 22px;
+}
+
+
+.forgot-password a {
+
+    color: var(--primary);
+
+    text-decoration: none;
+
+    font-size: 13px;
+
+    font-weight: 600;
+}
+
+
+.forgot-password a:hover {
+
+    color: var(--primary-dark);
+
+    text-decoration: underline;
+}
 
 
 /* ===============================
    BOTÃO LOGIN
 ================================ */
 
-
 .btn-login {
 
+    width: 100%;
 
-    width:100%;
+    height: 52px;
 
-    padding:15px;
+    border: none;
 
-    border:none;
+    border-radius: 12px;
 
-    border-radius:12px;
+    background:
+        linear-gradient(
+            135deg,
+            #0F704A,
+            #159464
+        );
 
-    background:var(--primary);
+    color: #FFFFFF;
 
-    color:white;
+    font-family: inherit;
 
-    font-size:16px;
+    font-size: 15px;
 
-    font-weight:600;
+    font-weight: 700;
 
-    cursor:pointer;
+    cursor: pointer;
 
-    display:flex;
+    display: flex;
 
-    justify-content:center;
+    align-items: center;
 
-    align-items:center;
+    justify-content: center;
 
-    gap:10px;
+    gap: 9px;
 
-    transition:var(--transition);
+    transition: var(--transition);
 
-
+    box-shadow:
+        0 8px 20px rgba(21, 148, 100, 0.20);
 }
-
 
 
 .btn-login:hover {
 
+    transform: translateY(-1px);
 
-    background:var(--primary-dark);
+    background:
+        linear-gradient(
+            135deg,
+            #0B5F3E,
+            #0F8056
+        );
 
-    transform:translateY(-2px);
-
-
+    box-shadow:
+        0 12px 25px rgba(21, 148, 100, 0.28);
 }
 
+
+.btn-login:active {
+
+    transform: translateY(0);
+}
+
+
+.btn-login:disabled {
+
+    opacity: .65;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
 
 
 /* ===============================
-   FOOTER
+   PRIMEIRO ACESSO
+================================ */
+
+.create-account {
+
+    margin-top: 24px;
+
+    text-align: center;
+
+    font-size: 14px;
+
+    color: var(--text-light);
+}
+
+
+.create-account a {
+
+    color: var(--primary);
+
+    font-weight: 700;
+
+    text-decoration: none;
+}
+
+
+.create-account a:hover {
+
+    color: var(--primary-dark);
+
+    text-decoration: underline;
+}
+
+
+/* ===============================
+   MENSAGENS
+================================ */
+
+.login-message {
+
+    display: none;
+
+    margin-bottom: 20px;
+
+    padding: 12px 14px;
+
+    border-radius: 10px;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+.login-message.error {
+
+    display: block;
+
+    color: #991B1B;
+
+    background: #FEF2F2;
+
+    border: 1px solid #FECACA;
+}
+
+
+.login-message.success {
+
+    display: block;
+
+    color: #166534;
+
+    background: #F0FDF4;
+
+    border: 1px solid #BBF7D0;
+}
+
+
+/* ===============================
+   RODAPÉ
+================================ */
+
+.login-footer {
+
+    margin-top: 30px;
+
+    text-align: center;
+
+    color: var(--text-light);
+
+    font-size: 12px;
+
+    line-height: 1.5;
+}
+
+
+/* ===============================
+   TEMAS DO SISTEMA
 ================================ */
 
 
-.footer {
+/* Verde padrão */
+body[data-tema="verde"] {
 
+    --primary: #16A34A;
 
-    text-align:center;
+    --primary-dark: #15803D;
 
-    margin-top:30px;
+    --secondary: #22C55E;
 
-    color:var(--text-light);
-
-
+    --sidebar: #14532D;
 }
 
+
+/*
+   Compatibilidade com versões antigas
+   que ainda usam data-tema="azul".
+   Mantido verde para o NeoScale.
+*/
+
+body[data-tema="azul"] {
+
+    --primary: #16A34A;
+
+    --primary-dark: #15803D;
+
+    --secondary: #22C55E;
+
+    --sidebar: #14532D;
+}
+
+
+/* Roxo */
+body[data-tema="roxo"] {
+
+    --primary: #7C3AED;
+
+    --primary-dark: #6D28D9;
+
+    --secondary: #8B5CF6;
+
+    --sidebar: #4C1D95;
+}
+
+
+/* Laranja */
+body[data-tema="laranja"] {
+
+    --primary: #EA580C;
+
+    --primary-dark: #C2410C;
+
+    --secondary: #F97316;
+
+    --sidebar: #7C2D12;
+}
+
+
+/* Turquesa */
+body[data-tema="turquesa"] {
+
+    --primary: #0891B2;
+
+    --primary-dark: #0E7490;
+
+    --secondary: #06B6D4;
+
+    --sidebar: #164E63;
+}
+
+
+/* Rosa */
+body[data-tema="rosa"] {
+
+    --primary: #DB2777;
+
+    --primary-dark: #BE185D;
+
+    --secondary: #EC4899;
+
+    --sidebar: #831843;
+}
+
+
+/* Grafite */
+body[data-tema="grafite"] {
+
+    --primary: #374151;
+
+    --primary-dark: #1F2937;
+
+    --secondary: #4B5563;
+
+    --sidebar: #111827;
+}
+
+
+/* Preto */
+body[data-tema="preto"] {
+
+    --primary: #111827;
+
+    --primary-dark: #000000;
+
+    --secondary: #374151;
+
+    --sidebar: #000000;
+}
+
+
+/* Vermelho */
+body[data-tema="vermelho"] {
+
+    --primary: #DC2626;
+
+    --primary-dark: #B91C1C;
+
+    --secondary: #EF4444;
+
+    --sidebar: #7F1D1D;
+}
+
+
+/* Amarelo */
+body[data-tema="amarelo"] {
+
+    --primary: #CA8A04;
+
+    --primary-dark: #A16207;
+
+    --secondary: #EAB308;
+
+    --sidebar: #713F12;
+}
+
+
+/* Ciano */
+body[data-tema="ciano"] {
+
+    --primary: #06B6D4;
+
+    --primary-dark: #0891B2;
+
+    --secondary: #22D3EE;
+
+    --sidebar: #164E63;
+}
+
+
+/* Esmeralda */
+body[data-tema="esmeralda"] {
+
+    --primary: #059669;
+
+    --primary-dark: #047857;
+
+    --secondary: #10B981;
+
+    --sidebar: #064E3B;
+}
+
+
+/* Oceano */
+body[data-tema="oceano"] {
+
+    --primary: #1D4ED8;
+
+    --primary-dark: #1E3A8A;
+
+    --secondary: #3B82F6;
+
+    --sidebar: #172554;
+}
+
+
+/* Vinho */
+body[data-tema="vinho"] {
+
+    --primary: #881337;
+
+    --primary-dark: #701A2E;
+
+    --secondary: #9F1239;
+
+    --sidebar: #4A044E;
+}
+
+
+/* Marrom */
+body[data-tema="marrom"] {
+
+    --primary: #92400E;
+
+    --primary-dark: #78350F;
+
+    --secondary: #B45309;
+
+    --sidebar: #451A03;
+}
+
+
+/* Cinza */
+body[data-tema="cinza"] {
+
+    --primary: #6B7280;
+
+    --primary-dark: #4B5563;
+
+    --secondary: #9CA3AF;
+
+    --sidebar: #374151;
+}
+
+
+/* Dourado */
+body[data-tema="dourado"] {
+
+    --primary: #D97706;
+
+    --primary-dark: #B45309;
+
+    --secondary: #F59E0B;
+
+    --sidebar: #78350F;
+}
+
+
+/* Prata */
+body[data-tema="prata"] {
+
+    --primary: #9CA3AF;
+
+    --primary-dark: #6B7280;
+
+    --secondary: #D1D5DB;
+
+    --sidebar: #475569;
+}
 
 
 /* ===============================
    RESPONSIVO
 ================================ */
 
-
-@media(max-width:900px){
-
+@media (max-width: 900px) {
 
     .login-container {
 
+        flex-direction: column;
 
-        flex-direction:column;
-
-
+        min-height: 100vh;
     }
 
 
     .login-left {
 
+        flex: none;
 
-        min-height:40vh;
+        min-height: 380px;
 
-
+        padding: 40px 25px;
     }
 
 
     .brand h1 {
 
-
-        font-size:42px;
-
-
+        font-size: 44px;
     }
 
 
     .welcome {
 
-
-        margin-top:30px;
-
-
+        margin-top: 35px;
     }
 
 
-}
+    .welcome h2 {
+
+        font-size: 25px;
+    }
 
 
+    .benefits {
 
-@media(max-width:500px){
-
-
-    .login-card {
-
-
-        padding:30px;
-
-
+        display: none;
     }
 
 
     .login-right {
 
+        flex: 1;
 
-        padding:20px;
+        padding: 35px 20px;
+    }
+}
 
 
+@media (max-width: 500px) {
+
+    .login-left {
+
+        min-height: 330px;
+
+        padding: 30px 20px;
     }
 
 
-}
-/* ==========================================
-   TEMAS DO QUIOSQUE
-========================================== */
-/* Azul */
-body[data-tema="azul"]{
-    --primary:#2563EB;
-    --primary-dark:#1D4ED8;
-    --sidebar:#0F172A;
-}
+    .brand-icon {
 
-/* Verde */
-body[data-tema="verde"]{
-    --primary:#16A34A;
-    --primary-dark:#15803D;
-    --sidebar:#14532D;
-}
+        width: 68px;
 
-/* Roxo */
-body[data-tema="roxo"]{
-    --primary:#7C3AED;
-    --primary-dark:#6D28D9;
-    --sidebar:#4C1D95;
-}
+        height: 68px;
 
-/* Laranja */
-body[data-tema="laranja"]{
-    --primary:#EA580C;
-    --primary-dark:#C2410C;
-    --sidebar:#7C2D12;
-}
+        margin-bottom: 16px;
+    }
 
-/* Turquesa */
-body[data-tema="turquesa"]{
-    --primary:#0891B2;
-    --primary-dark:#0E7490;
-    --sidebar:#164E63;
-}
 
-/* Rosa */
-body[data-tema="rosa"]{
-    --primary:#DB2777;
-    --primary-dark:#BE185D;
-    --sidebar:#831843;
-}
+    .brand-icon i {
 
-/* Grafite */
-body[data-tema="grafite"]{
-    --primary:#374151;
-    --primary-dark:#1F2937;
-    --sidebar:#111827;
-}
+        font-size: 34px;
+    }
 
-/* Preto */
-body[data-tema="preto"]{
-    --primary:#111827;
-    --primary-dark:#000000;
-    --sidebar:#000000;
-}
 
-/* Vermelho */
-body[data-tema="vermelho"]{
-    --primary:#DC2626;
-    --primary-dark:#B91C1C;
-    --sidebar:#7F1D1D;
-}
+    .brand h1 {
 
-/* Amarelo */
-body[data-tema="amarelo"]{
-    --primary:#CA8A04;
-    --primary-dark:#A16207;
-    --sidebar:#713F12;
-}
+        font-size: 38px;
+    }
 
-/* Ciano */
-body[data-tema="ciano"]{
-    --primary:#06B6D4;
-    --primary-dark:#0891B2;
-    --sidebar:#164E63;
-}
 
-/* Esmeralda */
-body[data-tema="esmeralda"]{
-    --primary:#059669;
-    --primary-dark:#047857;
-    --sidebar:#064E3B;
-}
+    .brand p {
 
-/* Oceano */
-body[data-tema="oceano"]{
-    --primary:#1D4ED8;
-    --primary-dark:#1E3A8A;
-    --sidebar:#172554;
-}
+        font-size: 13px;
+    }
 
-/* Vinho */
-body[data-tema="vinho"]{
-    --primary:#881337;
-    --primary-dark:#701A2E;
-    --sidebar:#4A044E;
-}
 
-/* Marrom */
-body[data-tema="marrom"]{
-    --primary:#92400E;
-    --primary-dark:#78350F;
-    --sidebar:#451A03;
-}
+    .welcome {
 
-/* Cinza */
-body[data-tema="cinza"]{
-    --primary:#6B7280;
-    --primary-dark:#4B5563;
-    --sidebar:#374151;
-}
+        margin-top: 28px;
+    }
 
-/* Dourado */
-body[data-tema="dourado"]{
-    --primary:#D97706;
-    --primary-dark:#B45309;
-    --sidebar:#78350F;
-}
 
-/* Prata */
-body[data-tema="prata"]{
-    --primary:#9CA3AF;
-    --primary-dark:#6B7280;
-    --sidebar:#475569;
+    .welcome h2 {
+
+        font-size: 22px;
+    }
+
+
+    .welcome p {
+
+        font-size: 14px;
+    }
+
+
+    .login-right {
+
+        padding: 25px 15px;
+    }
+
+
+    .login-card {
+
+        padding: 30px 22px;
+
+        border-radius: 14px;
+
+        box-shadow:
+            0 10px 30px rgba(15, 23, 42, 0.08);
+    }
+
+
+    .login-card h2 {
+
+        font-size: 24px;
+    }
 }

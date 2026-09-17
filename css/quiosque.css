@@ -48,3 +48,77 @@
 .pesagem-quiosque .botoes-pesagem button:last-child { background:rgba(255,255,255,.17); }
 @media(max-width:1120px){.pesagem-quiosque .quiosque-cabecalho{flex-wrap:wrap}.pesagem-quiosque .quiosque-acoes{width:100%;justify-content:space-between}.pesagem-quiosque .botoes-pesagem{padding-left:0;border-left:0}}
 @media(max-width:680px){.pesagem-quiosque .quiosque-acoes{align-items:stretch;gap:10px;flex-direction:column}.pesagem-quiosque .seletor-tema,.pesagem-quiosque .botoes-pesagem{justify-content:space-between}.pesagem-quiosque .seletor-tema label{display:block}.pesagem-quiosque .botoes-pesagem{display:grid;grid-template-columns:1fr 1fr}.pesagem-quiosque .botoes-pesagem button:last-child,.pesagem-quiosque .abrir-quiosque{grid-column:1 / -1}.pesagem-quiosque .quiosque-acoes select,.pesagem-quiosque .quiosque-acoes button,.pesagem-quiosque .abrir-quiosque{padding:11px;font-size:13px;text-align:center}}
+
+
+/* =========================================
+   NeoScale - Ajuste final de tela
+   Quiosque em tela total + Pesagem centralizada
+========================================= */
+body.quiosque-puro {
+    width:100vw;
+    min-width:320px;
+    min-height:100vh;
+    margin:0;
+    overflow:hidden;
+}
+body.quiosque-puro .quiosque-tela {
+    width:100vw;
+    min-height:100vh;
+    margin:0;
+}
+
+/* Na pesagem, o conteúdo ocupa somente a área à direita do menu e fica centralizado. */
+body.pesagem-quiosque .quiosque-tela {
+    width:calc(100vw - 220px);
+    margin-left:220px;
+    min-height:100vh;
+}
+body.pesagem-quiosque .quiosque-cabecalho {
+    padding-left:clamp(24px,4vw,64px);
+    padding-right:clamp(24px,4vw,64px);
+}
+body.pesagem-quiosque .quiosque-corpo {
+    min-height:clamp(420px,62vh,650px);
+}
+body.pesagem-quiosque .quiosque-mensagem {
+    width:min(100%,1100px);
+    margin-inline:auto;
+}
+body.pesagem-quiosque .quiosque-medidas {
+    width:100%;
+}
+
+@media(max-width:900px){
+    body.pesagem-quiosque .quiosque-tela {
+        width:calc(100vw - 76px);
+        margin-left:76px;
+    }
+}
+@media(max-width:760px){
+    body.pesagem-quiosque .quiosque-tela {
+        width:100vw;
+        margin-left:0;
+    }
+}
+
+/* Pesagem: largura de trabalho profissional e centralizada na área útil. */
+body.pesagem-quiosque {
+    background:#eef4f2;
+}
+body.pesagem-quiosque .quiosque-cabecalho,
+body.pesagem-quiosque .quiosque-corpo,
+body.pesagem-quiosque .quiosque-medidas,
+body.pesagem-quiosque .quiosque-rodape {
+    width:min(100%, 1500px);
+    margin-left:auto;
+    margin-right:auto;
+}
+body.pesagem-quiosque .quiosque-tela {
+    background:#eef4f2;
+}
+@media(max-width:900px){
+    body.pesagem-quiosque .quiosque-cabecalho,
+    body.pesagem-quiosque .quiosque-corpo,
+    body.pesagem-quiosque .quiosque-medidas,
+    body.pesagem-quiosque .quiosque-rodape { width:100%; }
+}

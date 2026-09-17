@@ -1,4 +1,5 @@
 import { buscarComanda, finalizarComanda } from "./comandas.js";
+import { registrarCupomFiscal } from "./fiscal.js";
 import { caixaAberto, registrarMovimento } from "./caixa.js";
 import { db } from "./firebase.js";
 import {
@@ -21,6 +22,7 @@ let caixaAtual = null;
 let produtos = [];
 let itensProdutos = [];
 let categoriaAtual = "Todos";
+let vendaFinalizadaPendenteFiscal = null;
 
 const moeda = v => Number(v || 0).toLocaleString("pt-BR", {style:"currency",currency:"BRL"});
 const peso = v => `${Number(v || 0).toFixed(3).replace(".", ",")} kg`;
@@ -202,26 +204,76 @@ document.querySelectorAll(".pay-btn").forEach(btn=>btn.addEventListener("click",
 }));
 recebido.addEventListener("input",calcularTroco);
 
+async function concluirVendaComOpcaoFiscal(emitirFiscal){
+  const venda=vendaFinalizadaPendenteFiscal;
+  if(!venda) return;
+  const modalFiscal=$("modalFiscalVenda");
+  $("simCupomFiscal").disabled=true; $("naoCupomFiscal").disabled=true;
+  try{
+    if(emitirFiscal){
+      const docFiscal=await registrarCupomFiscal(venda);
+      avisar(`Venda finalizada. NFC-e ${docFiscal.numero} registrada para emissão.`,"ok");
+    }else{
+      avisar("Venda finalizada sem cupom fiscal.","ok");
+    }
+  }catch(e){
+    console.error(e);
+    avisar(`Venda finalizada, mas não foi possível registrar o cupom fiscal: ${e.message||"erro"}.`,"err");
+  }finally{
+    modalFiscal.hidden=true;
+    $("simCupomFiscal").disabled=false; $("naoCupomFiscal").disabled=false;
+    vendaFinalizadaPendenteFiscal=null;
+    finalizar.innerHTML='<i class="bi bi-check-circle"></i> VENDA FINALIZADA';
+    setTimeout(limparVenda,1200);
+  }
+}
+
+$("simCupomFiscal")?.addEventListener("click",()=>concluirVendaComOpcaoFiscal(true));
+$("naoCupomFiscal")?.addEventListener("click",()=>concluirVendaComOpcaoFiscal(false));
+
 finalizar.addEventListener("click",async()=>{
   if(totalVenda()<=0||!pagamento)return;
   if(!caixaAtual){await atualizarCaixa();if(!caixaAtual){avisar("Nenhum caixa está aberto. Abra o caixa antes de vender.");return;}}
   if(pagamento==="Dinheiro"&&Number(recebido.value||0)<totalVenda()){avisar("O valor recebido é menor que o total.");return;}
   finalizar.disabled=true;finalizar.innerHTML='<i class="bi bi-arrow-repeat"></i> FINALIZANDO...';
   try{
+    const totalFinal = totalVenda();
+    const recebidoValor = pagamento === "Dinheiro" ? Number(recebido.value || 0) : 0;
+    const trocoValor = pagamento === "Dinheiro" ? Math.max(0, recebidoValor - totalFinal) : 0;
+    const itensRecibo = [];
+
     if(comandaAtual){
       await finalizarComanda(comandaAtual.id,pagamento);
+      itensRecibo.push({nome: comandaAtual.produto || "Refeição por peso", quantidade: 1, preco: Number(comandaAtual.total || 0)});
       if(itensProdutos.length){
         const vendaRef=await addDoc(collection(db,"vendasProdutos"),{tipo:"PRODUTOS",comandaId:comandaAtual.id,numeroComanda:comandaAtual.numero,itens:itensProdutos,total:totalProdutos(),pagamento,criadoEm:serverTimestamp()});
         await registrarMovimento({caixaId:caixaAtual.id,tipo:"VENDA",valor:totalProdutos(),forma:pagamento,descricao:`Produtos da comanda ${comandaAtual.numero}`,referencia:vendaRef.id});
+        itensRecibo.push(...itensProdutos);
       }
     }else{
       const vendaRef=await addDoc(collection(db,"vendasProdutos"),{tipo:"PRODUTOS",itens:itensProdutos,total:totalProdutos(),pagamento,criadoEm:serverTimestamp()});
       await registrarMovimento({caixaId:caixaAtual.id,tipo:"VENDA",valor:totalProdutos(),forma:pagamento,descricao:"Venda direta de produtos",referencia:vendaRef.id});
+      itensRecibo.push(...itensProdutos);
     }
+
+    window.imprimirReciboVenda?.({
+      numeroComanda: comandaAtual?.numero || "Venda direta",
+      itens: itensRecibo,
+      total: totalFinal,
+      pagamento,
+      recebido: recebidoValor,
+      troco: trocoValor
+    });
     $("statusComanda").textContent="FINALIZADA";
-    avisar(`Venda finalizada com ${pagamento}.`,"ok");
-    finalizar.innerHTML='<i class="bi bi-check-circle"></i> VENDA FINALIZADA';
-    setTimeout(limparVenda,1200);
+    vendaFinalizadaPendenteFiscal={
+      numeroComanda: comandaAtual?.numero || "Venda direta",
+      comandaId: comandaAtual?.id || null,
+      itens: itensRecibo,
+      total: totalFinal,
+      pagamento
+    };
+    $("fiscalVendaTotal").textContent=moeda(totalFinal);
+    $("modalFiscalVenda").hidden=false;
   }catch(e){console.error(e);finalizar.disabled=false;finalizar.innerHTML='<i class="bi bi-check-circle"></i> FINALIZAR VENDA';avisar(e.message||"Não foi possível finalizar a venda.");}
 });
 
@@ -236,7 +288,7 @@ $("confirmarCancelar").addEventListener("click",()=>{modal.classList.remove("sho
 window.addEventListener("keydown",e=>{
   if(e.key==="F2"){e.preventDefault();input.focus();input.select();}
   if(e.key==="F6"){e.preventDefault();document.querySelector(".pay-btn")?.focus();}
-  if(e.key==="Escape"){modal.classList.remove("show");limparVenda();}
+  if(e.key==="Escape"){if($("modalFiscalVenda")?.hidden===false){$("modalFiscalVenda").hidden=true; concluirVendaComOpcaoFiscal(false); return;} modal.classList.remove("show");limparVenda();}
   if(e.key==="F8"){e.preventDefault();if(comandaAtual||itensProdutos.length)modal.classList.add("show");}
 });
 function relogio(){$("relogio").textContent=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}

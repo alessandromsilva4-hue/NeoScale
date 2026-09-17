@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="css/sidebar.css">
     <link rel="stylesheet" href="css/tabela.css">
     <link rel="icon" type="image/png" href="img/favicon.png">
+    <link rel="stylesheet" href="css/tema-verde.css">
 </head>
 <body>
     <div class="layout">
@@ -21,6 +22,7 @@
     <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
     <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
     <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
+    <a href="delivery.html"><i class="bi bi-bicycle"></i><span>Delivery</span></a>
     <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
     <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
     <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
@@ -53,12 +55,38 @@
                         <label for="impressora">Impressora</label>
                         <input id="impressora" type="text" placeholder="Térmica 80mm">
                     </div>
+                    <div>
+                        <label for="larguraPapel">Largura do papel</label>
+                        <select id="larguraPapel">
+                            <option value="58">58 mm</option>
+                            <option value="80">80 mm</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-grid">
                     <div>
                         <label for="modeloBalanca">Balança</label>
                         <input id="modeloBalanca" type="text" placeholder="USB / Serial / Bluetooth">
+                    </div>
+                    <div>
+                        <label for="modoImpressao">Modo de impressão</label>
+                        <select id="modoImpressao">
+                            <option value="navegador">Navegador</option>
+                            <option value="direta">Impressão direta</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="servidorImpressao">Servidor de impressão</label>
+                        <input id="servidorImpressao" type="url" placeholder="https://IP:9100/print">
+                    </div>
+                    <div>
+                        <label for="ipImpressora">IP da impressora</label>
+                        <input id="ipImpressora" type="text" placeholder="192.168.1.100">
+                    </div>
+                    <div>
+                        <label for="portaImpressora">Porta TCP</label>
+                        <input id="portaImpressora" type="number" min="1" max="65535" value="9100">
                     </div>
                     <div>
                         <label for="mensagemComanda">Mensagem da Comanda</label>
@@ -94,6 +122,10 @@
                         <label for="iniciarPesagem">Conexão da Balança</label>
                         <button id="iniciarPesagem" class="btn-login" type="button">Conectar balança</button>
                     </div>
+                    <div>
+                        <label>Teste de impressão</label>
+                        <button id="btnTestarImpressora" class="btn-login" type="button"><i class="bi bi-printer"></i> Imprimir teste</button>
+                    </div>
                 </div>
 
                 <button id="btnSalvarConfiguracao" class="btn-login"><i class="bi bi-save"></i> Salvar Configurações</button>
@@ -101,5 +133,6 @@
         </main>
     </div>
     <script type="module" src="js/configuracoes.js"></script>
+    <script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("configuracoes");</script>
 </body>
 </html>

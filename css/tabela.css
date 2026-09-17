@@ -328,3 +328,113 @@
 
 
 }
+
+/* ===============================
+   PRODUTOS — AÇÕES
+================================ */
+
+.produto-form-acoes{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    flex-wrap:wrap;
+}
+
+.btn-login:disabled{
+    opacity:.65;
+    cursor:not-allowed;
+}
+
+.btn-cancelar{
+    border:1px solid var(--border, #DDECE6);
+    background:#fff;
+    color:#475569;
+    border-radius:12px;
+    padding:13px 18px;
+    font-size:14px;
+    font-weight:600;
+    cursor:pointer;
+}
+
+.btn-cancelar:hover{
+    background:#F8FAFC;
+}
+
+.col-acoes{
+    width:150px;
+}
+
+.acoes-produto{
+    white-space:nowrap;
+}
+
+.acao-btn{
+    width:36px;
+    height:36px;
+    border:1px solid #DDECE6;
+    border-radius:10px;
+    background:#fff;
+    cursor:pointer;
+    margin-right:5px;
+    transition:background .15s,border-color .15s;
+}
+
+.acao-btn:hover{
+    transform:none;
+}
+
+.acao-btn.editar{
+    color:#007D5D;
+}
+
+.acao-btn.desativar{
+    color:#B45309;
+}
+
+.acao-btn.ativar{
+    color:#087B5A;
+}
+
+.acao-btn.excluir{
+    color:#B91C1C;
+}
+
+.acao-btn:hover{
+    background:#F3FAF7;
+    border-color:#B8DED2;
+}
+
+.status-ativo,
+.status-inativo{
+    display:inline-flex;
+    align-items:center;
+    padding:5px 9px;
+    border-radius:999px;
+    font-size:12px;
+    font-weight:700;
+}
+
+.status-ativo{
+    background:#E8F8F2;
+    color:#087B5A;
+}
+
+.status-inativo{
+    background:#F1F5F9;
+    color:#64748B;
+}
+
+@media (max-width: 900px){
+    .form-grid{grid-template-columns:1fr 1fr;}
+    .table-card{overflow-x:auto;}
+    .table-card table{min-width:760px;}
+}
+
+@media (max-width: 620px){
+    .form-grid{grid-template-columns:1fr;}
+}
+
+/* Configurações: controles de impressora */
+.form-card select{width:100%;min-height:44px;padding:0 12px;border:1px solid #dbe2ea;border-radius:10px;background:#fff;font:inherit;color:#0f172a;outline:none}
+.form-card select:focus{border-color:#00a879;box-shadow:0 0 0 3px rgba(0,168,121,.1)}
+.form-card button:disabled{opacity:.65;cursor:wait}

@@ -9,28 +9,15 @@
     <link rel="stylesheet" href="css/quiosque.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 <style>
-.pagina-com-menu > .quiosque-tela{margin-left:220px;width:calc(100% - 220px);min-height:100vh;}
-.pagina-com-menu .sidebar{font-family:Inter,Arial,sans-serif;}
-@media(max-width:900px){.pagina-com-menu > .quiosque-tela{margin-left:76px;width:calc(100% - 76px);}}
+/* Quiosque: ocupa 100% da tela, sem menu administrativo. */
+html, body { width:100%; min-height:100%; margin:0; }
+body.quiosque-puro { width:100vw; min-height:100vh; overflow:hidden; }
+body.quiosque-puro .quiosque-tela { width:100vw; min-height:100vh; margin:0; }
 </style>
+    <link rel="stylesheet" href="css/tema-verde.css">
 </head>
-<body class="quiosque pagina-com-menu">
-<aside class="sidebar">
-  <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
-  <nav class="sidebar-menu">
-    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
-    <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
-    <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
-    <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
-    <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
-    <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
-    <a href="quiosque.html" class="active"><i class="bi bi-display"></i><span>Quiosque</span></a>
-    <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
-    <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
-    <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
-  </nav>
-  <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
-</aside>
+<body class="quiosque quiosque-puro">
+
 
     <main class="quiosque-tela" aria-label="Terminal de autoatendimento">
         <header class="quiosque-cabecalho">

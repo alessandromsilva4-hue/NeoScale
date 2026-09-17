@@ -1,17 +1,29 @@
-<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NeoScale | Financeiro</title><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/financeiro.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-</head><body><div class="layout"><aside class="sidebar">
-  <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
-  <nav class="sidebar-menu">
-    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
-    <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
-    <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
-    <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
-    <a href="financeiro.html" class="active"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
-    <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
-    <a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
-    <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
-    <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
-    <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
-  </nav>
-  <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
-</aside><main class="content financeiro"><div class="top"><div><h2>Financeiro</h2><p>Receitas, despesas e movimentações do sistema.</p></div></div><div class="cards"><div class="card"><span>Receitas</span><strong id="receitas">R$ 0,00</strong></div><div class="card"><span>Despesas / saídas</span><strong id="despesas">R$ 0,00</strong></div><div class="card"><span>Vendas em PIX</span><strong id="pix">R$ 0,00</strong></div><div class="card"><span>Saldo movimentado</span><strong id="saldo">R$ 0,00</strong></div></div><section class="panel"><div class="toolbar"><button class="btn" id="nova">+ Nova movimentação</button><button class="btn dark" id="atualizar">Atualizar</button></div><div id="formBox" class="hidden"><div class="form"><label>Tipo<select id="tipo"><option value="DESPESA">Despesa</option><option value="SUPRIMENTO">Suprimento</option><option value="SANGRIA">Sangria</option></select></label><label>Valor<input id="valor" type="number" step="0.01"></label><label>Forma<select id="forma"><option>Dinheiro</option><option>PIX</option><option>Débito</option><option>Crédito</option></select></label><label>Descrição<input id="descricao"></label><button class="btn" id="salvar">Salvar</button></div></div><div id="lista"></div></section></main></div><script type="module" src="js/financeiro.js"></script></body></html>
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>NeoScale | Financeiro</title>
+  <link rel="icon" href="img/favicon.png">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/tema-verde.css"><link rel="stylesheet" href="css/financeiro.css">
+</head>
+<body><div class="layout">
+  <aside class="sidebar"><div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div><nav class="sidebar-menu">
+    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a><a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a><a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
+    <a href="delivery.html"><i class="bi bi-bicycle"></i><span>Delivery</span></a><a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a><a href="financeiro.html" class="active"><i class="bi bi-wallet2"></i><span>Financeiro</span></a><a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a><a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a><a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a><a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a><a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
+  </nav><div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div></aside>
+  <main class="content financeiro">
+    <header class="financeiro-header"><div><div class="page-kicker"><i class="bi bi-graph-up-arrow"></i> VISÃO FINANCEIRA</div><h2>Financeiro</h2><p>Acompanhe receitas, despesas e movimentações da operação.</p></div><div class="header-actions"><span class="atualizacao" id="financeiroStatus"><i class="bi bi-check-circle-fill"></i> Dados atualizados</span><button class="btn btn-outline" id="atualizar" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button><button class="btn" id="nova" type="button"><i class="bi bi-plus-lg"></i> Nova movimentação</button></div></header>
+    <section class="financeiro-resumo" aria-label="Resumo financeiro">
+      <article class="financeiro-card receitas"><div class="card-icon"><i class="bi bi-arrow-down-left-circle"></i></div><div><span>Receitas</span><strong id="receitas">R$ 0,00</strong><small><i class="bi bi-arrow-up-short"></i> Vendas e suprimentos</small></div></article>
+      <article class="financeiro-card despesas"><div class="card-icon"><i class="bi bi-arrow-up-right-circle"></i></div><div><span>Despesas e saídas</span><strong id="despesas">R$ 0,00</strong><small><i class="bi bi-dash-lg"></i> Sangrias e despesas</small></div></article>
+      <article class="financeiro-card pix"><div class="card-icon"><i class="bi bi-qr-code"></i></div><div><span>Vendas em PIX</span><strong id="pix">R$ 0,00</strong><small><i class="bi bi-lightning-charge"></i> Recebimentos digitais</small></div></article>
+      <article class="financeiro-card saldo"><div class="card-icon"><i class="bi bi-wallet2"></i></div><div><span>Saldo movimentado</span><strong id="saldo">R$ 0,00</strong><small><i class="bi bi-bar-chart-line"></i> Resultado do período</small></div></article>
+    </section>
+    <section class="movimentacoes-panel"><div class="panel-heading"><div><h3>Movimentações recentes</h3><p id="resultadoInfo">Carregando movimentações...</p></div><div class="panel-actions"><label class="campo-busca"><i class="bi bi-search"></i><input id="buscarMovimentacao" type="search" placeholder="Buscar descrição ou tipo"></label><select id="periodoMovimentacao" aria-label="Filtrar período"><option value="todos">Todo o período</option><option value="hoje">Hoje</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select></div></div>
+      <div id="formBox" class="form-box hidden"><div class="form-heading"><div class="form-heading-icon"><i class="bi bi-plus-circle"></i></div><div><strong>Registrar movimentação</strong><span>Informe os dados para lançar no caixa atual.</span></div></div><div class="form"><label>Tipo<select id="tipo"><option value="DESPESA">Despesa</option><option value="SUPRIMENTO">Suprimento</option><option value="SANGRIA">Sangria</option></select></label><label>Valor<input id="valor" type="number" step="0.01" min="0.01" placeholder="0,00"></label><label>Forma<select id="forma"><option>Dinheiro</option><option>PIX</option><option>Débito</option><option>Crédito</option></select></label><label class="descricao">Descrição<input id="descricao" maxlength="120" placeholder="Ex.: Compra de materiais"></label><div class="form-actions"><button class="btn btn-outline" id="cancelarMovimentacao" type="button">Cancelar</button><button class="btn" id="salvar" type="button"><i class="bi bi-check-lg"></i> Salvar lançamento</button></div></div></div>
+      <div class="tabela-responsiva" id="lista"></div>
+    </section>
+  </main>
+</div><script type="module" src="js/financeiro.js"></script><script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("financeiro");</script></body></html>

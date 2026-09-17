@@ -33,8 +33,9 @@
   </div>
 </div>
 <script type="module">
-import { auth } from "./js/firebase.js";
+import { auth, db } from "./js/firebase.js";
 import { createUserWithEmailAndPassword, updateProfile } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { doc, writeBatch, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 const form=document.getElementById('setupForm');
 const msg=document.getElementById('mensagem');
 const btn=document.getElementById('btnCriar');
@@ -49,6 +50,10 @@ form.addEventListener('submit',async(e)=>{
  try{
    const cred=await createUserWithEmailAndPassword(auth,email,senha);
    await updateProfile(cred.user,{displayName:'Administrador'});
+   const lote=writeBatch(db);
+   lote.set(doc(db,'usuarios',cred.user.uid),{email, nome:'Administrador', funcao:'ADMINISTRADOR', ativo:true, criadoEm:serverTimestamp()});
+   lote.set(doc(db,'configuracoes','controleAcesso'),{inicializado:true, administradorUid:cred.user.uid, criadoEm:serverTimestamp()});
+   await lote.commit();
    msg.className='msg ok'; msg.textContent='Acesso criado com sucesso! Você já pode entrar no NeoScale.';
    form.reset();
  }catch(error){

@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Fiscal NFC-e</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/fiscal.css">
+<link rel="icon" type="image/png" href="img/favicon.png">
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar">
+    <div class="sidebar-logo"><h1>NeoScale</h1><span>Pesagem Inteligente</span></div>
+    <nav class="sidebar-menu">
+        <a href="dashboard.html"><i class="bi bi-grid"></i><span>Dashboard</span></a>
+        <a href="pdv.html"><i class="bi bi-cash-register"></i><span>PDV</span></a>
+        <a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
+        <a href="produtos.html"><i class="bi bi-basket"></i><span>Produtos</span></a>
+        <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
+        <a href="fiscal.html" class="active"><i class="bi bi-receipt"></i><span>Fiscal</span></a>
+        <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
+    </nav>
+    <div class="sidebar-footer"><button type="button" id="btnSair"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
+</aside>
+
+<main class="content fiscal-page">
+<header class="page-header fiscal-header">
+    <div><h2>Fiscal — NFC-e</h2><p>Configuração e acompanhamento dos documentos fiscais do PDV.</p></div>
+    <div id="fiscalStatus" class="fiscal-status status-config">Configuração pendente</div>
+</header>
+
+<div class="fiscal-alert"><i class="bi bi-shield-check"></i><div><strong>Importante</strong><span>O NeoScale não considera um cupom como autorizado até receber uma autorização real da SEFAZ. Esta versão prepara a operação e o histórico; a transmissão real depende da integração fiscal e dos dados da empresa.</span></div></div>
+
+<section class="fiscal-grid">
+    <div class="fiscal-card">
+        <div class="card-head"><div><span class="kicker">EMPRESA</span><h3>Dados fiscais</h3></div><span class="mini-badge">NFC-e modelo 65</span></div>
+        <div class="form-grid">
+            <div><label for="razaoSocial">Razão social</label><input id="razaoSocial" type="text" placeholder="Razão social da empresa"></div>
+            <div><label for="nomeFantasia">Nome fantasia</label><input id="nomeFantasia" type="text" placeholder="Nome comercial"></div>
+            <div><label for="cnpj">CNPJ</label><input id="cnpj" type="text" inputmode="numeric" placeholder="00.000.000/0000-00"></div>
+            <div><label for="ie">Inscrição Estadual</label><input id="ie" type="text" placeholder="Inscrição estadual"></div>
+            <div><label for="uf">UF</label><select id="uf"><option value="">Selecione</option><option>GO</option><option>SP</option><option>MG</option><option>DF</option><option>RJ</option><option>PR</option><option>SC</option><option>RS</option><option>BA</option><option>PE</option><option>ES</option><option>MT</option><option>MS</option><option>TO</option><option>PA</option><option>MA</option><option>CE</option><option>PB</option><option>RN</option><option>AL</option><option>SE</option><option>PI</option><option>RO</option><option>AC</option><option>AM</option><option>RR</option><option>AP</option></select></div>
+            <div><label for="municipio">Município</label><input id="municipio" type="text" placeholder="Município"></div>
+            <div class="full"><label for="endereco">Endereço</label><input id="endereco" type="text" placeholder="Rua, número, bairro, complemento"></div>
+        </div>
+    </div>
+
+    <div class="fiscal-card">
+        <div class="card-head"><div><span class="kicker">EMISSÃO</span><h3>Parâmetros da NFC-e</h3></div></div>
+        <div class="form-grid">
+            <div><label for="ambiente">Ambiente</label><select id="ambiente"><option value="homologacao">Homologação</option><option value="producao">Produção</option></select></div>
+            <div><label for="serie">Série</label><input id="serie" type="number" min="1" value="1"></div>
+            <div><label for="numeroAtual">Próximo número</label><input id="numeroAtual" type="number" min="1" value="1"></div>
+            <div><label for="idToken">ID do CSC</label><input id="idToken" type="text" placeholder="Somente quando configurado"></div>
+            <div class="full"><label for="csc">CSC</label><input id="csc" type="password" placeholder="Não coloque este valor no código do frontend"></div>
+        </div>
+        <div class="secure-note"><i class="bi bi-lock"></i><span>Certificado digital e segredo fiscal não devem ficar expostos no JavaScript do navegador. Para produção, use um serviço/backend fiscal seguro.</span></div>
+        <button id="btnSalvarFiscal" class="btn-primary" type="button"><i class="bi bi-save"></i> Salvar configuração</button>
+    </div>
+</section>
+
+<section class="fiscal-card history-card">
+    <div class="card-head"><div><span class="kicker">HISTÓRICO</span><h3>Documentos fiscais</h3></div><div class="history-filters"><button class="filtro active" data-filtro="todos">Todos</button><button class="filtro" data-filtro="autorizada">Autorizadas</button><button class="filtro" data-filtro="pendente">Pendentes</button><button class="filtro" data-filtro="rejeitada">Rejeitadas</button></div></div>
+    <div class="table-wrap"><table><thead><tr><th>Número</th><th>Série</th><th>Venda</th><th>Data</th><th>Valor</th><th>Ambiente</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaDocumentos"><tr><td colspan="8" class="empty">Carregando documentos...</td></tr></tbody></table></div>
+</section>
+
+<section class="fiscal-card next-steps">
+    <div><i class="bi bi-diagram-3"></i><div><h3>Fluxo preparado</h3><p>PDV → pagamento → documento fiscal → autorização SEFAZ → DANFE NFC-e/QR Code → histórico fiscal.</p></div></div>
+    <a href="pdv.html" class="btn-secondary">Voltar ao PDV</a>
+</section>
+</main>
+</div>
+
+<div id="modalFiscal" class="modal-fiscal" hidden><div class="modal-fiscal-box"><button id="fecharFiscal" class="modal-close" type="button"><i class="bi bi-x-lg"></i></button><div id="conteudoFiscal"></div></div></div>
+<script type="module" src="js/fiscal.js"></script>
+<script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("fiscal");</script>
+</body>
+</html>

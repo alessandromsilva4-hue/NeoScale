@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/sidebar.css">
 <link rel="stylesheet" href="css/pdv.css">
+    <link rel="stylesheet" href="css/tema-verde.css">
 </head>
 <body>
 <div class="layout">
@@ -114,6 +115,8 @@
 </main>
 </div>
 <div id="modalCancel" class="modal"><div class="modal-card"><h3>Cancelar venda?</h3><p>A comanda continuará disponível para ser consultada e finalizada depois.</p><div class="modal-actions"><button id="fecharModal" class="btn-outline">Voltar</button><button id="confirmarCancelar" class="btn-danger">Cancelar venda</button></div></div></div>
+<div id="modalFiscalVenda" class="modal fiscal-venda-modal" hidden><div class="modal-card fiscal-venda-card"><div class="fiscal-venda-icon"><i class="bi bi-receipt"></i></div><h3>Cliente deseja cupom fiscal?</h3><p>Emita a NFC-e para esta venda. Se o cliente não quiser, a venda será concluída normalmente.</p><div class="fiscal-venda-resumo"><span>Total da venda</span><strong id="fiscalVendaTotal">R$ 0,00</strong></div><div class="modal-actions fiscal-venda-actions"><button id="naoCupomFiscal" class="btn-outline" type="button">Não, finalizar</button><button id="simCupomFiscal" class="btn-primary" type="button"><i class="bi bi-receipt"></i> Sim, emitir cupom</button></div></div></div>
 <script type="module" src="js/pdv.js"></script>
+<script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("pdv");</script>
 </body>
 </html>

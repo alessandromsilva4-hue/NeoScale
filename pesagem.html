@@ -1,115 +1,67 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeoScale | Pesagem</title>
-    <link rel="icon" type="image/png" href="img/favicon.png">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/quiosque.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Pesagem</title>
+<link rel="icon" type="image/png" href="img/favicon.png">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 <style>
-.pagina-com-menu > .quiosque-tela{margin-left:220px;width:calc(100% - 220px);min-height:100vh;}
-.pagina-com-menu .sidebar{font-family:Inter,Arial,sans-serif;}
-@media(max-width:900px){.pagina-com-menu > .quiosque-tela{margin-left:76px;width:calc(100% - 76px);}}
+body.pagina-pesagem{background:#f3faf7;overflow-x:hidden}.pesagem-main{margin-left:220px;min-height:100vh;padding:28px 34px 40px;display:flex;justify-content:center}.pesagem-wrap{width:min(1180px,100%)}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;gap:20px}.topbar h1{font-size:28px;color:#102a26;margin:0 0 5px}.topbar p{color:#64748b;font-size:14px}.status-balanca{display:flex;align-items:center;gap:9px;padding:10px 15px;border-radius:999px;background:#e8f8f1;color:#087b5a;font-size:13px;font-weight:700}.status-balanca i{width:9px;height:9px;border-radius:50%;background:#20c47a;box-shadow:0 0 0 4px rgba(32,196,122,.14)}
+.pesagem-card{background:#fff;border:1px solid #e3eee9;border-radius:22px;box-shadow:0 18px 45px rgba(6,43,37,.09);overflow:hidden}.card-head{padding:22px 26px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #edf2f0}.card-head h2{font-size:18px;color:#16332d}.card-head p{font-size:12px;color:#7a8d87;margin-top:4px}.head-actions{display:flex;gap:9px}.head-actions button,.head-actions a{border:1px solid #d8e6e1;background:#fff;color:#145f4c;border-radius:10px;padding:10px 14px;text-decoration:none;font-size:12px;font-weight:700;cursor:pointer}.head-actions .primary{background:#00a879;border-color:#00a879;color:#fff}
+.terminal{margin:26px;position:relative;min-height:500px;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#063f34,#087b5a 52%,#00b879);display:flex;align-items:center;justify-content:center}.terminal:before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 50% 48%,rgba(255,255,255,.14),transparent 30%),linear-gradient(120deg,rgba(0,0,0,.16),transparent 55%,rgba(0,0,0,.18))}.terminal-content{position:relative;z-index:1;width:min(720px,90%);text-align:center;color:#fff}.scale-icon{width:72px;height:72px;margin:0 auto 18px;border-radius:20px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.13);border:1px solid rgba(255,255,255,.25);font-size:34px}.terminal-content .eyebrow{font-size:11px;letter-spacing:1.5px;font-weight:800;opacity:.8}.terminal-content h2{font-size:42px;line-height:1.08;margin:10px 0 10px;letter-spacing:-1.5px}.terminal-content p{font-size:15px;opacity:.85}.weight-value{margin:28px auto 0;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.24);border-radius:16px;padding:17px 25px;width:min(430px,100%)}.weight-value span{font-size:12px;opacity:.75}.weight-value strong{display:block;font-size:38px;margin-top:4px}
+.measure-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;padding:0 26px 26px}.measure{background:#f7faf9;border:1px solid #e1ece8;border-radius:15px;padding:18px;text-align:center}.measure span{display:block;font-size:12px;color:#71837d;margin-bottom:7px}.measure strong{font-size:24px;color:#123f34}.measure.total strong{color:#00a879}
+.actions{display:flex;justify-content:center;gap:12px;padding:0 26px 26px}.actions button{min-width:170px;padding:13px 18px;border:0;border-radius:11px;background:#00a879;color:#fff;font-weight:700;cursor:pointer}.actions button.secondary{background:#eaf6f2;color:#087b5a}.actions button:disabled{opacity:.65;cursor:not-allowed}.preview-status{margin:0 26px 20px;padding:12px 14px;background:#f5f8f7;border-radius:10px;color:#70827c;font-size:12px;text-align:center}.terminal-footer{padding:16px;text-align:center;border-top:1px solid #edf2f0;color:#8a9994;font-size:11px}
+@media(max-width:900px){.pesagem-main{margin-left:76px;padding:22px 18px}.topbar{align-items:flex-start;flex-direction:column}.terminal{margin:18px;min-height:460px}.measure-grid{grid-template-columns:1fr}.actions{flex-direction:column}.actions button{width:100%}}
+@media(max-width:600px){.pesagem-main{margin-left:0;padding:14px}.sidebar{display:none}.card-head{align-items:flex-start;flex-direction:column}.head-actions{width:100%}.head-actions>*{flex:1;text-align:center}.terminal-content h2{font-size:31px}.terminal{min-height:430px;margin:14px}.measure-grid{padding:0 14px 14px}.actions{padding:0 14px 18px}}
 </style>
+    <link rel="stylesheet" href="css/tema-verde.css">
 </head>
-<body class="quiosque pesagem-quiosque pagina-com-menu">
+<body class="pagina-pesagem">
 <aside class="sidebar">
-  <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
-  <nav class="sidebar-menu">
-    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
-    <a href="pesagem.html" class="active"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
-    <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
-    <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
-    <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
-    <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
-    <a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
-    <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
-    <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
-    <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
-  </nav>
-  <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
+<div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
+<nav class="sidebar-menu">
+<a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
+<a href="pesagem.html" class="active"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
+<a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
+    <a href="delivery.html"><i class="bi bi-bicycle"></i><span>Delivery</span></a>
+<a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
+<a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
+<a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
+<a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
+<a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
+<a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
+<a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
+</nav><div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
 </aside>
-
-    <main class="quiosque-tela" aria-label="Terminal de pesagem">
-        <header class="quiosque-cabecalho">
-            <div>
-                <span>Bem-vindo(a), esse é o nosso</span>
-                <strong>Autoatendimento</strong>
-            </div>
-            <div class="quiosque-acoes">
-                <div class="seletor-tema">
-                    <label for="temaQuiosque">Tema</label>
-                    <select id="temaQuiosque" aria-label="Escolher tema de cores">
-                        <option value="azul">Azul</option>
-                        <option value="verde">Verde</option>
-                        <option value="roxo">Roxo</option>
-                        <option value="laranja">Laranja</option>
-                        <option value="turquesa">Turquesa</option>
-                        <option value="rosa">Rosa</option>
-                        <option value="grafite">Grafite</option>
-                        <option value="preto">Preto</option>
-                        <option value="vermelho">Vermelho</option>
-                        <option value="amarelo">Amarelo</option>
-                        <option value="ciano">Ciano</option>
-                        <option value="esmeralda">Esmeralda</option>
-                        <option value="oceano">Oceano</option>
-                        <option value="vinho">Vinho</option>
-                        <option value="marrom">Marrom</option>
-                        <option value="cinza">Cinza</option>
-                        <option value="dourado">Dourado</option>
-                        <option value="prata">Prata</option>
-                        <option value="indigo">Índigo</option>
-                        <option value="lima">Lima</option>
-                        <option value="cobre">Cobre</option>
-                    </select>
-                </div>
-                <div class="botoes-pesagem">
-                    <a class="abrir-quiosque" href="quiosque.html">Abrir quiosque</a>
-                    <button id="iniciarPesagem" type="button">Conectar balança</button>
-                    <button id="emitirComanda" type="button">Emitir comanda</button>
-                    <button id="emitirComandaTeste" type="button">Comanda teste</button>
-                </div>
-            </div>
-        </header>
-
-        <section class="quiosque-corpo">
-            <div class="quiosque-mensagem">
-                <h1>Coloque o prato sobre a balança</h1>
-            </div>
-        </section>
-
-        <section class="quiosque-medidas" aria-label="Dados da pesagem">
-            <div>
-                <span>Valor KG - Refeição</span>
-                <strong id="precoKgDisplay">R$ 89,90</strong>
-            </div>
-            <div>
-                <span>Peso</span>
-                <strong id="pesoDisplay">0,000 kg</strong>
-            </div>
-            <div>
-                <span>Total</span>
-                <strong id="valorDisplay">R$ 0,00</strong>
-            </div>
-        </section>
-        <div id="statusComandaGerada" class="quiosque-rodape" style="font-weight:700"></div>
-        <div class="quiosque-rodape">NEOSCALE <span>•</span> Experiência de pesagem inteligente</div>
-    </main>
-
-    <div id="previewComanda" class="controle-oculto"></div>
-    <script src="js/quiosque.js"></script>
-    <script>
-    window.mostrarComandaGerada = function(c){
-      const el=document.getElementById("statusComandaGerada");
-      if(el) el.innerHTML=`COMANDA Nº ${c.numero} • código ${c.codigoBarras}`;
-    };
-    </script>
-    <script type="module" src="js/firebase.js"></script>
-    <script type="module" src="js/frases.js"></script>
-    <script type="module" src="js/voz.js"></script>
-    <script type="module" src="js/pesagem.js"></script>
-    <script type="module" src="js/impressao.js"></script>
-</body>
-</html>
+<main class="pesagem-main"><div class="pesagem-wrap">
+<header class="topbar"><div><h1>Pesagem</h1><p>Realize a pesagem e acompanhe o valor da refeição.</p></div><div class="status-balanca"><i></i><span>Pronta para pesar</span></div></header>
+<section class="pesagem-card">
+<div class="card-head"><div><h2>Terminal de pesagem</h2><p>Selecione o produto, coloque o prato sobre a balança e aguarde a estabilização.</p></div><div class="head-actions"><a href="quiosque.html">Abrir quiosque</a><button id="alternarTelaCheia" type="button">⛶ Tela cheia</button></div></div>
+<div class="produto-pesagem-bar">
+  <div class="produto-pesagem-campo">
+    <label for="produtoPesagem">Produto</label>
+    <select id="produtoPesagem" aria-label="Produto para pesagem">
+      <option value="">Carregando produtos...</option>
+    </select>
+  </div>
+  <div class="produto-pesagem-preco">
+    <span>Preço aplicado</span>
+    <strong id="precoSelecionadoDisplay">R$ 0,00/kg</strong>
+  </div>
+</div>
+<div class="terminal"><div class="terminal-content"><div class="scale-icon"><i class="bi bi-speedometer2"></i></div><div class="eyebrow">PESAGEM INTELIGENTE</div><h2>Coloque o prato sobre a balança</h2><p>A leitura será identificada automaticamente quando o peso estabilizar.</p><div class="weight-value"><span>PESO ATUAL</span><strong id="pesoDisplay">0,000 kg</strong></div></div></div>
+<div class="measure-grid"><div class="measure"><span>Valor por KG</span><strong id="precoKgDisplay">R$ 0,00</strong></div><div class="measure"><span>Peso</span><strong id="pesoDisplayResumo">0,000 kg</strong></div><div class="measure total"><span>Total da refeição</span><strong id="valorDisplay">R$ 0,00</strong></div></div>
+<div class="actions"><button id="iniciarPesagem" type="button">Conectar balança</button><button id="emitirComanda" class="secondary" type="button">Emitir comanda</button><button id="emitirComandaTeste" class="secondary" type="button">Comanda teste</button></div>
+<div id="previewStatus" class="preview-status">Aguardando conexão com a balança</div><div id="statusComandaGerada" class="preview-status" style="display:none"></div>
+<div class="terminal-footer">NeoScale • Gestão Inteligente de Pesagem</div>
+</section></div></main>
+<div id="previewComanda" class="controle-oculto"></div>
+<script>const resumo=document.getElementById('pesoDisplayResumo');const peso=document.getElementById('pesoDisplay');const obs=new MutationObserver(()=>{if(resumo&&peso)resumo.textContent=peso.textContent});if(peso)obs.observe(peso,{childList:true,subtree:true,characterData:true});</script>
+<script type="module" src="js/firebase.js"></script><script type="module" src="js/frases.js"></script><script type="module" src="js/voz.js"></script><script type="module" src="js/pesagem.js"></script><script type="module" src="js/impressao.js"></script>
+<script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("pesagem");</script>
+<script>window.mostrarComandaGerada=function(c){const el=document.getElementById('statusComandaGerada');if(el){el.style.display='block';el.textContent=`COMANDA Nº ${c.numero} • código ${c.codigoBarras}`;}};</script>
+</body></html>

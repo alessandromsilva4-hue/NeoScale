@@ -78,15 +78,35 @@ export async function finalizarComanda(id, pagamento) {
     const caixa = await caixaAberto();
     if (!caixa) throw new Error("Nenhum caixa está aberto. Abra o caixa antes de finalizar vendas.");
     const comandaRef = doc(db, "comandas", id);
-    await updateDoc(comandaRef, {
-        status: "FINALIZADA",
-        pagamento,
-        finalizadoEm: serverTimestamp()
-    });
+    let venda;
 
-    const comandaSnap = await getDoc(comandaRef);
-    const venda = comandaSnap.data();
-    await registrarMovimento({ caixaId: caixa.id, tipo: "VENDA", valor: venda.total, forma: pagamento, descricao: `Comanda ${venda.numero}`, referencia: id });
+    // A atualização da comanda e o lançamento no caixa acontecem juntas.
+    // Assim, dois PDVs não conseguem finalizar/cobrar a mesma comanda.
+    await runTransaction(db, async (transaction) => {
+        const comandaSnap = await transaction.get(comandaRef);
+        if (!comandaSnap.exists()) throw new Error("Comanda não encontrada.");
+
+        venda = comandaSnap.data();
+        if (venda.status !== "ABERTA") {
+            throw new Error(`A comanda ${venda.numero || ""} já foi finalizada ou cancelada.`);
+        }
+
+        const movimentoRef = doc(collection(db, MOV));
+        transaction.update(comandaRef, {
+            status: "FINALIZADA",
+            pagamento,
+            finalizadoEm: serverTimestamp()
+        });
+        transaction.set(movimentoRef, {
+            caixaId: caixa.id,
+            tipo: "VENDA",
+            valor: Number(venda.total || 0),
+            forma: pagamento,
+            descricao: `Comanda ${venda.numero}`,
+            referencia: id,
+            criadoEm: serverTimestamp()
+        });
+    });
 
     // O histórico é atualizado pelo ID da comanda.
     const resultado = await getDocs(
