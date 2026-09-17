@@ -1,0 +1,6 @@
+ALTERAÇÕES REALIZADAS
+- Delivery > Caixa > Abertura e Fechamento.
+- Caixa Delivery separado do Caixa Loja.
+- Fechamento Geral com duas conciliações independentes.
+- Observação/justificativa em cada conciliação.
+- Diferença de valor no fechamento do Delivery.

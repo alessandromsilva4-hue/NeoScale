@@ -9,6 +9,11 @@
 <link rel="stylesheet" href="css/fechamento.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/tema-verde.css">
+
+<style id="ns-fechamento-conciliacao-css">
+.ns-conciliacao{margin:24px 0;padding:24px;background:#fff;border-radius:14px}.ns-conc-grid{display:grid;grid-template-columns:repeat(2,minmax(260px,1fr));gap:18px}.ns-conc-grid article,.ns-conc-resumo{border:1px solid #e1e5ec;border-radius:12px;padding:18px}.ns-conc-grid label{display:flex;flex-direction:column;gap:7px;font-weight:600;margin:14px 0}.ns-conc-grid textarea{padding:10px;border:1px solid #d5dbe5;border-radius:8px;font:inherit}.ns-conc-grid strong{display:block;margin-top:12px}.ns-conc-resumo{margin-top:18px}@media(max-width:800px){.ns-conc-grid{grid-template-columns:1fr}}
+</style>
+
 </head>
 <body>
 <div class="layout">
@@ -18,7 +23,7 @@
     <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
     <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
     <a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
-    <a href="delivery.html"><i class="bi bi-bicycle"></i><span>Delivery</span></a>
+    <a href="delivery.html"><i class="bi bi-bicycle"></i><span>Delivery</span></a><a href="cozinha.html"><i class="bi bi-display"></i><span>KDS Cozinha</span></a>
     <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
     <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
     <a href="fechamento.html" class="active"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
@@ -191,5 +196,23 @@
 </div>
 <script type="module" src="js/fechamento.js"></script>
 <script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("fechamento");</script>
+
+<section id="conciliacao-caixas-neoscale" class="ns-conciliacao">
+  <div class="page-header"><div><h2>🔎 Conciliação dos Caixas</h2><p>Caixa Loja e Caixa Delivery são conciliados separadamente.</p></div></div>
+  <div class="ns-conc-grid">
+    <article><h3>🏪 Conciliação Caixa Loja</h3><p>Somente operações do caixa físico.</p>
+      <label>Observação / justificativa<textarea id="nsConcLojaObs" rows="3"></textarea></label>
+      <button type="button" id="nsConcLojaSalvar">Salvar conciliação Loja</button>
+      <strong id="nsConcLojaStatus">Pendente</strong>
+    </article>
+    <article><h3>🛵 Conciliação Caixa Delivery</h3><p>Somente operações do Delivery.</p>
+      <label>Observação / justificativa<textarea id="nsConcDeliveryObs" rows="3"></textarea></label>
+      <button type="button" id="nsConcDeliverySalvar">Salvar conciliação Delivery</button>
+      <strong id="nsConcDeliveryStatus">Pendente</strong>
+    </article>
+  </div>
+  <div class="ns-conc-resumo"><h3>📊 Resumo Geral</h3><p>🏪 Caixa Loja: <strong id="nsResumoLoja">Separado</strong></p><p>🛵 Caixa Delivery: <strong id="nsResumoDelivery">Separado</strong></p></div>
+</section>
+
 </body>
 </html>

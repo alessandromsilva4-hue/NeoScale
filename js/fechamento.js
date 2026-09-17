@@ -165,3 +165,24 @@ carregarDados();
 
 
 document.querySelectorAll('.filtro-caixa').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.filtro-caixa').forEach(b=>b.classList.remove('ativo'));btn.classList.add('ativo');filtroHistorico=btn.dataset.filtro;renderHistoricoFechados();}));
+
+/* NeoScale — Fechamento Geral: conciliações independentes */
+(function(){
+ const KEY="neoscale_conciliacoes";
+ const $=id=>document.getElementById(id);
+ const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}};
+ const save=v=>localStorage.setItem(KEY,JSON.stringify(v));
+ function render(){
+   const c=load();
+   if($("nsConcLojaStatus"))$("nsConcLojaStatus").textContent=c.loja?.status||"Pendente";
+   if($("nsConcDeliveryStatus"))$("nsConcDeliveryStatus").textContent=c.delivery?.status||"Pendente";
+   if($("nsConcLojaObs"))$("nsConcLojaObs").value=c.loja?.obs||"";
+   if($("nsConcDeliveryObs"))$("nsConcDeliveryObs").value=c.delivery?.obs||"";
+ }
+ document.addEventListener("click",e=>{
+   if(e.target.closest("#nsConcLojaSalvar")){const c=load();c.loja={status:"Registrada",obs:$("nsConcLojaObs")?.value||"",at:new Date().toISOString()};save(c);render();alert("Conciliação do Caixa Loja salva.");}
+   if(e.target.closest("#nsConcDeliverySalvar")){const c=load();c.delivery={status:"Registrada",obs:$("nsConcDeliveryObs")?.value||"",at:new Date().toISOString()};save(c);render();alert("Conciliação do Caixa Delivery salva.");}
+ });
+ window.nsFechamentoConciliacoes={load,save,render};
+ document.addEventListener("DOMContentLoaded",render);
+})();

@@ -45,6 +45,40 @@ async function printKitchen(o){
  const result={printedAt:new Date().toISOString(),printerIp:ip,printerPort:port}; printLog.set(key,result); return result;
 }
 app.get('/health',(req,res)=>res.json({ok:true,service:'neoscale-delivery',printerService:PRINTER_SERVICE_URL}));
+async function syncIfoodIntoMemory(){
+  const id=process.env.IFOOD_CLIENT_ID, secret=process.env.IFOOD_CLIENT_SECRET;
+  if(!id||!secret) return {configured:false,events:0};
+  const token=await getIfoodToken();
+  const r=await fetch('https://merchant-api.ifood.com.br/order/v1.0/orders:polling',{headers:{Authorization:`Bearer ${token}`}});
+  if(!r.ok) throw new Error(`iFood polling ${r.status}: ${await r.text()}`);
+  const d=await r.json();
+  let events=0;
+  for(const e of d.events||[]){
+    if(!e.orderId) continue;
+    events++;
+    let detail=e.metadata||{};
+    if(!e.metadata){
+      const dr=await fetch(`https://merchant-api.ifood.com.br/order/v1.0/orders/${encodeURIComponent(e.orderId)}`,{headers:{Authorization:`Bearer ${token}`}});
+      if(dr.ok) detail=await dr.json();
+    }
+    const o=normalize({...detail,id:e.orderId},'iFood');
+    orders.set(o.id,o);
+  }
+  return {configured:true,events};
+}
+app.post('/api/delivery/sync',async(req,res)=>{
+  const result={events:0,platforms:{},orders:[]};
+  try{
+    const ifood=await syncIfoodIntoMemory();
+    result.platforms.iFood=ifood.configured?'Conectado':'Não configurado';
+    result.events+=ifood.events;
+  }catch(e){
+    result.platforms.iFood='Falha na conexão';
+    result.warning=e.message;
+  }
+  result.orders=[...orders.values()];
+  res.json(result);
+});
 app.get('/api/delivery/orders',(req,res)=>res.json({orders:[...orders.values()]}));
 app.get('/api/delivery/orders/:id/print-status',(req,res)=>res.json({printed:Boolean(printLog.get(req.params.id)),data:printLog.get(req.params.id)||null}));
 app.post('/api/delivery/orders/:id/print-kitchen',async(req,res)=>{const o=orders.get(req.params.id);if(!o)return res.status(404).json({error:'Pedido não encontrado'});try{const result=await printKitchen(o);res.json({ok:true,orderId:o.id,...result})}catch(e){res.status(502).json({ok:false,error:e.message})}});

@@ -3,9 +3,9 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const ROTAS_POR_PERFIL = {
-    ADMINISTRADOR: ["dashboard", "pesagem", "pdv", "caixa", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "fiscal", "delivery"],
-    CAIXA: ["dashboard", "pdv", "caixa", "historico", "delivery"],
-    OPERADOR: ["dashboard", "pesagem", "historico", "delivery"]
+    ADMINISTRADOR: ["dashboard", "pesagem", "pdv", "caixa", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "fiscal", "delivery", "cozinha"],
+    CAIXA: ["dashboard", "pdv", "caixa", "historico", "delivery", "cozinha"],
+    OPERADOR: ["dashboard", "pesagem", "historico", "delivery", "cozinha"]
 };
 
 async function obterPerfil(uid) {
