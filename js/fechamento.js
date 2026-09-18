@@ -1,6 +1,6 @@
 import { listarCaixas, listarMovimentos, calcularCaixa } from './caixa.js';
 import { db } from './firebase.js';
-import { collection, addDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection, addDoc, serverTimestamp, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const $=id=>document.getElementById(id);
 const br=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
@@ -50,6 +50,22 @@ async function carregarDados(){
   renderHistoricoFechados();
   preencherCaixas();
  }catch(e){console.error(e);$('tbody').innerHTML=`<tr><td colspan="7" class="vazio">Não foi possível carregar os caixas.</td></tr>`;}
+}
+
+async function carregarHistoricoDelivery(){
+ try{
+  const snap=await getDocs(collection(db,'caixasDelivery'));
+  const lista=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>c.status==='FECHADO');
+  lista.sort((a,b)=>(dataObj(b.fechadoEm)?.getTime()||0)-(dataObj(a.fechadoEm)?.getTime()||0));
+  const tbody=$('tbodyHistoricoDelivery'); if(!tbody)return;
+  const totalVendas=lista.reduce((a,c)=>a+Number(c.totalVendas||0),0);
+  const totalContado=lista.reduce((a,c)=>a+Number(c.valorContado||0),0);
+  const totalDif=lista.reduce((a,c)=>a+Number(c.diferenca||0),0);
+  $('deliveryQtdFechados').textContent=lista.length; $('deliveryTotalVendas').textContent=br(totalVendas); $('deliveryTotalContado').textContent=br(totalContado);
+  const difEl=$('deliveryTotalDiferenca'); difEl.textContent=br(totalDif); difEl.className=Math.abs(totalDif)<0.005?'dif-ok':'dif-bad';
+  if(!lista.length){tbody.innerHTML='<tr><td colspan="9" class="vazio"><i class="bi bi-bicycle"></i><br>Nenhum Caixa Delivery fechado encontrado.</td></tr>';return;}
+  tbody.innerHTML=lista.map(c=>{const dif=Number(c.diferenca||0);return `<tr><td><span class="status-badge status-fechado"><i class="bi bi-bicycle"></i> Delivery</span></td><td>${c.operador||'—'}</td><td>${data(c.abertoEm)}</td><td>${data(c.fechadoEm)}</td><td>${br(c.totalVendas||0)}</td><td>${br(c.valorInicial||0)}</td><td>${br(c.valorContado||0)}</td><td class="${Math.abs(dif)<0.005?'dif-ok':'dif-bad'}">${br(dif)}</td><td><span class="status-badge status-fechado"><i class="bi bi-check-circle"></i> Fechado</span></td></tr>`;}).join('');
+ }catch(e){console.error('Erro ao carregar histórico do Caixa Delivery:',e);const tbody=$('tbodyHistoricoDelivery');if(tbody)tbody.innerHTML='<tr><td colspan="9" class="vazio">Não foi possível carregar os caixas Delivery.</td></tr>';}
 }
 
 function dataObj(v){
@@ -156,12 +172,14 @@ async function salvarConciliacao(){
 }
 
 $('atualizar').onclick=carregarDados;
+$('atualizarDelivery')?.addEventListener('click',carregarHistoricoDelivery);
 $('carregarConciliacao').onclick=prepararConciliacao;
 $('salvarConciliacao').onclick=salvarConciliacao;
 ['maqDinheiro','maqPix','maqDebito','maqCredito'].forEach(id=>$(id)?.addEventListener('input',atualizarConciliacao));
 $('obsConciliacao')?.addEventListener('input',()=>{ $('contadorObs').textContent=String($('obsConciliacao').value.length); });
 configurarDetalheCaixa();
 carregarDados();
+carregarHistoricoDelivery();
 
 
 document.querySelectorAll('.filtro-caixa').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.filtro-caixa').forEach(b=>b.classList.remove('ativo'));btn.classList.add('ativo');filtroHistorico=btn.dataset.filtro;renderHistoricoFechados();}));

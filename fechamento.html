@@ -108,6 +108,29 @@
     </section>
   </div>
 
+  <section class="painel-historico-caixas painel-historico-delivery">
+    <div class="painel-topo historico-caixas-topo">
+      <div>
+        <div class="eyebrow"><i class="bi bi-bicycle"></i> Histórico financeiro · Delivery</div>
+        <h3>Caixas Delivery fechados</h3>
+        <p>Os fechamentos do Caixa Delivery aparecem separados do caixa da loja.</p>
+      </div>
+      <button class="btn-atualizar" id="atualizarDelivery"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+    </div>
+    <div class="historico-caixas-resumo">
+      <div><span>Caixas fechados</span><strong id="deliveryQtdFechados">0</strong></div>
+      <div><span>Total de vendas</span><strong id="deliveryTotalVendas">R$ 0,00</strong></div>
+      <div><span>Total contado</span><strong id="deliveryTotalContado">R$ 0,00</strong></div>
+      <div><span>Diferença acumulada</span><strong id="deliveryTotalDiferenca">R$ 0,00</strong></div>
+    </div>
+    <div class="tabela-wrap">
+      <table class="tabela-fechamento tabela-historico-caixas">
+        <thead><tr><th>Tipo</th><th>Operador</th><th>Abertura</th><th>Fechamento</th><th>Vendas</th><th>Inicial</th><th>Contado</th><th>Diferença</th><th>Status</th></tr></thead>
+        <tbody id="tbodyHistoricoDelivery"><tr><td colspan="9" class="carregando"><i class="bi bi-arrow-repeat"></i> Carregando caixas Delivery...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="painel-conciliacao" id="conciliacao-loja">
     <div class="conciliacao-topo">
       <div>
