@@ -13,22 +13,7 @@
 </head>
 <body>
 <div class="layout">
-<aside class="sidebar">
-  <div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div>
-  <nav class="sidebar-menu">
-    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a>
-    <a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a>
-    <a href="pdv.html" class="active"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
-    <a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a>
-    <a href="financeiro.html"><i class="bi bi-wallet2"></i><span>Financeiro</span></a>
-    <a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a>
-    <a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a>
-    <a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a>
-    <a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a>
-    <a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
-  </nav>
-  <div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div>
-</aside>
+<aside class="sidebar" data-sidebar></aside>
 <main class="content pdv-page">
   <div class="pdv-topbar">
     <div class="pdv-title"><h2>Frente de Loja</h2><p>Venda rápida, leitura de comanda e recebimento.</p></div>
@@ -38,8 +23,33 @@
       <div class="status-pill"><i class="bi bi-clock"></i><strong id="relogio">--:--</strong></div>
     </div>
   </div>
-  <div class="pdv-tabs"><button type="button" class="pdv-tab active" data-tab="comanda"><i class="bi bi-upc-scan"></i> Comanda / Pesagem</button><button type="button" class="pdv-tab" data-tab="produtos"><i class="bi bi-basket2"></i> Produtos</button></div>
+  <div class="pdv-tabs"><button type="button" class="pdv-tab active" data-tab="comanda"><i class="bi bi-upc-scan"></i> Comanda / Pesagem</button><button type="button" class="pdv-tab" data-tab="produtos"><i class="bi bi-basket2"></i> Produtos</button><button type="button" class="pdv-tab" data-tab="entrega"><i class="bi bi-scooter"></i> Entrega</button></div>
   <div class="pdv-shortcuts"><span class="shortcut">F2 · Comanda</span><span class="shortcut">Enter · Buscar</span><span class="shortcut">F6 · Pagamento</span><span class="shortcut">F8 · Cancelar</span><span class="shortcut">ESC · Limpar</span></div>
+
+  <section class="delivery-pdv-panel panel pdv-tab-panel-hidden" id="painelEntregaPDV">
+    <div class="panel-head"><div><h3><i class="bi bi-scooter"></i> Pedido para entrega</h3><small>Crie o pedido e envie diretamente para a Central de Delivery.</small></div><span class="products-mode">PDV</span></div>
+    <div class="delivery-pdv-toolbar">
+      <div class="delivery-customer-search"><i class="bi bi-telephone"></i><input id="telefoneClienteEntrega" inputmode="tel" placeholder="Telefone do cliente" autocomplete="off"><button type="button" id="btnBuscarClienteEntrega" class="btn-outline"><i class="bi bi-search"></i> Buscar cliente</button></div>
+      <div id="clienteEncontradoEntrega" class="customer-found"></div>
+    </div>
+    <div class="delivery-form-grid">
+      <label>Nome do cliente<input id="nomeClienteEntrega" placeholder="Nome completo"></label>
+      <label>WhatsApp<input id="whatsappClienteEntrega" inputmode="tel" placeholder="(00) 00000-0000"></label>
+      <label>CEP<input id="cepClienteEntrega" inputmode="numeric" placeholder="00000-000"></label>
+      <label>Endereço<input id="enderecoClienteEntrega" placeholder="Rua / Avenida"></label>
+      <label>Número<input id="numeroClienteEntrega" placeholder="Nº"></label>
+      <label>Complemento<input id="complementoClienteEntrega" placeholder="Apto, sala..."></label>
+      <label>Bairro<input id="bairroClienteEntrega" placeholder="Bairro"></label>
+      <label>Referência<input id="referenciaClienteEntrega" placeholder="Perto de..."></label>
+      <label>Taxa de entrega<input id="taxaEntregaPDV" type="number" min="0" step="0.01" value="0"></label>
+      <label>Pagamento na entrega<select id="pagamentoEntregaPDV"><option value="nao">Não</option><option value="sim">Sim</option></select></label>
+      <label>Forma de pagamento<select id="formaPagamentoEntregaPDV"><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option><option value="Débito">Débito</option><option value="Crédito">Crédito</option><option value="Outro">Outro</option></select></label>
+      <label>Observação<textarea id="observacaoEntregaPDV" rows="2" placeholder="Observação do cliente ou da cozinha"></textarea></label>
+    </div>
+    <div class="delivery-order-preview"><div><span>Itens</span><strong id="entregaItensResumo">0 item</strong></div><div><span>Subtotal</span><strong id="entregaSubtotal">R$ 0,00</strong></div><div><span>Entrega</span><strong id="entregaTaxaResumo">R$ 0,00</strong></div><div class="grand"><span>Total</span><strong id="entregaTotalResumo">R$ 0,00</strong></div></div>
+    <div class="delivery-pdv-actions"><button type="button" id="btnSalvarClienteEntrega" class="btn-outline"><i class="bi bi-person-plus"></i> Salvar cliente</button><button type="button" id="btnCriarPedidoEntrega" class="finish-btn"><i class="bi bi-send"></i> CRIAR PEDIDO PARA ENTREGA</button></div>
+    <div id="mensagemEntrega" class="message"></div>
+  </section>
 
   <div class="kpi-strip">
     <div class="kpi"><span>Comanda atual</span><strong id="kpiComanda">—</strong></div>
@@ -118,5 +128,6 @@
 <div id="modalFiscalVenda" class="modal fiscal-venda-modal" hidden><div class="modal-card fiscal-venda-card"><div class="fiscal-venda-icon"><i class="bi bi-receipt"></i></div><h3>Cliente deseja cupom fiscal?</h3><p>Emita a NFC-e para esta venda. Se o cliente não quiser, a venda será concluída normalmente.</p><div class="fiscal-venda-resumo"><span>Total da venda</span><strong id="fiscalVendaTotal">R$ 0,00</strong></div><div class="modal-actions fiscal-venda-actions"><button id="naoCupomFiscal" class="btn-outline" type="button">Não, finalizar</button><button id="simCupomFiscal" class="btn-primary" type="button"><i class="bi bi-receipt"></i> Sim, emitir cupom</button></div></div></div>
 <script type="module" src="js/pdv.js"></script>
 <script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("pdv");</script>
+<script src="js/sidebar-menu.js"></script>
 </body>
 </html>

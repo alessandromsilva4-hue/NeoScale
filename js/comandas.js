@@ -10,6 +10,7 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const CONTADOR = "configuracoes/contadorComandas";
+const MOV = "movimentosCaixa";
 
 export async function proximaComanda() {
     return runTransaction(db, async (transaction) => {

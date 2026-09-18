@@ -4,6 +4,16 @@ const SERVICE_DEFAULT='';
 const columns=[['NOVO','Novos'],['PREPARO','Em preparo'],['PRONTO','Prontos'],['ENTREGA','Em entrega'],['CONCLUIDO','Concluídos']];
 let orders=[];
 const printedOrders=new Set();
+const LOCAL_PDV_ORDERS='neoscale_pdv_delivery_orders';
+const LOCAL_DRIVERS='neoscale_delivery_drivers';
+function localOrders(){try{return JSON.parse(localStorage.getItem(LOCAL_PDV_ORDERS)||'[]')}catch{return []}}
+function saveLocalOrders(v){localStorage.setItem(LOCAL_PDV_ORDERS,JSON.stringify(v))}
+function localDrivers(){try{return JSON.parse(localStorage.getItem(LOCAL_DRIVERS)||'[]')}catch{return []}}
+function mergeOrders(incoming){
+  const local=localOrders(); const map=new Map();
+  [...local,...(Array.isArray(incoming)?incoming:[])].forEach(o=>{if(o&&o.id) map.set(o.id,{...map.get(o.id),...o})});
+  return [...map.values()].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
+}
 
 function loadConfig(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}}
 function saveConfig(c){localStorage.setItem(KEY,JSON.stringify(c))}
@@ -25,7 +35,12 @@ function render(){
       const printBadge=printedOrders.has(o.id)?'<small class="print-ok">🖨️ Impresso</small>':'';
       const b=next?`<button data-id="${o.id}" data-next="${next}">${next==='PREPARO'?'Iniciar preparo':next==='PRONTO'?'Marcar pronto':next==='ENTREGA'?'Saiu para entrega':'Concluir'}</button>`:'';
       const items=Array.isArray(o.items)?o.items:[];
-      col.insertAdjacentHTML('beforeend',`<article class="order-card"><div class="order-top"><strong>${o.id||'Pedido'}</strong><span class="source">${o.source||'Delivery'}</span></div><p>${o.customer||'Cliente'}</p><div class="order-items">${items.map(x=>`• ${typeof x==='string'?x:`${x.quantity||1}x ${x.name||'Item'}${x.notes?` — ${x.notes}`:''}`}`).join('<br>')}</div><div class="order-foot"><b>${fmt(o.total)}</b><span>${printBadge}</span>${b}</div></article>`);
+      const drivers=localDrivers(); const selected=o.driverId||'';
+      const driverSelect=drivers.length?`<select class="driver-select" data-driver-order="${o.id}"><option value="">Sem entregador</option>${drivers.map(d=>`<option value="${d.id||d.nome}" ${String(selected)===String(d.id||d.nome)?'selected':''}>${d.nome}</option>`).join('')}</select>`:'<small class="no-driver">Cadastre um entregador</small>';
+      const addr=o.address||{}; const addressText=[addr.endereco,addr.numero,addr.bairro].filter(Boolean).join(', ');
+      const phone=String(o.customerPhone||'').replace(/\D/g,'');
+      const wa=phone?`<button type="button" class="whatsapp-order" data-whatsapp-order="${o.id}"><i class="bi bi-whatsapp"></i> WhatsApp</button>`:'';
+      col.insertAdjacentHTML('beforeend',`<article class="order-card"><div class="order-top"><strong>${o.id||'Pedido'}</strong><span class="source">${o.source||'Delivery'}</span></div><p>${o.customer||'Cliente'}</p><div class="order-items">${items.map(x=>`• ${typeof x==='string'?x:`${x.quantity||1}x ${x.name||'Item'}${x.notes?` — ${x.notes}`:''}`}`).join('<br>')}</div>${addressText?`<div class="order-address"><i class="bi bi-geo-alt"></i> ${addressText}</div>`:''}<div class="order-driver">${driverSelect}</div><div class="order-foot"><b>${fmt(o.total)}</b><span>${printBadge}</span>${wa}${b}</div></article>`);
     });
     k.appendChild(col);
   });
@@ -49,7 +64,7 @@ async function sync(){
   const last=document.getElementById('lastSync');
   const service=(c.serviceUrl||'').trim().replace(/\/$/,'');
   if(!service){
-    orders=[];
+    orders=mergeOrders([]);
     setStatuses('idle');
     log.textContent='Serviço de integração ainda não configurado. Abra “Integrações” e informe a URL do serviço.';
     last.textContent='Aguardando configuração';
@@ -83,7 +98,7 @@ async function sync(){
       const r=await fetch(service+'/api/delivery/orders');
       if(!r.ok) throw new Error('HTTP '+r.status);
       const data=await r.json();
-      orders=Array.isArray(data.orders)?data.orders:[];
+      orders=mergeOrders(Array.isArray(data.orders)?data.orders:[]);
       setStatuses('live');
       log.textContent=`Fila atualizada às ${new Date().toLocaleTimeString('pt-BR')}. Sincronização das plataformas indisponível.`;
       last.textContent=new Date().toLocaleString('pt-BR');
@@ -121,26 +136,24 @@ async function pushStatus(o,next){
   });
 }
 
+document.addEventListener('change',e=>{
+  const sel=e.target.closest('[data-driver-order]'); if(!sel)return;
+  const id=sel.dataset.driverOrder; const list=localOrders(); const idx=list.findIndex(o=>o.id===id); if(idx<0)return;
+  const driver=localDrivers().find(d=>String(d.id||d.nome)===String(sel.value));
+  list[idx]={...list[idx],driverId:driver?(driver.id||driver.nome):null,driverName:driver?.nome||null}; saveLocalOrders(list); orders=mergeOrders(orders); render();
+});
 document.addEventListener('click',async e=>{
-  const b=e.target.closest('[data-next]');
-  if(!b)return;
-  const o=orders.find(x=>x.id===b.dataset.id);
-  if(!o)return;
-  const next=b.dataset.next;
-  b.disabled=true;
+  const wa=e.target.closest('[data-whatsapp-order]');
+  if(wa){ const o=orders.find(x=>x.id===wa.dataset.whatsappOrder); if(o){const phone=String(o.customerPhone||'').replace(/\D/g,''); const msg=`Olá, ${o.customer||'cliente'}! Seu pedido ${o.id} foi recebido. Total ${fmt(o.total)}. Acompanhe o pedido pela nossa equipe.`; window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`,'_blank');} return; }
+  const b=e.target.closest('[data-next]'); if(!b)return;
+  const o=orders.find(x=>x.id===b.dataset.id); if(!o)return; const next=b.dataset.next; b.disabled=true;
   try{
-    if(next==='PREPARO'&&!printedOrders.has(o.id)){
-      await printKitchen(o);
-      o.printedAt=new Date().toISOString();
+    if(String(o.source||'').toUpperCase()==='PDV'){
+      const list=localOrders(); const idx=list.findIndex(x=>x.id===o.id); if(idx>=0){list[idx]={...list[idx],status:next,updatedAt:new Date().toISOString()};saveLocalOrders(list);} o.status=next; render(); return;
     }
-    const result=await pushStatus(o,next);
-    if(result.order)o.status=result.order.status;
-    else o.status=next;
-    render();
-  }catch(err){
-    alert('Não foi possível avançar o pedido.\n\n'+err.message);
-    render();
-  }finally{b.disabled=false;}
+    if(next==='PREPARO'&&!printedOrders.has(o.id)){await printKitchen(o);o.printedAt=new Date().toISOString();}
+    const result=await pushStatus(o,next); if(result.order)o.status=result.order.status; else o.status=next; render();
+  }catch(err){alert('Não foi possível avançar o pedido.\n\n'+err.message);render();}finally{b.disabled=false;}
 });
 
 const dashboard=document.getElementById('deliveryDashboard');
@@ -230,63 +243,84 @@ saveConfigButton.onclick=()=>{
   sync();
 };
 btnSync.onclick=sync;
+
+// =========================================================
+// Rotas do menu lateral + Caixa/Entregadores/Relatórios
+// =========================================================
+const DELIVERY_CASH_KEY='neoscale_delivery_cash';
+const DELIVERY_DRIVERS_KEY='neoscale_delivery_drivers';
+const extraPanels={
+  central:document.getElementById('deliveryDashboard'),
+  caixa:document.getElementById('closingPanel'),
+  entregadores:document.getElementById('entregadoresPanel'),
+  relatorios:document.getElementById('relatoriosPanel'),
+  integracoes:document.getElementById('integrationPanel')
+};
+function cashState(){try{return JSON.parse(localStorage.getItem(DELIVERY_CASH_KEY)||'null')}catch{return null}}
+function setCashState(v){localStorage.setItem(DELIVERY_CASH_KEY,JSON.stringify(v))}
+function renderDeliveryCash(){
+  const c=cashState();
+  const op=document.getElementById('deliveryCashOperator'), init=document.getElementById('deliveryCashInitial'), obs=document.getElementById('deliveryCashObservation'), state=document.getElementById('deliveryCashState');
+  if(c){ if(op)op.value=c.operador||''; if(init)init.value=c.valorInicial||0; if(obs)obs.value=c.observacao||''; if(state)state.innerHTML=`<i class="bi bi-check-circle-fill"></i> Caixa aberto por <strong>${c.operador||'Operador'}</strong> em ${new Date(c.abertoEm).toLocaleString('pt-BR')}.`; }
+  else if(state)state.innerHTML='<i class="bi bi-lock"></i> Caixa Delivery fechado.';
+  const sales=orders.filter(o=>String(o.status||'').toUpperCase()==='CONCLUIDO').reduce((a,o)=>a+Number(o.total||0),0);
+  const fees=orders.filter(o=>String(o.status||'').toUpperCase()==='CONCLUIDO').reduce((a,o)=>a+Number(o.platformFee||o.fee||o.tax||0),0);
+  const initial=Number(c?.valorInicial||0), expected=initial+sales-fees;
+  const informed=Number(document.getElementById('deliveryCashInformed')?.value||0);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=fmt(v)};
+  set('deliveryCashInitialView',initial);set('deliveryCashSales',sales);set('deliveryCashFees',fees);set('deliveryCashExpected',expected);set('deliveryCashDifference',informed-expected);
+  const btn=document.getElementById('btnCloseDeliveryCash'); if(btn)btn.disabled=!c;
+}
+function renderDrivers(){
+  let list=[];try{list=JSON.parse(localStorage.getItem(DELIVERY_DRIVERS_KEY)||'[]')}catch{}
+  const el=document.getElementById('listaEntregadores');if(!el)return;
+  el.innerHTML=list.length?list.map((d,i)=>`<div class="extra-row"><span><strong>${d.nome}</strong><small>${d.telefone||'Telefone não informado'}</small></span><button type="button" data-remove-driver="${i}" class="btn-remove-driver"><i class="bi bi-trash"></i></button></div>`).join(''):'<div class="extra-empty">Nenhum entregador cadastrado.</div>';
+}
+function renderReports(){
+  const done=orders.filter(o=>String(o.status||'').toUpperCase()==='CONCLUIDO');
+  const gross=done.reduce((a,o)=>a+Number(o.total||0),0);
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.textContent=v};
+  set('reportOrders',orders.length);set('reportGross',fmt(gross));set('reportCompleted',done.length);set('reportOpen',orders.length-done.length);
+  const by={};done.forEach(o=>{const k=o.source||'Delivery';by[k]=(by[k]||0)+Number(o.total||0)});
+  const el=document.getElementById('reportPlatforms');if(el)el.innerHTML=Object.keys(by).length?Object.entries(by).map(([k,v])=>`<div class="extra-row"><span><strong>${k}</strong><small>Pedidos concluídos</small></span><b>${fmt(v)}</b></div>`).join(''):'<div class="extra-empty">Nenhuma venda concluída.</div>';
+}
+function showDeliveryRoute(route){
+  Object.values(extraPanels).forEach(p=>{if(p)p.hidden=true});
+  const target=extraPanels[route]||extraPanels.central; target.hidden=false;
+  const meta={central:['OPERAÇÃO OMNICHANNEL','Central de Delivery','iFood, 99Food e Anota AI em um único fluxo.'],caixa:['CONTROLE FINANCEIRO','Caixa Delivery — Abertura e Fechamento','Controle independente do caixa do Delivery.'],entregadores:['LOGÍSTICA','Entregadores','Cadastre e acompanhe os entregadores.'],relatorios:['ANÁLISE','Relatórios de Delivery','Resumo das vendas e pedidos do Delivery.'],integracoes:['CONFIGURAÇÃO','Integrações de Delivery','Conecte o NeoScale às plataformas.']}[route]||null;
+  if(meta){deliveryEyebrow.textContent=meta[0];deliveryTitle.textContent=meta[1];deliverySubtitle.textContent=meta[2]}
+  btnSync.hidden=route!=='central';btnClosing.hidden=true;btnConfig.hidden=route!=='central';
+  if(route==='caixa')renderDeliveryCash(); if(route==='entregadores')renderDrivers(); if(route==='relatorios')renderReports();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function routeFromHash(){
+  const h=String(location.hash||'').replace('#','');
+  const route=h==='caixa-delivery'?'caixa':h==='entregadores'?'entregadores':h==='relatorios-delivery'?'relatorios':'central';
+  showDeliveryRoute(route);
+}
+document.getElementById('btnOpenDeliveryCash')?.addEventListener('click',()=>{
+  const operador=(document.getElementById('deliveryCashOperator')?.value||'').trim()||'Operador';
+  const valorInicial=Math.max(0,Number(document.getElementById('deliveryCashInitial')?.value||0));
+  setCashState({operador,valorInicial,observacao:(document.getElementById('deliveryCashObservation')?.value||'').trim(),abertoEm:new Date().toISOString()});
+  renderDeliveryCash(); alert('Caixa Delivery aberto com sucesso.');
+});
+document.getElementById('deliveryCashInformed')?.addEventListener('input',renderDeliveryCash);
+document.getElementById('btnCloseDeliveryCash')?.addEventListener('click',()=>{
+  const c=cashState();if(!c)return;
+  const sales=orders.filter(o=>String(o.status||'').toUpperCase()==='CONCLUIDO').reduce((a,o)=>a+Number(o.total||0),0);
+  const fees=orders.filter(o=>String(o.status||'').toUpperCase()==='CONCLUIDO').reduce((a,o)=>a+Number(o.platformFee||o.fee||o.tax||0),0);
+  const expected=Number(c.valorInicial||0)+sales-fees;const informed=Number(document.getElementById('deliveryCashInformed')?.value||0);const diff=informed-expected;
+  const obs=(document.getElementById('deliveryCashCloseObservation')?.value||'').trim();
+  if(Math.abs(diff)>=0.005&&!obs){alert('Informe uma observação/justificativa para a diferença.');return;}
+  localStorage.setItem('neoscale_delivery_last_closing',JSON.stringify({closedAt:new Date().toISOString(),operador:c.operador,valorInicial:c.valorInicial,vendas:sales,taxas:fees,esperado:expected,informado:informed,diferenca:diff,observacao:obs}));
+  localStorage.removeItem(DELIVERY_CASH_KEY); renderDeliveryCash(); alert('Caixa Delivery fechado com sucesso.');
+});
+document.getElementById('btnAddEntregador')?.addEventListener('click',()=>{
+  const nome=(document.getElementById('entregadorNome')?.value||'').trim(); if(!nome){alert('Informe o nome do entregador.');return;}
+  let list=[];try{list=JSON.parse(localStorage.getItem(DELIVERY_DRIVERS_KEY)||'[]')}catch{};list.push({id:'ENT-'+Date.now(),nome,telefone:(document.getElementById('entregadorTelefone')?.value||'').trim(),ativo:true});localStorage.setItem(DELIVERY_DRIVERS_KEY,JSON.stringify(list));document.getElementById('entregadorNome').value='';document.getElementById('entregadorTelefone').value='';renderDrivers();
+});
+document.addEventListener('click',e=>{const b=e.target.closest('[data-remove-driver]');if(!b)return;let list=[];try{list=JSON.parse(localStorage.getItem(DELIVERY_DRIVERS_KEY)||'[]')}catch{};list.splice(Number(b.dataset.removeDriver),1);localStorage.setItem(DELIVERY_DRIVERS_KEY,JSON.stringify(list));renderDrivers();});
+window.addEventListener('hashchange',routeFromHash);
+
 sync();
-
-/* NeoScale — Caixa Delivery: abertura + fechamento */
-(function(){
-  const KEY="neoscale_delivery_caixa";
-  const $=id=>document.getElementById(id);
-  const brl=v=>(Number(v)||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
-  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"null")}catch(e){return null}};
-  const save=v=>localStorage.setItem(KEY,JSON.stringify(v));
-
-  function totals(c){
-    const initial=+c.fundoInicial||0, vendas=+c.vendas||0, taxas=+c.taxas||0, sang=+c.sangrias||0, supr=+c.suprimentos||0;
-    return {initial,vendas,taxas,sang,supr,expected:initial+vendas-taxas-sang+supr};
-  }
-  function render(){
-    const c=load(), open=!!(c&&c.status==="ABERTO");
-    if($("nsCdStatus"))$("nsCdStatus").textContent=open?"Aberto":"Fechado";
-    if($("nsCdOperador"))$("nsCdOperador").textContent=c?.operador||"—";
-    if($("nsCdAbertura"))$("nsCdAbertura").textContent=c?.abertoEm?new Date(c.abertoEm).toLocaleString("pt-BR"):"—";
-    if($("nsCdAberturaBox"))$("nsCdAberturaBox").hidden=open;
-    if($("nsCdFechamentoBox"))$("nsCdFechamentoBox").hidden=!open;
-    if(open){
-      const t=totals(c);
-      const vals={nsCdInicial:t.initial,nsCdVendas:t.vendas,nsCdDinheiro:c.dinheiro,nsCdPix:c.pix,nsCdCartao:c.cartao,nsCdTaxas:t.taxas,nsCdSangrias:t.sang,nsCdSuprimentos:t.supr,nsCdEsperado:t.expected};
-      Object.entries(vals).forEach(([id,v])=>{if($(id))$(id).textContent=brl(v)});
-      if($("nsCdDiferenca"))$("nsCdDiferenca").textContent=brl((+$("nsCdInformado")?.value||0)-t.expected);
-    }
-  }
-  function abrir(){
-    const operador=$("nsCdOperadorInput")?.value.trim(), fundo=+$("nsCdFundo")?.value||0;
-    if(!operador){alert("Informe o operador.");return;}
-    save({status:"ABERTO",operador,fundoInicial:fundo,abertoEm:new Date().toISOString(),aberturaObs:$("nsCdAberturaObs")?.value||"",vendas:0,dinheiro:0,pix:0,cartao:0,taxas:0,sangrias:0,suprimentos:0});
-    render();
-  }
-  function fechar(){
-    const c=load(); if(!c)return;
-    const t=totals(c), informado=+$("nsCdInformado")?.value||0;
-    c.status="FECHADO"; c.fechadoEm=new Date().toISOString(); c.valorEsperado=t.expected; c.valorInformado=informado; c.diferenca=informado-t.expected; c.fechamentoObs=$("nsCdFechamentoObs")?.value||"";
-    save(c); render(); alert("Caixa Delivery fechado.");
-  }
-  function relatorio(){
-    const c=load(); if(!c||c.status!=="FECHADO"){alert("Feche o caixa antes de gerar o relatório.");return;}
-    const w=window.open("","_blank"); if(!w)return;
-    w.document.write("<html><head><title>Fechamento Caixa Delivery</title></head><body style='font-family:Arial;padding:30px'><h1>Fechamento Caixa Delivery</h1>"+
-      "<p><b>Operador:</b> "+(c.operador||"—")+"</p><p><b>Valor esperado:</b> "+brl(c.valorEsperado)+"</p>"+
-      "<p><b>Valor informado:</b> "+brl(c.valorInformado)+"</p><p><b>Diferença:</b> "+brl(c.diferenca)+"</p>"+
-      "<p><b>Observação:</b> "+(c.fechamentoObs||"—")+"</p></body></html>");
-    w.document.close(); w.print();
-  }
-  document.addEventListener("click",e=>{
-    const a=e.target.closest('a[href="#caixa-delivery"]');
-    if(a){e.preventDefault();const p=$("caixa-delivery");if(p){p.hidden=false;p.scrollIntoView({behavior:"smooth"});render();}return;}
-    if(e.target.closest("#nsCdAbrir"))abrir();
-    if(e.target.closest("#nsCdFechar"))fechar();
-    if(e.target.closest("#nsCdRelatorio"))relatorio();
-  });
-  document.addEventListener("input",e=>{if(e.target.id==="nsCdInformado")render()});
-  window.nsCaixaDelivery={load,save,render};
-  document.addEventListener("DOMContentLoaded",render);
-})();
+routeFromHash();

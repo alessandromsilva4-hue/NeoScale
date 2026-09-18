@@ -72,6 +72,21 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
+    match /caixasDelivery/{id} {
+      allow read, create, update: if isCashier();
+      allow delete: if isAdmin();
+    }
+
+    match /movimentosCaixaDelivery/{id} {
+      allow read, create: if isCashier();
+      allow update, delete: if isAdmin();
+    }
+
+    match /acertosEntregadores/{id} {
+      allow read, create: if isCashier();
+      allow update, delete: if isAdmin();
+    }
+
     match /{colecao}/{id} {
       allow read: if isOperator();
       allow create, update, delete: if isAdmin();

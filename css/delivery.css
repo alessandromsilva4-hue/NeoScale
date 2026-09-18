@@ -82,3 +82,20 @@
 .closing-report-panel{margin-bottom:20px}.closing-report-lines{display:grid;grid-template-columns:1fr auto;gap:10px 18px;margin-top:15px;padding:15px;background:#f7faf8;border-radius:10px;font-size:12px;color:#64748b}.closing-report-lines b{color:#183b32}.closing-report-actions{display:flex;justify-content:flex-end;margin-top:14px}
 @media(max-width:1000px){.closing-summary-grid{grid-template-columns:1fr 1fr}.closing-toolbar{align-items:flex-start;flex-direction:column}.closing-actions{justify-content:flex-start}}
 @media(max-width:700px){.closing-summary-grid,.closing-grid{grid-template-columns:1fr}}
+
+/* Rotas auxiliares do Delivery */
+.delivery-extra-panel[hidden]{display:none!important}.delivery-extra-panel{min-height:calc(100vh - 150px)}
+.extra-head{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:18px}.extra-head h3{font-size:26px;color:#183b32;margin:4px 0 6px}.extra-head p{margin:0;color:#64748b;font-size:12px}
+.delivery-opening-grid{display:grid;grid-template-columns:1fr 1fr 1.4fr auto;gap:12px;align-items:end}.delivery-opening-grid label,.delivery-observation{font-size:11px;font-weight:800;color:#475569}.delivery-opening-grid input,.delivery-observation textarea{display:block;width:100%;margin-top:6px;border:1px solid #dbe5e0;border-radius:9px;padding:11px;background:#fff;color:#1f2937}.delivery-cash-opening{padding:18px;margin-bottom:14px}.delivery-cash-state{margin-top:12px;padding:10px 12px;border-radius:9px;background:#f3f8f5;color:#28705e;font-size:11px}.delivery-cash-state i{margin-right:5px}.delivery-cash-metrics{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-top:15px}.delivery-cash-metrics>div{background:#f7faf8;border:1px solid #e7eeeb;border-radius:10px;padding:12px}.delivery-cash-metrics span{display:block;color:#64748b;font-size:10px}.delivery-cash-metrics strong{display:block;color:#183b32;font-size:15px;margin-top:5px}.delivery-cash-metrics input{width:100%;margin-top:5px;border:1px solid #dbe5e0;border-radius:7px;padding:8px}.delivery-cash-reconciliation{padding:18px;margin-bottom:14px}.delivery-observation{display:block;margin-top:14px}.delivery-cash-actions{display:flex;justify-content:flex-end;margin-top:12px}.extra-list{display:grid;gap:8px;margin-top:12px}.extra-row{display:flex;justify-content:space-between;align-items:center;padding:11px 12px;border:1px solid #e7eeeb;border-radius:10px;background:#f7faf8}.extra-row span{display:flex;flex-direction:column;gap:2px}.extra-row strong{font-size:12px;color:#24483e}.extra-row small{font-size:10px;color:#94a3b8}.btn-remove-driver{border:0;background:transparent;color:#b45309;cursor:pointer}.extra-empty{padding:18px;text-align:center;color:#94a3b8;font-size:11px;background:#f7faf8;border-radius:10px}.delivery-conc-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:16px 0}.delivery-conc-grid label{font-size:11px;font-weight:800;color:#475569}.delivery-conc-grid input{display:block;width:100%;margin-top:6px;padding:11px;border:1px solid #dbe5e0;border-radius:9px}.conciliacao-delivery{margin-top:18px}
+@media(max-width:1000px){.delivery-opening-grid{grid-template-columns:1fr 1fr}.delivery-cash-metrics{grid-template-columns:1fr 1fr 1fr}.delivery-conc-grid{grid-template-columns:1fr}}
+@media(max-width:650px){.delivery-opening-grid,.delivery-cash-metrics{grid-template-columns:1fr}}
+
+.route-anchor{display:block;position:relative;top:-10px;height:1px;scroll-margin-top:20px;}
+
+
+/* CORREÇÃO: respeitar o atributo HTML hidden */
+.modal[hidden] {
+    display: none !important;
+}
+
+.order-address{font-size:12px;color:#475569;background:#f8fafc;border-radius:8px;padding:7px 9px;margin-top:8px}.order-driver{margin-top:8px}.driver-select{width:100%;padding:8px 10px;border:1px solid #dbe3ea;border-radius:8px;background:#fff}.no-driver{font-size:11px;color:#94a3b8}.whatsapp-order{border:0;background:transparent;color:#16a34a;font-weight:700;cursor:pointer;padding:4px 7px}.order-foot{gap:8px;flex-wrap:wrap}

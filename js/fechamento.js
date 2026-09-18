@@ -166,23 +166,27 @@ carregarDados();
 
 document.querySelectorAll('.filtro-caixa').forEach(btn=>btn.addEventListener('click',()=>{document.querySelectorAll('.filtro-caixa').forEach(b=>b.classList.remove('ativo'));btn.classList.add('ativo');filtroHistorico=btn.dataset.filtro;renderHistoricoFechados();}));
 
-/* NeoScale — Fechamento Geral: conciliações independentes */
-(function(){
- const KEY="neoscale_conciliacoes";
- const $=id=>document.getElementById(id);
- const load=()=>{try{return JSON.parse(localStorage.getItem(KEY)||"{}")}catch(e){return {}}};
- const save=v=>localStorage.setItem(KEY,JSON.stringify(v));
- function render(){
-   const c=load();
-   if($("nsConcLojaStatus"))$("nsConcLojaStatus").textContent=c.loja?.status||"Pendente";
-   if($("nsConcDeliveryStatus"))$("nsConcDeliveryStatus").textContent=c.delivery?.status||"Pendente";
-   if($("nsConcLojaObs"))$("nsConcLojaObs").value=c.loja?.obs||"";
-   if($("nsConcDeliveryObs"))$("nsConcDeliveryObs").value=c.delivery?.obs||"";
- }
- document.addEventListener("click",e=>{
-   if(e.target.closest("#nsConcLojaSalvar")){const c=load();c.loja={status:"Registrada",obs:$("nsConcLojaObs")?.value||"",at:new Date().toISOString()};save(c);render();alert("Conciliação do Caixa Loja salva.");}
-   if(e.target.closest("#nsConcDeliverySalvar")){const c=load();c.delivery={status:"Registrada",obs:$("nsConcDeliveryObs")?.value||"",at:new Date().toISOString()};save(c);render();alert("Conciliação do Caixa Delivery salva.");}
- });
- window.nsFechamentoConciliacoes={load,save,render};
- document.addEventListener("DOMContentLoaded",render);
-})();
+
+// Conciliação Caixa Delivery — independente da conciliação da Loja
+function atualizarConciliacaoDelivery(){
+ const sistema=Math.max(0,Number($('deliveryConcSistema')?.value||0));
+ const conferido=Math.max(0,Number($('deliveryConcConferido')?.value||0));
+ const taxas=Math.max(0,Number($('deliveryConcTaxas')?.value||0));
+ const totalSistema=sistema-taxas; const dif=conferido-totalSistema;
+ if($('deliveryConcTotalSistema'))$('deliveryConcTotalSistema').textContent=br(totalSistema);
+ if($('deliveryConcTotalConferido'))$('deliveryConcTotalConferido').textContent=br(conferido);
+ if($('deliveryConcDiferenca'))$('deliveryConcDiferenca').textContent=br(dif);
+ $('deliveryConcResultado')?.classList.toggle('conciliado',Math.abs(dif)<0.005);
+}
+['deliveryConcSistema','deliveryConcConferido','deliveryConcTaxas'].forEach(id=>$(id)?.addEventListener('input',atualizarConciliacaoDelivery));
+$('salvarConciliacaoDelivery')?.addEventListener('click',async()=>{
+ atualizarConciliacaoDelivery();
+ const sistema=Math.max(0,Number($('deliveryConcSistema')?.value||0));
+ const conferido=Math.max(0,Number($('deliveryConcConferido')?.value||0));
+ const taxas=Math.max(0,Number($('deliveryConcTaxas')?.value||0));
+ const observacao=String($('deliveryConcObs')?.value||'').trim();
+ const totalSistema=sistema-taxas,diferenca=conferido-totalSistema;
+ if(Math.abs(diferenca)>=0.005&&!observacao){alert('Informe uma observação/justificativa para salvar uma divergência no Delivery.');return;}
+ try{await addDoc(collection(db,'conciliacoesDelivery'),{sistema,conferido,taxas,totalSistema,diferenca,status:Math.abs(diferenca)<0.005?'CONCILIADO':'DIVERGENTE',observacao,criadoEm:serverTimestamp()});alert('Conciliação Caixa Delivery salva com sucesso.');}
+ catch(e){console.error(e);alert('Não foi possível salvar a conciliação do Delivery.');}
+});

@@ -58,3 +58,20 @@
 .fiscal-venda-resumo span{color:#64748b}.fiscal-venda-resumo strong{font-size:20px}
 .fiscal-venda-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
 .fiscal-venda-actions button{min-width:170px}
+
+
+/* CORREÇÃO: respeitar o atributo HTML hidden */
+.modal[hidden] {
+    display: none !important;
+}
+
+/* ===== Delivery dentro do PDV ===== */
+.delivery-pdv-panel{margin-bottom:18px}
+.delivery-pdv-toolbar{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
+.delivery-customer-search{display:flex;gap:8px;flex:1;min-width:320px}.delivery-customer-search input{flex:1}
+.customer-found{min-height:40px;display:flex;align-items:center;padding:0 12px;border-radius:10px;background:var(--panel-soft,#f1f5f9);font-size:13px;color:#334155}
+.delivery-form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.delivery-form-grid label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#475569}.delivery-form-grid label:last-child{grid-column:span 2}.delivery-form-grid input,.delivery-form-grid select,.delivery-form-grid textarea{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #dbe3ea;border-radius:10px;background:#fff;font:inherit;color:#0f172a}.delivery-form-grid textarea{resize:vertical}
+.delivery-order-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}.delivery-order-preview>div{padding:14px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:5px}.delivery-order-preview span{font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700}.delivery-order-preview strong{font-size:17px}.delivery-order-preview .grand{background:#ecfdf5;border-color:#bbf7d0}.delivery-order-preview .grand strong{font-size:22px}
+.delivery-pdv-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}.delivery-pdv-actions .finish-btn{max-width:360px}.pdv-tab-panel-hidden{display:none!important}
+@media(max-width:1000px){.delivery-form-grid{grid-template-columns:repeat(2,1fr)}.delivery-order-preview{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:620px){.delivery-form-grid{grid-template-columns:1fr}.delivery-form-grid label:last-child{grid-column:auto}.delivery-order-preview{grid-template-columns:1fr}.delivery-customer-search{min-width:0;flex-direction:column}.delivery-pdv-actions{flex-direction:column}.delivery-pdv-actions button{max-width:none}}

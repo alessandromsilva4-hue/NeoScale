@@ -9,10 +9,7 @@
   <link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/tema-verde.css"><link rel="stylesheet" href="css/financeiro.css">
 </head>
 <body><div class="layout">
-  <aside class="sidebar"><div class="sidebar-logo"><h1>NeoScale</h1><span>Gestão Inteligente</span></div><nav class="sidebar-menu">
-    <a href="dashboard.html"><i class="bi bi-grid-1x2"></i><span>Dashboard</span></a><a href="pesagem.html"><i class="bi bi-speedometer2"></i><span>Pesagem</span></a><a href="pdv.html"><i class="bi bi-shop"></i><span>Frente de Loja</span></a>
-    <a href="delivery.html"><i class="bi bi-bicycle"></i><span>Delivery</span></a><a href="cozinha.html"><i class="bi bi-display"></i><span>KDS Cozinha</span></a><a href="caixa.html"><i class="bi bi-cash-stack"></i><span>Caixa</span></a><a href="financeiro.html" class="active"><i class="bi bi-wallet2"></i><span>Financeiro</span></a><a href="fechamento.html"><i class="bi bi-clipboard2-check"></i><span>Fechamento Geral</span></a><a href="quiosque.html"><i class="bi bi-display"></i><span>Quiosque</span></a><a href="produtos.html"><i class="bi bi-box-seam"></i><span>Produtos</span></a><a href="historico.html"><i class="bi bi-clock-history"></i><span>Histórico</span></a><a href="configuracoes.html"><i class="bi bi-gear"></i><span>Configurações</span></a>
-  </nav><div class="sidebar-footer"><button type="button" onclick="window.location.href='index.html'"><i class="bi bi-box-arrow-right"></i><span>Sair</span></button></div></aside>
+  <aside class="sidebar" data-sidebar></aside>
   <main class="content financeiro">
     <header class="financeiro-header"><div><div class="page-kicker"><i class="bi bi-graph-up-arrow"></i> VISÃO FINANCEIRA</div><h2>Financeiro</h2><p>Acompanhe receitas, despesas e movimentações da operação.</p></div><div class="header-actions"><span class="atualizacao" id="financeiroStatus"><i class="bi bi-check-circle-fill"></i> Dados atualizados</span><button class="btn btn-outline" id="atualizar" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button><button class="btn" id="nova" type="button"><i class="bi bi-plus-lg"></i> Nova movimentação</button></div></header>
     <section class="financeiro-resumo" aria-label="Resumo financeiro">
@@ -26,4 +23,5 @@
       <div class="tabela-responsiva" id="lista"></div>
     </section>
   </main>
-</div><script type="module" src="js/financeiro.js"></script><script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("financeiro");</script></body></html>
+</div><script type="module" src="js/financeiro.js"></script><script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("financeiro");</script><script src="js/sidebar-menu.js"></script>
+</body></html>

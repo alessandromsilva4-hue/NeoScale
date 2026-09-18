@@ -14,3 +14,48 @@
 .sidebar-menu a{gap:12px;}
 .sidebar-menu a span,.sidebar-footer button span{font-weight:500;}
 .sidebar-menu a.active i{filter:brightness(1.08);}
+
+/* NeoScale - árvore lateral Delivery e Fechamento Geral */
+.menu-group{margin:0 0 5px;}
+.menu-parent{position:relative;}
+.menu-arrow{margin-left:auto;font-size:10px;font-weight:700;color:#94a3b8;}
+.menu-submenu{display:none;padding-left:12px;}
+.menu-group:hover>.menu-submenu,.menu-group.is-open>.menu-submenu{display:block;}
+.menu-submenu .menu-child{font-size:12px;padding:9px 10px;margin-bottom:3px;}
+.menu-submenu .menu-child i{font-size:14px;}
+.nested-submenu{padding-left:12px;}
+.nested-group:hover>.nested-submenu,.nested-group.is-open>.nested-submenu{display:block;}
+.sidebar-menu .menu-group>.menu-parent:hover,.sidebar-menu .menu-group>.menu-parent.active{background:#075C49;color:#fff;}
+/* NeoScale - submenus da árvore lateral continuam disponíveis em qualquer largura */
+@media(max-width:900px){
+  .sidebar-menu .menu-submenu{display:none;}
+  .sidebar-menu .menu-group.is-open>.menu-submenu{display:block!important;}
+  .sidebar-menu .menu-arrow{display:inline-block!important;}
+}
+/* Mantém Delivery e Fechamento Geral recolhidos até o usuário abrir */
+.menu-group.is-open>.menu-submenu{display:block;}
+.menu-group.is-open>.menu-parent .menu-arrow{transform:rotate(180deg);}
+.menu-arrow{transition:transform .2s ease;}
+
+/* Submenus do NeoScale: clique abre e os filhos permanecem navegáveis */
+.menu-submenu .menu-child{display:flex!important;position:relative;z-index:2;}
+.nested-submenu{padding-left:10px;}
+.menu-group.is-open>.menu-submenu{display:block!important;}
+.menu-group.is-open>.menu-parent .menu-arrow{transform:rotate(180deg);}
+
+/* NeoScale - ocultar setas dos grupos do menu lateral, mantendo os submenus funcionais */
+.menu-arrow{display:none!important;}
+
+/* ===== NeoScale 2.0 - sidebar centralizada ===== */
+.sidebar{width:250px;min-width:250px;padding:18px 12px 12px;background:#0b1720;border-right:1px solid rgba(255,255,255,.07);overflow:hidden;}
+.sidebar-brand{height:62px;display:flex;align-items:center;gap:11px;padding:0 9px 14px;margin-bottom:8px;border-bottom:1px solid rgba(255,255,255,.08)}
+.sidebar-brand-mark{width:38px;height:38px;border-radius:11px;display:grid;place-items:center;background:#0b7a57;color:#fff;font-size:18px;flex:none}
+.sidebar-brand strong{display:block;font-size:17px;line-height:1.1;color:#fff}.sidebar-brand span{display:block;font-size:10px;color:#8ea1ae;margin-top:3px}
+.sidebar-close{margin-left:auto;background:transparent;border:0;color:#8496a3;font-size:16px;cursor:pointer;display:none}
+.sidebar-menu{padding:4px 0 12px;overflow-y:auto}.sidebar-section{margin-bottom:13px}.sidebar-section-title{padding:0 12px 6px;color:#687c88;font-size:9px;font-weight:800;letter-spacing:1.1px}
+.sidebar-menu a{margin:2px 0;padding:9px 11px;border-radius:9px;color:#b7c4cc;font-size:12px;transition:none}.sidebar-menu a:hover{background:#152a35;color:#fff}.sidebar-menu a.active{background:#0b7a57!important;color:#fff!important;box-shadow:none}.sidebar-menu a i{font-size:15px}
+.sidebar-footer{padding-top:10px}.sidebar-user{display:flex;align-items:center;gap:9px;padding:9px;border-top:1px solid rgba(255,255,255,.08);margin-bottom:5px}.sidebar-avatar{width:31px;height:31px;border-radius:50%;display:grid;place-items:center;background:#203642;color:#c9d5db}.sidebar-user strong{display:block;color:#eef4f6;font-size:11px}.sidebar-user span{display:block;color:#7f929e;font-size:9px;margin-top:2px}.sidebar-footer button{padding:9px 11px;font-size:12px}.content{margin-left:250px;width:calc(100% - 250px)}
+@media(max-width:900px){.sidebar{width:76px;min-width:76px;padding:14px 8px}.sidebar-brand{justify-content:center;padding-left:0;padding-right:0}.sidebar-brand>div:nth-child(2),.sidebar-brand .sidebar-close,.sidebar-section-title,.sidebar-user>div:nth-child(2),.sidebar-menu a span{display:none}.sidebar-menu a{justify-content:center}.sidebar-user{justify-content:center}.content{margin-left:76px;width:calc(100% - 76px)}}
+@media(max-width:640px){.sidebar{transform:translateX(-100%);width:250px;min-width:250px;transition:transform .18s ease}.sidebar-open .sidebar{transform:translateX(0)}.sidebar-brand>div:nth-child(2),.sidebar-brand .sidebar-close,.sidebar-section-title,.sidebar-user>div:nth-child(2),.sidebar-menu a span{display:block}.sidebar-close{display:block}.content{margin-left:0;width:100%;padding:16px}}
+.neo-mobile-menu{display:none;position:fixed;left:12px;top:12px;z-index:60;width:42px;height:42px;border:0;border-radius:11px;background:#0b7a57;color:#fff;font-size:20px;box-shadow:0 8px 20px rgba(0,0,0,.16)}
+@media(max-width:640px){.neo-mobile-menu{display:grid;place-items:center}.sidebar-open::after{content:"";position:fixed;inset:0;background:rgba(0,0,0,.38);z-index:45}.sidebar-open .sidebar{z-index:55}}
