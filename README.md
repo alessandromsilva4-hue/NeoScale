@@ -24,6 +24,3 @@ Antes do primeiro teste, abra `caixa.html` e faça a abertura do caixa. O PDV bl
 
 ## Firebase - Caixa
 O arquivo `firestore.rules` inclui uma regra de desenvolvimento que permite leitura e gravação para usuários autenticados. Publique essas regras no projeto Firebase se o sistema apresentar `Missing or insufficient permissions`.
-
-## PDV — Pedido para Entrega
-O PDV possui agora o fluxo de entrega integrado à Central: cadastro/busca de cliente por telefone, endereço, taxa, pagamento, criação de pedido com numeração sequencial, envio para a fila local do Delivery e atalho de WhatsApp. Pedidos criados no PDV aparecem na Central mesmo sem o serviço externo configurado.

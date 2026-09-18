@@ -23,33 +23,8 @@
       <div class="status-pill"><i class="bi bi-clock"></i><strong id="relogio">--:--</strong></div>
     </div>
   </div>
-  <div class="pdv-tabs"><button type="button" class="pdv-tab active" data-tab="comanda"><i class="bi bi-upc-scan"></i> Comanda / Pesagem</button><button type="button" class="pdv-tab" data-tab="produtos"><i class="bi bi-basket2"></i> Produtos</button><button type="button" class="pdv-tab" data-tab="entrega"><i class="bi bi-scooter"></i> Entrega</button></div>
+  <div class="pdv-tabs"><button type="button" class="pdv-tab active" data-tab="comanda"><i class="bi bi-upc-scan"></i> Comanda / Pesagem</button><button type="button" class="pdv-tab" data-tab="produtos"><i class="bi bi-basket2"></i> Produtos</button><button type="button" class="pdv-tab" data-tab="entrega"><i class="bi bi-bicycle"></i> Pedido para Entrega</button></div>
   <div class="pdv-shortcuts"><span class="shortcut">F2 · Comanda</span><span class="shortcut">Enter · Buscar</span><span class="shortcut">F6 · Pagamento</span><span class="shortcut">F8 · Cancelar</span><span class="shortcut">ESC · Limpar</span></div>
-
-  <section class="delivery-pdv-panel panel pdv-tab-panel-hidden" id="painelEntregaPDV">
-    <div class="panel-head"><div><h3><i class="bi bi-scooter"></i> Pedido para entrega</h3><small>Crie o pedido e envie diretamente para a Central de Delivery.</small></div><span class="products-mode">PDV</span></div>
-    <div class="delivery-pdv-toolbar">
-      <div class="delivery-customer-search"><i class="bi bi-telephone"></i><input id="telefoneClienteEntrega" inputmode="tel" placeholder="Telefone do cliente" autocomplete="off"><button type="button" id="btnBuscarClienteEntrega" class="btn-outline"><i class="bi bi-search"></i> Buscar cliente</button></div>
-      <div id="clienteEncontradoEntrega" class="customer-found"></div>
-    </div>
-    <div class="delivery-form-grid">
-      <label>Nome do cliente<input id="nomeClienteEntrega" placeholder="Nome completo"></label>
-      <label>WhatsApp<input id="whatsappClienteEntrega" inputmode="tel" placeholder="(00) 00000-0000"></label>
-      <label>CEP<input id="cepClienteEntrega" inputmode="numeric" placeholder="00000-000"></label>
-      <label>Endereço<input id="enderecoClienteEntrega" placeholder="Rua / Avenida"></label>
-      <label>Número<input id="numeroClienteEntrega" placeholder="Nº"></label>
-      <label>Complemento<input id="complementoClienteEntrega" placeholder="Apto, sala..."></label>
-      <label>Bairro<input id="bairroClienteEntrega" placeholder="Bairro"></label>
-      <label>Referência<input id="referenciaClienteEntrega" placeholder="Perto de..."></label>
-      <label>Taxa de entrega<input id="taxaEntregaPDV" type="number" min="0" step="0.01" value="0"></label>
-      <label>Pagamento na entrega<select id="pagamentoEntregaPDV"><option value="nao">Não</option><option value="sim">Sim</option></select></label>
-      <label>Forma de pagamento<select id="formaPagamentoEntregaPDV"><option value="PIX">PIX</option><option value="Dinheiro">Dinheiro</option><option value="Débito">Débito</option><option value="Crédito">Crédito</option><option value="Outro">Outro</option></select></label>
-      <label>Observação<textarea id="observacaoEntregaPDV" rows="2" placeholder="Observação do cliente ou da cozinha"></textarea></label>
-    </div>
-    <div class="delivery-order-preview"><div><span>Itens</span><strong id="entregaItensResumo">0 item</strong></div><div><span>Subtotal</span><strong id="entregaSubtotal">R$ 0,00</strong></div><div><span>Entrega</span><strong id="entregaTaxaResumo">R$ 0,00</strong></div><div class="grand"><span>Total</span><strong id="entregaTotalResumo">R$ 0,00</strong></div></div>
-    <div class="delivery-pdv-actions"><button type="button" id="btnSalvarClienteEntrega" class="btn-outline"><i class="bi bi-person-plus"></i> Salvar cliente</button><button type="button" id="btnCriarPedidoEntrega" class="finish-btn"><i class="bi bi-send"></i> CRIAR PEDIDO PARA ENTREGA</button></div>
-    <div id="mensagemEntrega" class="message"></div>
-  </section>
 
   <div class="kpi-strip">
     <div class="kpi"><span>Comanda atual</span><strong id="kpiComanda">—</strong></div>
@@ -84,6 +59,59 @@
     <div id="listaProdutosPDV" class="products-grid">
       <div class="products-loading"><i class="bi bi-arrow-repeat"></i> Carregando produtos...</div>
     </div>
+  </section>
+
+
+  <section class="delivery-pdv-panel panel pdv-tab-panel-hidden" id="painelEntregaPDV">
+    <div class="panel-head">
+      <div><h3><i class="bi bi-bicycle"></i> Pedido para entrega</h3><small>Cadastre o cliente e envie o pedido para a Central de Delivery.</small></div>
+      <span class="products-mode">DELIVERY</span>
+    </div>
+    <div class="delivery-pdv-grid">
+      <div class="delivery-pdv-section">
+        <div class="delivery-pdv-section-title">Dados do cliente</div>
+        <div class="delivery-pdv-fields">
+          <label>Nome<input id="deliveryCliente" type="text" placeholder="Nome do cliente" autocomplete="off"></label>
+          <label>Telefone<input id="deliveryTelefone" type="tel" placeholder="(62) 99999-9999" autocomplete="off"></label>
+          <label class="span-2">Endereço<input id="deliveryEndereco" type="text" placeholder="Rua, avenida..." autocomplete="off"></label>
+          <label>Número<input id="deliveryNumero" type="text" placeholder="Nº"></label>
+          <label>Complemento<input id="deliveryComplemento" type="text" placeholder="Apto, sala..."></label>
+          <label>Bairro<input id="deliveryBairro" type="text" placeholder="Bairro"></label>
+          <label class="span-2">Referência<input id="deliveryReferencia" type="text" placeholder="Ponto de referência"></label>
+        </div>
+      </div>
+      <div class="delivery-pdv-section">
+        <div class="delivery-pdv-section-title">Entrega e pagamento</div>
+        <div class="delivery-pdv-fields">
+          <label>Taxa de entrega<input id="deliveryTaxa" type="number" min="0" step="0.01" value="0"></label>
+          <label>Pagamento
+            <select id="deliveryPagamento">
+              <option value="">Selecione</option>
+              <option value="Dinheiro">Dinheiro</option>
+              <option value="PIX">PIX</option>
+              <option value="Débito">Débito</option>
+              <option value="Crédito">Crédito</option>
+              <option value="Online">Pago online</option>
+              <option value="Outro">Outro</option>
+            </select>
+          </label>
+          <label class="span-2">Recebimento
+            <select id="deliveryRecebimento">
+              <option value="ENTREGA">Receber na entrega</option>
+              <option value="ONLINE">Pagamento já recebido</option>
+            </select>
+          </label>
+          <label class="span-2">Observação<input id="deliveryObservacao" type="text" placeholder="Ex.: sem cebola, entregar na portaria..."></label>
+        </div>
+      </div>
+    </div>
+    <div class="delivery-pdv-footer">
+      <div><span>Total dos produtos</span><strong id="deliverySubtotal">R$ 0,00</strong></div>
+      <div><span>Taxa</span><strong id="deliveryTaxaResumo">R$ 0,00</strong></div>
+      <div class="delivery-total"><span>Total do pedido</span><strong id="deliveryTotal">R$ 0,00</strong></div>
+      <button id="btnCriarPedidoEntrega" type="button" class="finish-btn"><i class="bi bi-bicycle"></i> CRIAR PEDIDO PARA ENTREGA</button>
+    </div>
+    <div id="deliveryMensagemPDV" class="message"></div>
   </section>
 
   <div class="pdv-grid">

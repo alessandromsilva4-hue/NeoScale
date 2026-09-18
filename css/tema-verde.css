@@ -1,13 +1,14 @@
 /* =====================================================
-   NeoScale — Tema Verde Unificado
-   Aplicado às telas internas para manter a mesma identidade
-   visual do Dashboard.
+   NeoScale — Identidade Visual Verde / Azul-petróleo
+   Tema unificado para todas as telas
 ===================================================== */
 :root{
   --primary:#00A879;
   --primary-dark:#007D5D;
   --primary-deep:#063F34;
+  --primary-ink:#075C49;
   --primary-soft:#E8F8F2;
+  --primary-soft-2:#F2FBF8;
   --primary-border:#CFEDE2;
   --background:#F3FAF7;
   --surface:#FFFFFF;
@@ -15,56 +16,109 @@
   --text-light:#647B75;
   --border:#DDECE6;
   --sidebar:#062B25;
+  --sidebar-hover:#075C49;
+  --sidebar-active:#00A879;
+  --shadow:0 10px 30px rgba(7,56,45,.07);
+  --shadow-sm:0 6px 18px rgba(7,56,45,.045);
 }
 
-/* Fundos e textos principais */
-body:not(.quiosque){background:var(--background)!important;color:var(--text)!important}
+/* Base */
+html,body{background:var(--background);color:var(--text)}
+body{accent-color:var(--primary)}
+::selection{background:#BCEBDD;color:#063F34}
 
-/* Elementos que normalmente usam o azul de ação */
+/* Sidebar */
+.sidebar{background:var(--sidebar)!important;border-right:1px solid rgba(255,255,255,.07)!important}
+.sidebar-brand-mark{background:linear-gradient(135deg,#00A879,#0D6B57)!important}
+.sidebar-menu a{color:#B7C8C3!important}
+.sidebar-menu a:hover,.sidebar-footer button:hover{background:var(--sidebar-hover)!important;color:#fff!important}
+.sidebar-menu a.active{background:var(--sidebar-active)!important;color:#fff!important;box-shadow:0 7px 18px rgba(0,168,121,.22)!important}
+.sidebar-section-title{color:#6F8C84!important}
+.sidebar-brand strong{color:#fff!important}
+.sidebar-brand span{color:#91AAA3!important}
+.sidebar-avatar{background:#17453B!important;color:#CBE5DE!important}
+
+/* Layout — conteúdo nunca invade o menu */
+.content{min-width:0;background:transparent}
+
+/* Ações */
 button.primary,.btn-primary,.primary,.action-primary,.submit-btn,
 .btn-confirmar,.btn-salvar,.btn-finalizar,.btn-abrir,
 button[type="submit"]{
-  background:var(--primary)!important;
-  border-color:var(--primary)!important;
-  color:#fff!important;
+  background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important;
 }
 button.primary:hover,.btn-primary:hover,.primary:hover,.action-primary:hover,
 .btn-confirmar:hover,.btn-salvar:hover,.btn-finalizar:hover,.btn-abrir:hover,
 button[type="submit"]:hover{background:var(--primary-dark)!important;border-color:var(--primary-dark)!important}
+button,.btn,a.button{transition:background-color .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease}
 
-/* Links e títulos de ação */
+/* Links / destaques */
 a.action,a.primary-link,.link-primary,.text-primary{color:var(--primary-dark)!important}
-
-/* Campos focados */
-input:focus,select:focus,textarea:focus{border-color:var(--primary)!important;box-shadow:0 0 0 3px rgba(0,168,121,.12)!important;outline:none}
-
-/* Sidebar igual ao Dashboard */
-.sidebar{background:var(--sidebar)!important}
-.sidebar-menu a.active{background:var(--primary)!important;box-shadow:0 7px 18px rgba(0,168,121,.22)!important}
-.sidebar-menu a:hover,.sidebar-footer button:hover{background:#075C49!important;color:#fff!important}
-
-/* Badges, cabeçalhos e pequenos destaques */
-.badge-primary,.status-primary,.tag-primary,.pill-primary{background:var(--primary-soft)!important;color:var(--primary-dark)!important;border-color:var(--primary-border)!important}
-
-/* Barras de progresso / seleção */
-.progress-bar,.tab.active,.nav-tab.active,.filter.active,.category-btn.active{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}
-
-/* Cabeçalhos de tabelas e cartões de destaque */
-.card-header.primary,.section-header.primary{border-left-color:var(--primary)!important}
-
-/* Ícones de ação em verde */
 .icon-primary,.action-icon,.status-icon{color:var(--primary)!important}
 
-/* Paginação */
+/* Formulários */
+input:focus,select:focus,textarea:focus{
+  border-color:var(--primary)!important;
+  box-shadow:0 0 0 3px rgba(0,168,121,.12)!important;
+  outline:none!important;
+}
+input[type=checkbox],input[type=radio]{accent-color:var(--primary)}
+
+/* Cards e painéis comuns */
+.card,.panel,.box,.module-card,.table-card,.metric-card,.stat-card,
+.finance-card,.summary-card{
+  border-color:var(--border)!important;
+}
+
+/* Badges / tabs / seleção */
+.badge-primary,.status-primary,.tag-primary,.pill-primary{
+  background:var(--primary-soft)!important;color:var(--primary-dark)!important;border-color:var(--primary-border)!important
+}
+.progress-bar,.tab.active,.nav-tab.active,.filter.active,.category-btn.active,
 .pagination .active{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}
 
-/* Scrollbar */
+/* Estados */
+.connected,.online,.status-online{color:#087B5A!important}
+.status-ok,.success,.positive{color:#078F6A}
+.danger,.negative,.status-danger{color:#D94B4B}
+.warning,.status-warning{color:#B7791F}
+
+/* Scrollbar discreta */
 *{scrollbar-color:#79CDB5 #EAF4F0}
-::-webkit-scrollbar-thumb{background:#79CDB5!important}
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-thumb{background:#79CDB5!important;border-radius:10px}
 ::-webkit-scrollbar-track{background:#EAF4F0!important}
 
-/* Mensagens positivas / conexão */
-.connected,.online,.status-online{color:#087B5A!important}
+/* Dashboard */
+.dashboard-page,.dashboard-content{background:transparent!important}
+.metric-card,.panel,.status-panel,.quote-panel{box-shadow:var(--shadow-sm)!important}
+.metric-icon.green,.metric-icon.emerald{background:linear-gradient(135deg,#00A879,#16C784)!important}
+.section-icon{background:var(--primary-soft)!important;color:var(--primary-dark)!important}
+.period.active{background:var(--primary)!important}
+.bar{background:linear-gradient(180deg,#79E2C0,#22BB8E)!important}
 
-/* Mantém o quiosque com o verde NeoScale */
-body.quiosque-puro .quiosque-tela{background:var(--primary-deep)}
+/* Financeiro */
+.finance-page,.financeiro-page{background:transparent!important}
+.finance-page .card,.financeiro-page .card{box-shadow:var(--shadow-sm)}
+
+/* Tabelas */
+table thead th{color:#5D7770}
+table tbody tr:hover{background:var(--primary-soft-2)}
+
+/* Menus dropdown */
+.top-dropdown{border-color:var(--border)!important;box-shadow:0 18px 45px rgba(7,56,45,.14)!important}
+.dropdown-item:hover,.dropdown-item.active{background:var(--primary-soft)!important}
+.dropdown-item .dropdown-icon{background:var(--primary-soft)!important;color:var(--primary-dark)!important}
+
+/* Quiosque mantém identidade sem perder contraste */
+body.quiosque-puro .quiosque-tela{background:var(--primary-deep)!important}
+
+/* Mobile */
+.neo-mobile-menu{background:var(--primary)!important}
+
+/* Compatibilidade com componentes antigos que ainda usam azul */
+.btn-success,.btn-green,.green-btn{background:var(--primary)!important;border-color:var(--primary)!important;color:#fff!important}
+.btn-success:hover,.btn-green:hover,.green-btn:hover{background:var(--primary-dark)!important;border-color:var(--primary-dark)!important}
+.text-success{color:var(--primary-dark)!important}
+.bg-success{background:var(--primary)!important}
+.border-success{border-color:var(--primary)!important}

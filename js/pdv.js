@@ -23,8 +23,7 @@ let produtos = [];
 let itensProdutos = [];
 let categoriaAtual = "Todos";
 let vendaFinalizadaPendenteFiscal = null;
-const DELIVERY_LOCAL_KEY = "neoscale_pdv_delivery_orders";
-const CUSTOMERS_LOCAL_KEY = "neoscale_delivery_customers";
+let modoVenda = "comanda";
 
 const moeda = v => Number(v || 0).toLocaleString("pt-BR", {style:"currency",currency:"BRL"});
 const peso = v => `${Number(v || 0).toFixed(3).replace(".", ",")} kg`;
@@ -77,6 +76,7 @@ function atualizarResumo(){
   $("kpiValor").textContent=moeda(total);
   if(pagamento==="Dinheiro") calcularTroco();
   else finalizar.disabled=!(total>0 && pagamento);
+  atualizarResumoEntrega();
 }
 
 function alterarQuantidade(index,delta){
@@ -92,10 +92,15 @@ function renderItensSemLoop(){
 }
 
 function limparVenda(){
-  comandaAtual=null; itensProdutos=[]; resetPagamento(); ticket.classList.remove("show"); empty.style.display="flex";
+  comandaAtual=null; modoVenda="comanda"; itensProdutos=[]; resetPagamento(); ticket.classList.remove("show"); empty.style.display="flex";
   $("kpiComanda").textContent="—"; $("kpiItens").textContent="0"; $("kpiValor").textContent=moeda(0);
   $("subtotal").textContent=moeda(0); $("totalGrande").textContent=moeda(0); $("horaVenda").textContent="Aguardando comanda";
   input.value=""; input.focus(); renderProdutos();
+  ["deliveryCliente","deliveryTelefone","deliveryEndereco","deliveryNumero","deliveryComplemento","deliveryBairro","deliveryReferencia","deliveryObservacao"].forEach(id=>{const el=$(id);if(el)el.value="";});
+  if($("deliveryTaxa"))$("deliveryTaxa").value="0";
+  if($("deliveryPagamento"))$("deliveryPagamento").value="";
+  if($("deliveryRecebimento"))$("deliveryRecebimento").value="ENTREGA";
+  atualizarResumoEntrega();
 }
 
 function mostrarComanda(c){
@@ -139,12 +144,13 @@ function configurarAbas(){
   const comanda=$("painelComandaPDV"), produtosPainel=$("painelProdutosPDV"), entregaPainel=$("painelEntregaPDV");
   tabs.forEach(tab=>tab.addEventListener("click",()=>{
     tabs.forEach(t=>t.classList.remove("active")); tab.classList.add("active");
-    const produtosAtivo=tab.dataset.tab==="produtos";
-    const entregaAtivo=tab.dataset.tab==="entrega";
-    comanda?.classList.toggle("pdv-tab-panel-hidden",produtosAtivo||entregaAtivo);
-    produtosPainel?.classList.toggle("pdv-tab-panel-hidden",!produtosAtivo);
-    entregaPainel?.classList.toggle("pdv-tab-panel-hidden",!entregaAtivo);
-    if(produtosAtivo) $("buscaProdutoPDV")?.focus(); else if(entregaAtivo) $("telefoneClienteEntrega")?.focus(); else input.focus();
+    modoVenda=tab.dataset.tab;
+    comanda?.classList.toggle("pdv-tab-panel-hidden",modoVenda!=="comanda");
+    produtosPainel?.classList.toggle("pdv-tab-panel-hidden",modoVenda!=="produtos");
+    entregaPainel?.classList.toggle("pdv-tab-panel-hidden",modoVenda!=="entrega");
+    if(modoVenda==="produtos") $("buscaProdutoPDV")?.focus();
+    else if(modoVenda==="entrega"){atualizarResumoEntrega();$("deliveryCliente")?.focus();}
+    else input.focus();
   }));
 }
 
@@ -194,73 +200,82 @@ function mostrarItensVenda(){
 }
 
 
-function readJSON(key, fallback=[]){try{return JSON.parse(localStorage.getItem(key)||JSON.stringify(fallback))}catch{return fallback}}
-function saveJSON(key,value){localStorage.setItem(key,JSON.stringify(value))}
-function limparTelefone(v){return String(v||"").replace(/\D/g,"")}
-function itensParaDelivery(){
-  const items=[];
-  if(comandaAtual) items.push({name:comandaAtual.produto||"Refeição por peso",quantity:1,unitPrice:Number(comandaAtual.total||0),total:Number(comandaAtual.total||0),notes:"Comanda por peso"});
-  itensProdutos.forEach(i=>items.push({name:i.nome,quantity:Number(i.quantidade||0),unitPrice:Number(i.preco||0),total:Number(i.preco||0)*Number(i.quantidade||0)}));
-  return items;
+function atualizarResumoEntrega(){
+  const subtotal=totalProdutos();
+  const taxa=Math.max(0,Number($("deliveryTaxa")?.value||0));
+  const total=subtotal+taxa;
+  if($("deliverySubtotal"))$("deliverySubtotal").textContent=moeda(subtotal);
+  if($("deliveryTaxaResumo"))$("deliveryTaxaResumo").textContent=moeda(taxa);
+  if($("deliveryTotal"))$("deliveryTotal").textContent=moeda(total);
 }
-function subtotalDelivery(){return itensParaDelivery().reduce((s,i)=>s+Number(i.total||0),0)}
-function renderEntregaResumo(){
-  const sub=subtotalDelivery(), taxa=Math.max(0,Number($("taxaEntregaPDV")?.value||0)), total=sub+taxa;
-  const qtd=itensParaDelivery().reduce((s,i)=>s+Number(i.quantity||0),0);
-  if($("entregaItensResumo")) $("entregaItensResumo").textContent=`${qtd} ${qtd===1?"item":"itens"}`;
-  if($("entregaSubtotal")) $("entregaSubtotal").textContent=moeda(sub);
-  if($("entregaTaxaResumo")) $("entregaTaxaResumo").textContent=moeda(taxa);
-  if($("entregaTotalResumo")) $("entregaTotalResumo").textContent=moeda(total);
-  return {sub,taxa,total};
+function pedidosDeliveryLocais(){
+  try{return JSON.parse(localStorage.getItem("neoscale_delivery_orders")||"[]")}catch{return[]}
 }
-function preencherClienteEntrega(c){
-  $("nomeClienteEntrega").value=c.nome||""; $("whatsappClienteEntrega").value=c.whatsapp||c.telefone||"";
-  $("telefoneClienteEntrega").value=c.telefone||c.whatsapp||""; $("cepClienteEntrega").value=c.cep||"";
-  $("enderecoClienteEntrega").value=c.endereco||""; $("numeroClienteEntrega").value=c.numero||"";
-  $("complementoClienteEntrega").value=c.complemento||""; $("bairroClienteEntrega").value=c.bairro||"";
-  $("referenciaClienteEntrega").value=c.referencia||""; $("clienteEncontradoEntrega").innerHTML=`<i class="bi bi-person-check"></i> Cliente encontrado: <strong>${c.nome}</strong>`;
+function salvarPedidosDeliveryLocais(rows){
+  localStorage.setItem("neoscale_delivery_orders",JSON.stringify(rows));
 }
-function dadosClienteEntrega(){return {nome:$("nomeClienteEntrega").value.trim(),telefone:$("telefoneClienteEntrega").value.trim(),whatsapp:$("whatsappClienteEntrega").value.trim(),cep:$("cepClienteEntrega").value.trim(),endereco:$("enderecoClienteEntrega").value.trim(),numero:$("numeroClienteEntrega").value.trim(),complemento:$("complementoClienteEntrega").value.trim(),bairro:$("bairroClienteEntrega").value.trim(),referencia:$("referenciaClienteEntrega").value.trim()}}
-function salvarClienteEntrega(silencioso=false){
-  const c=dadosClienteEntrega(), tel=limparTelefone(c.telefone||c.whatsapp);
-  if(!c.nome){if(!silencioso) avisarEntrega("Informe o nome do cliente.");return null}
-  if(!tel){if(!silencioso) avisarEntrega("Informe o telefone do cliente.");return null}
-  let list=readJSON(CUSTOMERS_LOCAL_KEY,[]); const idx=list.findIndex(x=>limparTelefone(x.telefone||x.whatsapp)===tel);
-  const obj={...c,telefone:c.telefone||c.whatsapp,atualizadoEm:new Date().toISOString()};
-  if(idx>=0) list[idx]={...list[idx],...obj}; else list.unshift({...obj,criadoEm:new Date().toISOString()});
-  saveJSON(CUSTOMERS_LOCAL_KEY,list.slice(0,500)); if(!silencioso) avisarEntrega("Cliente salvo no cadastro.","ok"); return obj;
+function gerarIdDelivery(){
+  const n=Date.now().toString().slice(-8);
+  return "PDV-"+n;
 }
-function avisarEntrega(texto,tipo="err"){const el=$("mensagemEntrega");if(!el)return;el.textContent=texto;el.className=`message show ${tipo}`}
-function buscarClienteEntrega(){
-  const tel=limparTelefone($("telefoneClienteEntrega").value); if(!tel){avisarEntrega("Digite o telefone para buscar.");return}
-  const list=readJSON(CUSTOMERS_LOCAL_KEY,[]); const c=list.find(x=>limparTelefone(x.telefone||x.whatsapp)===tel);
-  if(!c){$("clienteEncontradoEntrega").innerHTML='<i class="bi bi-person-plus"></i> Cliente não cadastrado. Preencha os dados e salve.'; avisarEntrega("Cliente não encontrado. Você pode cadastrá-lo agora.","ok");return}
-  preencherClienteEntrega(c); avisarEntrega("Cadastro carregado. Confira o endereço antes de enviar.","ok");
+function dadosEntregaValidos(){
+  const cliente=$("deliveryCliente")?.value.trim();
+  const telefone=$("deliveryTelefone")?.value.trim();
+  const endereco=$("deliveryEndereco")?.value.trim();
+  const bairro=$("deliveryBairro")?.value.trim();
+  const pagamento=$("deliveryPagamento")?.value;
+  if(!cliente)return "Informe o nome do cliente.";
+  if(!telefone)return "Informe o telefone do cliente.";
+  if(!endereco)return "Informe o endereço de entrega.";
+  if(!bairro)return "Informe o bairro.";
+  if(totalProdutos()<=0)return "Adicione pelo menos um produto ao pedido.";
+  if(!pagamento)return "Selecione a forma de pagamento.";
+  return "";
 }
-function criarPedidoEntrega(){
-  const c=salvarClienteEntrega(true); if(!c){avisarEntrega("Preencha nome e telefone do cliente antes de criar o pedido.");return}
-  const itens=itensParaDelivery(); if(!itens.length){avisarEntrega("Adicione pelo menos um produto ou carregue uma comanda.");return}
-  const {sub,taxa,total}=renderEntregaResumo();
-  const pagamentoEntrega=$("pagamentoEntregaPDV").value==='sim';
-  const forma=$("formaPagamentoEntregaPDV").value;
-  const seq=Number(localStorage.getItem("neoscale_delivery_sequence")||0)+1; localStorage.setItem("neoscale_delivery_sequence",String(seq));
-  const id=`PDV-${String(seq).padStart(5,"0")}`;
-  const order={id,source:"PDV",status:"NOVO",customer:c.nome,customerPhone:c.telefone||c.whatsapp,address:{cep:c.cep,endereco:c.endereco,numero:c.numero,complemento:c.complemento,bairro:c.bairro,referencia:c.referencia},items:itens,subtotal:sub,deliveryFee:taxa,total,paymentMethod:pagamentoEntrega?"Pagamento na entrega":forma,paymentAtDelivery:pagamentoEntrega,notes:$("observacaoEntregaPDV").value.trim(),createdAt:new Date().toISOString(),origin:"PDV"};
-  const orders=readJSON(DELIVERY_LOCAL_KEY,[]); orders.unshift(order); saveJSON(DELIVERY_LOCAL_KEY,orders.slice(0,1000));
-  avisarEntrega(`Pedido ${id} criado e enviado para a Central de Delivery.`,"ok");
-  if(window.open){ const msg=`Olá, ${c.nome}! Seu pedido ${id} foi recebido. Total ${moeda(total)}. Estamos preparando seu pedido.`; const wa=limparTelefone(c.whatsapp||c.telefone); if(wa) setTimeout(()=>window.open(`https://wa.me/55${wa}?text=${encodeURIComponent(msg)}`,"_blank"),150); }
-  setTimeout(()=>{limparVenda(); document.querySelector('[data-tab="entrega"]')?.click();},700);
+async function criarPedidoEntrega(){
+  const erro=dadosEntregaValidos();
+  if(erro){avisar(erro,"err");return;}
+  const btn=$("btnCriarPedidoEntrega"); btn.disabled=true; btn.innerHTML='<i class="bi bi-arrow-repeat"></i> CRIANDO...';
+  try{
+    const taxa=Math.max(0,Number($("deliveryTaxa").value||0));
+    const subtotal=totalProdutos();
+    const total=subtotal+taxa;
+    const pagamento=$("deliveryPagamento").value;
+    const recebimento=$("deliveryRecebimento").value;
+    const pedido={
+      id:gerarIdDelivery(),
+      source:"PDV",
+      origem:"PDV",
+      customer:$("deliveryCliente").value.trim(),
+      telefone:$("deliveryTelefone").value.trim(),
+      endereco:{
+        rua:$("deliveryEndereco").value.trim(),
+        numero:$("deliveryNumero").value.trim(),
+        complemento:$("deliveryComplemento").value.trim(),
+        bairro:$("deliveryBairro").value.trim(),
+        referencia:$("deliveryReferencia").value.trim()
+      },
+      address:`${$("deliveryEndereco").value.trim()}${$("deliveryNumero").value.trim()?", "+$("deliveryNumero").value.trim():""}${$("deliveryComplemento").value.trim()?" - "+$("deliveryComplemento").value.trim():""} - ${$("deliveryBairro").value.trim()}`,
+      items:itensProdutos.map(i=>({id:i.id,name:i.nome,quantity:i.quantidade,price:i.preco})),
+      subtotal,taxaEntrega:taxa,total,
+      pagamento,formaPagamento:pagamento,paymentMethod:pagamento,
+      recebimento,observacao:$("deliveryObservacao").value.trim(),
+      status:"NOVO",
+      criadoEm:new Date().toISOString(),
+      origemLocal:true
+    };
+    const rows=pedidosDeliveryLocais();
+    rows.unshift(pedido);
+    salvarPedidosDeliveryLocais(rows);
+    avisar(`Pedido ${pedido.id} criado e enviado para a Central de Delivery.`,"ok");
+    window.dispatchEvent(new CustomEvent("neoscale:delivery-created",{detail:pedido}));
+    setTimeout(()=>limparVenda(),900);
+  }catch(e){
+    console.error(e);avisar("Não foi possível criar o pedido para entrega.","err");
+  }finally{
+    btn.disabled=false;btn.innerHTML='<i class="bi bi-bicycle"></i> CRIAR PEDIDO PARA ENTREGA';
+  }
 }
-function configurarDeliveryPDV(){
-  $("btnBuscarClienteEntrega")?.addEventListener("click",buscarClienteEntrega);
-  $("telefoneClienteEntrega")?.addEventListener("keydown",e=>{if(e.key==='Enter'){e.preventDefault();buscarClienteEntrega()}});
-  $("btnSalvarClienteEntrega")?.addEventListener("click",()=>salvarClienteEntrega(false));
-  $("btnCriarPedidoEntrega")?.addEventListener("click",criarPedidoEntrega);
-  $("taxaEntregaPDV")?.addEventListener("input",renderEntregaResumo);
-  ["nomeClienteEntrega","whatsappClienteEntrega","enderecoClienteEntrega","numeroClienteEntrega","complementoClienteEntrega","bairroClienteEntrega","referenciaClienteEntrega","observacaoEntregaPDV"].forEach(id=>$(id)?.addEventListener("input",renderEntregaResumo));
-  renderEntregaResumo();
-}
-
 function calcularTroco(){
   if(pagamento!=="Dinheiro")return;
   const valor=Number(recebido.value||0), total=totalVenda(), troco=valor-total;
@@ -363,5 +378,7 @@ window.addEventListener("keydown",e=>{
   if(e.key==="Escape"){if($("modalFiscalVenda")?.hidden===false){$("modalFiscalVenda").hidden=true; concluirVendaComOpcaoFiscal(false); return;} modal.classList.remove("show");limparVenda();}
   if(e.key==="F8"){e.preventDefault();if(comandaAtual||itensProdutos.length)modal.classList.add("show");}
 });
+$("deliveryTaxa")?.addEventListener("input",atualizarResumoEntrega);
+$("btnCriarPedidoEntrega")?.addEventListener("click",criarPedidoEntrega);
 function relogio(){$("relogio").textContent=new Date().toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});}
-relogio();setInterval(relogio,1000);configurarAbas();configurarDeliveryPDV();atualizarCaixa();carregarProdutos();input.focus();
+relogio();setInterval(relogio,1000);configurarAbas();atualizarCaixa();carregarProdutos();input.focus();

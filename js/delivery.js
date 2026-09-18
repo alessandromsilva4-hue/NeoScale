@@ -4,20 +4,22 @@ const SERVICE_DEFAULT='';
 const columns=[['NOVO','Novos'],['PREPARO','Em preparo'],['PRONTO','Prontos'],['ENTREGA','Em entrega'],['CONCLUIDO','Concluídos']];
 let orders=[];
 const printedOrders=new Set();
-const LOCAL_PDV_ORDERS='neoscale_pdv_delivery_orders';
-const LOCAL_DRIVERS='neoscale_delivery_drivers';
-function localOrders(){try{return JSON.parse(localStorage.getItem(LOCAL_PDV_ORDERS)||'[]')}catch{return []}}
-function saveLocalOrders(v){localStorage.setItem(LOCAL_PDV_ORDERS,JSON.stringify(v))}
-function localDrivers(){try{return JSON.parse(localStorage.getItem(LOCAL_DRIVERS)||'[]')}catch{return []}}
-function mergeOrders(incoming){
-  const local=localOrders(); const map=new Map();
-  [...local,...(Array.isArray(incoming)?incoming:[])].forEach(o=>{if(o&&o.id) map.set(o.id,{...map.get(o.id),...o})});
-  return [...map.values()].sort((a,b)=>new Date(b.createdAt||0)-new Date(a.createdAt||0));
-}
 
 function loadConfig(){try{return JSON.parse(localStorage.getItem(KEY)||'{}')}catch{return {}}}
 function saveConfig(c){localStorage.setItem(KEY,JSON.stringify(c))}
 function fmt(v){return Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}
+function localOrders(){
+  try{return JSON.parse(localStorage.getItem('neoscale_delivery_orders')||'[]')}catch{return[]}
+}
+function saveLocalOrders(rows){localStorage.setItem('neoscale_delivery_orders',JSON.stringify(rows))}
+function isLocalOrder(o){return o?.origemLocal===true || o?.source==='PDV'}
+function mergeOrders(incoming){
+  const locais=localOrders();
+  const map=new Map();
+  locais.forEach(o=>map.set(o.id,o));
+  incoming.forEach(o=>map.set(o.id,{...map.get(o.id),...o}));
+  return Array.from(map.values()).sort((a,b)=>new Date(b.criadoEm||0)-new Date(a.criadoEm||0));
+}
 
 function render(){
   const k=document.getElementById('kanban');
@@ -35,12 +37,7 @@ function render(){
       const printBadge=printedOrders.has(o.id)?'<small class="print-ok">🖨️ Impresso</small>':'';
       const b=next?`<button data-id="${o.id}" data-next="${next}">${next==='PREPARO'?'Iniciar preparo':next==='PRONTO'?'Marcar pronto':next==='ENTREGA'?'Saiu para entrega':'Concluir'}</button>`:'';
       const items=Array.isArray(o.items)?o.items:[];
-      const drivers=localDrivers(); const selected=o.driverId||'';
-      const driverSelect=drivers.length?`<select class="driver-select" data-driver-order="${o.id}"><option value="">Sem entregador</option>${drivers.map(d=>`<option value="${d.id||d.nome}" ${String(selected)===String(d.id||d.nome)?'selected':''}>${d.nome}</option>`).join('')}</select>`:'<small class="no-driver">Cadastre um entregador</small>';
-      const addr=o.address||{}; const addressText=[addr.endereco,addr.numero,addr.bairro].filter(Boolean).join(', ');
-      const phone=String(o.customerPhone||'').replace(/\D/g,'');
-      const wa=phone?`<button type="button" class="whatsapp-order" data-whatsapp-order="${o.id}"><i class="bi bi-whatsapp"></i> WhatsApp</button>`:'';
-      col.insertAdjacentHTML('beforeend',`<article class="order-card"><div class="order-top"><strong>${o.id||'Pedido'}</strong><span class="source">${o.source||'Delivery'}</span></div><p>${o.customer||'Cliente'}</p><div class="order-items">${items.map(x=>`• ${typeof x==='string'?x:`${x.quantity||1}x ${x.name||'Item'}${x.notes?` — ${x.notes}`:''}`}`).join('<br>')}</div>${addressText?`<div class="order-address"><i class="bi bi-geo-alt"></i> ${addressText}</div>`:''}<div class="order-driver">${driverSelect}</div><div class="order-foot"><b>${fmt(o.total)}</b><span>${printBadge}</span>${wa}${b}</div></article>`);
+      col.insertAdjacentHTML('beforeend',`<article class="order-card"><div class="order-top"><strong>${o.id||'Pedido'}</strong><span class="source">${o.source||'Delivery'}</span></div><p>${o.customer||'Cliente'}</p><div class="order-items">${items.map(x=>`• ${typeof x==='string'?x:`${x.quantity||1}x ${x.name||'Item'}${x.notes?` — ${x.notes}`:''}`}`).join('<br>')}</div><div class="order-foot"><b>${fmt(o.total)}</b><span>${printBadge}</span>${b}</div></article>`);
     });
     k.appendChild(col);
   });
@@ -64,10 +61,12 @@ async function sync(){
   const last=document.getElementById('lastSync');
   const service=(c.serviceUrl||'').trim().replace(/\/$/,'');
   if(!service){
-    orders=mergeOrders([]);
+    orders=localOrders();
     setStatuses('idle');
-    log.textContent='Serviço de integração ainda não configurado. Abra “Integrações” e informe a URL do serviço.';
-    last.textContent='Aguardando configuração';
+    log.textContent=orders.length
+      ? `Há ${orders.length} pedido(s) criado(s) diretamente pelo PDV.`
+      : 'Serviço de integração ainda não configurado. Abra “Integrações” para conectar as plataformas.';
+    last.textContent=orders.length?'Pedidos do PDV':'Aguardando configuração';
     render();
     return;
   }
@@ -82,7 +81,7 @@ async function sync(){
     const data=await r.json();
     const incoming=Array.isArray(data.orders)?data.orders:[];
     const previousIds=new Set(orders.map(o=>o.id));
-    orders=incoming;
+    orders=mergeOrders(incoming);
     for(const o of incoming){
       if(!previousIds.has(o.id) && !printedOrders.has(o.id)){
         try{ await printKitchen(o); o.printedAt=new Date().toISOString(); }
@@ -136,24 +135,34 @@ async function pushStatus(o,next){
   });
 }
 
-document.addEventListener('change',e=>{
-  const sel=e.target.closest('[data-driver-order]'); if(!sel)return;
-  const id=sel.dataset.driverOrder; const list=localOrders(); const idx=list.findIndex(o=>o.id===id); if(idx<0)return;
-  const driver=localDrivers().find(d=>String(d.id||d.nome)===String(sel.value));
-  list[idx]={...list[idx],driverId:driver?(driver.id||driver.nome):null,driverName:driver?.nome||null}; saveLocalOrders(list); orders=mergeOrders(orders); render();
-});
 document.addEventListener('click',async e=>{
-  const wa=e.target.closest('[data-whatsapp-order]');
-  if(wa){ const o=orders.find(x=>x.id===wa.dataset.whatsappOrder); if(o){const phone=String(o.customerPhone||'').replace(/\D/g,''); const msg=`Olá, ${o.customer||'cliente'}! Seu pedido ${o.id} foi recebido. Total ${fmt(o.total)}. Acompanhe o pedido pela nossa equipe.`; window.open(`https://wa.me/55${phone}?text=${encodeURIComponent(msg)}`,'_blank');} return; }
-  const b=e.target.closest('[data-next]'); if(!b)return;
-  const o=orders.find(x=>x.id===b.dataset.id); if(!o)return; const next=b.dataset.next; b.disabled=true;
+  const b=e.target.closest('[data-next]');
+  if(!b)return;
+  const o=orders.find(x=>x.id===b.dataset.id);
+  if(!o)return;
+  const next=b.dataset.next;
+  b.disabled=true;
   try{
-    if(String(o.source||'').toUpperCase()==='PDV'){
-      const list=localOrders(); const idx=list.findIndex(x=>x.id===o.id); if(idx>=0){list[idx]={...list[idx],status:next,updatedAt:new Date().toISOString()};saveLocalOrders(list);} o.status=next; render(); return;
+    if(isLocalOrder(o)){
+      o.status=next;
+      const locais=localOrders();
+      const i=locais.findIndex(x=>x.id===o.id);
+      if(i>=0){locais[i]={...locais[i],status:next,atualizadoEm:new Date().toISOString()};saveLocalOrders(locais);}
+      render();
+      return;
     }
-    if(next==='PREPARO'&&!printedOrders.has(o.id)){await printKitchen(o);o.printedAt=new Date().toISOString();}
-    const result=await pushStatus(o,next); if(result.order)o.status=result.order.status; else o.status=next; render();
-  }catch(err){alert('Não foi possível avançar o pedido.\n\n'+err.message);render();}finally{b.disabled=false;}
+    if(next==='PREPARO'&&!printedOrders.has(o.id)){
+      await printKitchen(o);
+      o.printedAt=new Date().toISOString();
+    }
+    const result=await pushStatus(o,next);
+    if(result.order)o.status=result.order.status;
+    else o.status=next;
+    render();
+  }catch(err){
+    alert('Não foi possível avançar o pedido.\n\n'+err.message);
+    render();
+  }finally{b.disabled=false;}
 });
 
 const dashboard=document.getElementById('deliveryDashboard');
@@ -317,10 +326,12 @@ document.getElementById('btnCloseDeliveryCash')?.addEventListener('click',()=>{
 });
 document.getElementById('btnAddEntregador')?.addEventListener('click',()=>{
   const nome=(document.getElementById('entregadorNome')?.value||'').trim(); if(!nome){alert('Informe o nome do entregador.');return;}
-  let list=[];try{list=JSON.parse(localStorage.getItem(DELIVERY_DRIVERS_KEY)||'[]')}catch{};list.push({id:'ENT-'+Date.now(),nome,telefone:(document.getElementById('entregadorTelefone')?.value||'').trim(),ativo:true});localStorage.setItem(DELIVERY_DRIVERS_KEY,JSON.stringify(list));document.getElementById('entregadorNome').value='';document.getElementById('entregadorTelefone').value='';renderDrivers();
+  let list=[];try{list=JSON.parse(localStorage.getItem(DELIVERY_DRIVERS_KEY)||'[]')}catch{};list.push({nome,telefone:(document.getElementById('entregadorTelefone')?.value||'').trim()});localStorage.setItem(DELIVERY_DRIVERS_KEY,JSON.stringify(list));document.getElementById('entregadorNome').value='';document.getElementById('entregadorTelefone').value='';renderDrivers();
 });
 document.addEventListener('click',e=>{const b=e.target.closest('[data-remove-driver]');if(!b)return;let list=[];try{list=JSON.parse(localStorage.getItem(DELIVERY_DRIVERS_KEY)||'[]')}catch{};list.splice(Number(b.dataset.removeDriver),1);localStorage.setItem(DELIVERY_DRIVERS_KEY,JSON.stringify(list));renderDrivers();});
 window.addEventListener('hashchange',routeFromHash);
 
+window.addEventListener('neoscale:delivery-created',()=>{orders=mergeOrders([]);render();});
+window.addEventListener('storage',e=>{if(e.key==='neoscale_delivery_orders'){orders=mergeOrders([]);render();}});
 sync();
 routeFromHash();

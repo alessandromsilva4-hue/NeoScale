@@ -65,13 +65,22 @@
     display: none !important;
 }
 
-/* ===== Delivery dentro do PDV ===== */
+/* Pedido para entrega no PDV */
 .delivery-pdv-panel{margin-bottom:18px}
-.delivery-pdv-toolbar{display:flex;gap:12px;align-items:center;margin-bottom:16px;flex-wrap:wrap}
-.delivery-customer-search{display:flex;gap:8px;flex:1;min-width:320px}.delivery-customer-search input{flex:1}
-.customer-found{min-height:40px;display:flex;align-items:center;padding:0 12px;border-radius:10px;background:var(--panel-soft,#f1f5f9);font-size:13px;color:#334155}
-.delivery-form-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.delivery-form-grid label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#475569}.delivery-form-grid label:last-child{grid-column:span 2}.delivery-form-grid input,.delivery-form-grid select,.delivery-form-grid textarea{width:100%;box-sizing:border-box;padding:11px 12px;border:1px solid #dbe3ea;border-radius:10px;background:#fff;font:inherit;color:#0f172a}.delivery-form-grid textarea{resize:vertical}
-.delivery-order-preview{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:16px}.delivery-order-preview>div{padding:14px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0;display:flex;flex-direction:column;gap:5px}.delivery-order-preview span{font-size:11px;color:#64748b;text-transform:uppercase;font-weight:700}.delivery-order-preview strong{font-size:17px}.delivery-order-preview .grand{background:#ecfdf5;border-color:#bbf7d0}.delivery-order-preview .grand strong{font-size:22px}
-.delivery-pdv-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}.delivery-pdv-actions .finish-btn{max-width:360px}.pdv-tab-panel-hidden{display:none!important}
-@media(max-width:1000px){.delivery-form-grid{grid-template-columns:repeat(2,1fr)}.delivery-order-preview{grid-template-columns:repeat(2,1fr)}}
-@media(max-width:620px){.delivery-form-grid{grid-template-columns:1fr}.delivery-form-grid label:last-child{grid-column:auto}.delivery-order-preview{grid-template-columns:1fr}.delivery-customer-search{min-width:0;flex-direction:column}.delivery-pdv-actions{flex-direction:column}.delivery-pdv-actions button{max-width:none}}
+.delivery-pdv-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}
+.delivery-pdv-section{border:1px solid #e7edef;border-radius:14px;padding:16px;background:#fbfcfc}
+.delivery-pdv-section-title{font-weight:800;font-size:13px;margin-bottom:12px;color:#263740}
+.delivery-pdv-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:11px}
+.delivery-pdv-fields label{display:flex;flex-direction:column;gap:6px;font-size:11px;font-weight:700;color:#52636d}
+.delivery-pdv-fields .span-2{grid-column:span 2}
+.delivery-pdv-fields input,.delivery-pdv-fields select{width:100%;box-sizing:border-box;border:1px solid #dbe4e7;border-radius:9px;padding:11px 12px;background:#fff;color:#263740;font:inherit;font-weight:500;outline:none}
+.delivery-pdv-fields input:focus,.delivery-pdv-fields select:focus{border-color:#0a7a58;box-shadow:0 0 0 3px rgba(10,122,88,.08)}
+.delivery-pdv-footer{display:grid;grid-template-columns:1fr 1fr 1.2fr auto;align-items:end;gap:12px;margin-top:14px}
+.delivery-pdv-footer>div{background:#f5f8f8;border-radius:10px;padding:10px 12px}
+.delivery-pdv-footer span{display:block;font-size:10px;color:#71808a;font-weight:700}
+.delivery-pdv-footer strong{display:block;margin-top:3px;font-size:17px}
+.delivery-pdv-footer .delivery-total strong{font-size:21px}
+.delivery-pdv-footer .finish-btn{margin:0;min-height:52px;white-space:nowrap}
+.delivery-pdv-panel .message{margin-top:12px}
+@media(max-width:900px){.delivery-pdv-grid{grid-template-columns:1fr}.delivery-pdv-footer{grid-template-columns:1fr 1fr}.delivery-pdv-footer .finish-btn{grid-column:span 2}}
+@media(max-width:600px){.delivery-pdv-fields{grid-template-columns:1fr}.delivery-pdv-fields .span-2{grid-column:span 1}.delivery-pdv-footer{grid-template-columns:1fr}.delivery-pdv-footer .finish-btn{grid-column:span 1}}
