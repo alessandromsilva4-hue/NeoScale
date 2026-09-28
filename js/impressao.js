@@ -1,9 +1,18 @@
 /* NeoScale - impressão térmica: navegador + impressão direta ESC/POS */
-const RESTAURANTE = {
+const RESTAURANTE_PADRAO = {
     nome: "NEOSCALE RESTAURANTE",
     endereco: "Sistema de pesagem inteligente",
     cidade: "Buffet por quilo"
 };
+
+function obterDadosRestaurante(config = {}) {
+    const nome = String(config.restaurante || "").trim();
+    return {
+        nome: nome ? nome.toUpperCase() : RESTAURANTE_PADRAO.nome,
+        endereco: RESTAURANTE_PADRAO.endereco,
+        cidade: RESTAURANTE_PADRAO.cidade
+    };
+}
 
 const FRASES_RESERVA = [
     { frase: "Que a sua refeição seja um momento especial.", autor: "NeoScale" },
@@ -85,7 +94,8 @@ function comandoBarrasCode128(codigo) {
     );
 }
 
-function montarComandaEscPos(comanda, frase, teste = false) {
+function montarComandaEscPos(comanda, frase, teste = false, config = {}) {
+    const restaurante = obterDadosRestaurante(config);
     const e = montarEscPosBase();
     const peso = Number(comanda.peso || 0).toFixed(3).replace(".", ",");
     const precoKg = dinheiro(comanda.precoKg);
@@ -96,10 +106,10 @@ function montarComandaEscPos(comanda, frase, teste = false) {
     const produto = semAcentos(comanda.produto || "Refeicao");
 
     return concatenarBytes(
-        e.init, e.center, e.boldOn, e.big, escPosTextoLinha(RESTAURANTE.nome),
+        e.init, e.center, e.boldOn, e.big, escPosTextoLinha(restaurante.nome),
         e.normal, e.boldOff,
-        escPosTextoLinha(RESTAURANTE.endereco),
-        escPosTextoLinha(RESTAURANTE.cidade),
+        escPosTextoLinha(restaurante.endereco),
+        escPosTextoLinha(restaurante.cidade),
         e.boldOn, escPosTextoLinha(`COMANDA No ${comanda.numero}`), e.boldOff,
         teste ? escPosTextoLinha("COMANDA DE TESTE") : new Uint8Array(),
         e.left, escPosTextoLinha(`Data: ${new Date().toLocaleDateString("pt-BR")} ${new Date().toLocaleTimeString("pt-BR")}`),
@@ -120,7 +130,8 @@ function montarComandaEscPos(comanda, frase, teste = false) {
     );
 }
 
-function montarReciboEscPos(venda, teste = false) {
+function montarReciboEscPos(venda, teste = false, config = {}) {
+    const restaurante = obterDadosRestaurante(config);
     const e = montarEscPosBase();
     const itens = Array.isArray(venda.itens) ? venda.itens : [];
     const linhas = [];
@@ -136,7 +147,7 @@ function montarReciboEscPos(venda, teste = false) {
     const total = dinheiro(venda.total);
 
     return concatenarBytes(
-        e.init, e.center, e.boldOn, e.big, escPosTextoLinha(RESTAURANTE.nome), e.normal, e.boldOff,
+        e.init, e.center, e.boldOn, e.big, escPosTextoLinha(restaurante.nome), e.normal, e.boldOff,
         escPosTextoLinha("Frente de Loja"),
         e.boldOn, escPosTextoLinha("COMPROVANTE DE VENDA"), e.boldOff,
         teste ? escPosTextoLinha("TESTE") : new Uint8Array(),
@@ -191,16 +202,17 @@ async function imprimirDiretoSeguro(bytes, config) {
     return imprimirDireto(bytes, config);
 }
 
-function gerarHtmlComanda(comanda, teste = false, frase) {
+function gerarHtmlComanda(comanda, teste = false, frase, config = {}) {
     const agora = new Date();
+    const restaurante = obterDadosRestaurante(config);
     const peso = Number(comanda.peso || 0).toFixed(3).replace(".", ",");
     const precoKg = dinheiro(comanda.precoKg);
     const total = dinheiro(comanda.total);
     const codigo = escaparHtml(comanda.codigoBarras || "");
     return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Comanda ${escaparHtml(comanda.numero)}</title>
 <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script><style>
-@page{size:80mm auto;margin:0}*{box-sizing:border-box}html,body{width:80mm;margin:0;padding:0}body{width:72mm;margin:0 auto;background:#fff;color:#111;font-family:"Lucida Console",Consolas,"Courier New",monospace;font-size:12px}.centro{text-align:center}.empresa{padding:3mm 0 4mm;line-height:1.4}.empresa strong{display:block;font-size:21px}.titulo{font-size:22px;font-weight:700;margin-bottom:3mm}.data{font-size:11px;margin-bottom:2mm}.linha{border-top:2px dashed #111;margin:2mm 0}table{width:100%;border-collapse:collapse}th,td{padding:2mm 1mm;border-bottom:1px dashed #111;text-align:left}th{text-align:center}td:nth-child(n+2),th:nth-child(n+2){text-align:right}.total{margin:5mm 0;font-size:23px;font-weight:700;text-align:center}.barcode{text-align:center;margin:4mm 0 2mm}.barcode svg{width:64mm;height:17mm}.numero-barra{font-size:12px;letter-spacing:1px}.frase{line-height:1.4;margin:3mm;font-size:11px}.frase strong{display:block}.rodape{text-align:center;margin:4mm 0;font-size:11px}</style></head><body>
-<header class="empresa centro"><strong>${RESTAURANTE.nome}</strong><span>${RESTAURANTE.endereco}</span><br><span>${RESTAURANTE.cidade}</span></header>
+@page{size:80mm auto;margin:0}*{box-sizing:border-box}html,body{width:80mm;margin:0;padding:0}body{width:72mm;margin:0 auto;background:#fff;color:#111;font-family:"Lucida Console",Consolas,"Courier New",monospace;font-size:12px}.centro{text-align:center}.empresa{padding:3mm 0 4mm;line-height:1.4}.empresa strong{display:block;font-size:21px;overflow-wrap:anywhere;word-break:break-word}.titulo{font-size:22px;font-weight:700;margin-bottom:3mm}.data{font-size:11px;margin-bottom:2mm}.linha{border-top:2px dashed #111;margin:2mm 0}table{width:100%;border-collapse:collapse}th,td{padding:2mm 1mm;border-bottom:1px dashed #111;text-align:left}th{text-align:center}td:nth-child(n+2),th:nth-child(n+2){text-align:right}.total{margin:5mm 0;font-size:23px;font-weight:700;text-align:center}.barcode{text-align:center;margin:4mm 0 2mm}.barcode svg{width:64mm;height:17mm}.numero-barra{font-size:12px;letter-spacing:1px}.frase{line-height:1.4;margin:3mm;font-size:11px}.frase strong{display:block}.rodape{text-align:center;margin:4mm 0;font-size:11px}</style></head><body>
+<header class="empresa centro"><strong>${escaparHtml(restaurante.nome)}</strong><span>${escaparHtml(restaurante.endereco)}</span><br><span>${escaparHtml(restaurante.cidade)}</span></header>
 <div class="titulo centro">COMANDA No ${escaparHtml(comanda.numero)}${teste ? '<div style="font-size:10px">COMANDA DE TESTE</div>' : ''}</div>
 <div class="data">Data: ${agora.toLocaleDateString("pt-BR")} ${agora.toLocaleTimeString("pt-BR")}</div><div class="linha"></div>
 <table><thead><tr><th>Produto</th><th>R$/kg</th><th>Peso</th><th>Total</th></tr></thead><tbody><tr><td>${escaparHtml(comanda.produto || "Refeição")}</td><td>R$ ${precoKg}</td><td>${peso} kg</td><td>R$ ${total}</td></tr></tbody></table>
@@ -215,7 +227,7 @@ async function imprimirComanda(opcoes = {}) {
     const config = await carregarConfiguracaoImpressao();
     if (config.modoImpressao === "direta") {
         try {
-            await imprimirDiretoSeguro(montarComandaEscPos(comanda, frase, Boolean(opcoes.teste)), config);
+            await imprimirDiretoSeguro(montarComandaEscPos(comanda, frase, Boolean(opcoes.teste), config), config);
             window.NeoVoice?.vozComanda?.();
             return { direta: true };
         } catch (erro) {
@@ -226,19 +238,20 @@ async function imprimirComanda(opcoes = {}) {
     const frame = document.createElement("iframe");
     frame.setAttribute("aria-hidden","true"); frame.style.cssText="position:fixed;width:0;height:0;border:0;right:0;bottom:0";
     document.body.appendChild(frame);
-    const documento=frame.contentWindow.document; documento.open(); documento.write(gerarHtmlComanda(comanda,Boolean(opcoes.teste),frase)); documento.close();
+    const documento=frame.contentWindow.document; documento.open(); documento.write(gerarHtmlComanda(comanda,Boolean(opcoes.teste),frase,config)); documento.close();
     window.setTimeout(()=>frame.remove(),1800); window.NeoVoice?.vozComanda?.();
     return { direta: false };
 }
 window.imprimirComanda = imprimirComanda;
 
-function gerarHtmlReciboVenda(venda, teste = false) {
+function gerarHtmlReciboVenda(venda, teste = false, config = {}) {
     const agora = new Date();
+    const restaurante = obterDadosRestaurante(config);
     const total = dinheiro(venda.total), recebido = dinheiro(venda.recebido), troco = dinheiro(venda.troco);
     const pagamento = escaparHtml(venda.pagamento || "Não informado"), comanda = escaparHtml(venda.numeroComanda || "Venda direta");
     const itens = Array.isArray(venda.itens) ? venda.itens : [];
     const linhas = itens.map(item => { const qtd=Number(item.quantidade||0); const valor=dinheiro(Number(item.preco||0)*qtd); return `<tr><td>${escaparHtml(item.nome||"Produto")}</td><td>${qtd}</td><td>R$ ${valor}</td></tr>`; }).join("");
-    return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Recibo NeoScale</title><style>@page{size:${String(venda.larguraPapel||"80")}mm auto;margin:0}*{box-sizing:border-box}html,body{width:${String(venda.larguraPapel||"80")}mm;margin:0;padding:0}body{width:calc(${String(venda.larguraPapel||"80")}mm - 8mm);margin:0 auto;color:#111;font-family:"Lucida Console",Consolas,"Courier New",monospace;font-size:12px}.centro{text-align:center}.empresa{padding:3mm 0 4mm;line-height:1.4}.empresa strong{display:block;font-size:20px}.titulo{font-size:19px;font-weight:700;margin-bottom:3mm}.linha{border-top:2px dashed #111;margin:2mm 0}table{width:100%;border-collapse:collapse}th,td{padding:2mm 1mm;border-bottom:1px dashed #111;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.total{margin:5mm 0;font-size:22px;font-weight:700;text-align:center}.pagamento{text-align:center;line-height:1.6}.rodape{text-align:center;margin:5mm 0;font-size:11px;line-height:1.5}</style></head><body><header class="empresa centro"><strong>NEOSCALE RESTAURANTE</strong><span>Frente de Loja</span></header><div class="titulo centro">COMPROVANTE DE VENDA${teste?'<div style="font-size:10px">TESTE</div>':''}</div><div>Data: ${agora.toLocaleDateString("pt-BR")} ${agora.toLocaleTimeString("pt-BR")}</div><div>Atendimento: ${comanda}</div><div class="linha"></div><table><thead><tr><th>Produto</th><th>Qtd</th><th>Total</th></tr></thead><tbody>${linhas||'<tr><td colspan="3">Venda de refeição</td></tr>'}</tbody></table><div class="total">TOTAL: R$ ${total}</div><div class="pagamento">Pagamento: <strong>${pagamento}</strong>${venda.pagamento==="Dinheiro"?`<br>Recebido: R$ ${recebido}<br>Troco: R$ ${troco}`:""}</div><div class="rodape">Obrigado pela preferência!<br>NeoScale • Gestão Inteligente</div><script>window.onload=function(){setTimeout(()=>window.print(),200)}<\/script></body></html>`;
+    return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Recibo NeoScale</title><style>@page{size:${String(venda.larguraPapel||"80")}mm auto;margin:0}*{box-sizing:border-box}html,body{width:${String(venda.larguraPapel||"80")}mm;margin:0;padding:0}body{width:calc(${String(venda.larguraPapel||"80")}mm - 8mm);margin:0 auto;color:#111;font-family:"Lucida Console",Consolas,"Courier New",monospace;font-size:12px}.centro{text-align:center}.empresa{padding:3mm 0 4mm;line-height:1.4}.empresa strong{display:block;font-size:20px;overflow-wrap:anywhere;word-break:break-word}.titulo{font-size:19px;font-weight:700;margin-bottom:3mm}.linha{border-top:2px dashed #111;margin:2mm 0}table{width:100%;border-collapse:collapse}th,td{padding:2mm 1mm;border-bottom:1px dashed #111;text-align:left}th:nth-child(n+2),td:nth-child(n+2){text-align:right}.total{margin:5mm 0;font-size:22px;font-weight:700;text-align:center}.pagamento{text-align:center;line-height:1.6}.rodape{text-align:center;margin:5mm 0;font-size:11px;line-height:1.5}</style></head><body><header class="empresa centro"><strong>${escaparHtml(restaurante.nome)}</strong><span>Frente de Loja</span></header><div class="titulo centro">COMPROVANTE DE VENDA${teste?'<div style="font-size:10px">TESTE</div>':''}</div><div>Data: ${agora.toLocaleDateString("pt-BR")} ${agora.toLocaleTimeString("pt-BR")}</div><div>Atendimento: ${comanda}</div><div class="linha"></div><table><thead><tr><th>Produto</th><th>Qtd</th><th>Total</th></tr></thead><tbody>${linhas||'<tr><td colspan="3">Venda de refeição</td></tr>'}</tbody></table><div class="total">TOTAL: R$ ${total}</div><div class="pagamento">Pagamento: <strong>${pagamento}</strong>${venda.pagamento==="Dinheiro"?`<br>Recebido: R$ ${recebido}<br>Troco: R$ ${troco}`:""}</div><div class="rodape">Obrigado pela preferência!<br>NeoScale • Gestão Inteligente</div><script>window.onload=function(){setTimeout(()=>window.print(),200)}<\/script></body></html>`;
 }
 
 async function imprimirReciboVenda(venda = {}) {
@@ -246,11 +259,11 @@ async function imprimirReciboVenda(venda = {}) {
     const config = await carregarConfiguracaoImpressao();
     venda = {...venda, larguraPapel:String(config.larguraPapel||venda.larguraPapel||"80")};
     if (config.modoImpressao === "direta") {
-        try { await imprimirDiretoSeguro(montarReciboEscPos(venda,Boolean(venda.teste)),config); return {direta:true}; }
+        try { await imprimirDiretoSeguro(montarReciboEscPos(venda,Boolean(venda.teste),config),config); return {direta:true}; }
         catch (erro) { console.error("Impressão direta do recibo falhou:",erro); alert(`Impressão direta não disponível.\n\n${erro.message}\n\nO NeoScale abrirá a impressão do navegador como alternativa.`); }
     }
     const frame=document.createElement("iframe"); frame.setAttribute("aria-hidden","true"); frame.style.cssText="position:fixed;width:0;height:0;border:0;right:0;bottom:0"; document.body.appendChild(frame);
-    const documento=frame.contentWindow.document; documento.open(); documento.write(gerarHtmlReciboVenda(venda,Boolean(venda.teste))); documento.close(); window.setTimeout(()=>frame.remove(),1800); return {direta:false};
+    const documento=frame.contentWindow.document; documento.open(); documento.write(gerarHtmlReciboVenda(venda,Boolean(venda.teste),config)); documento.close(); window.setTimeout(()=>frame.remove(),1800); return {direta:false};
 }
 window.imprimirReciboVenda = imprimirReciboVenda;
 

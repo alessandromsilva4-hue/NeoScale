@@ -23,6 +23,7 @@
     <h1>Criar primeiro acesso</h1>
     <p>Cadastre o usuário administrador que será usado para entrar no NeoScale.</p>
     <form id="setupForm">
+      <div class="field"><label for="nome">Nome do usuário</label><input id="nome" type="text" placeholder="Ex: João da Silva" required></div>
       <div class="field"><label for="email">E-mail</label><input id="email" type="email" placeholder="admin@empresa.com" required></div>
       <div class="field"><label for="senha">Senha</label><input id="senha" type="password" minlength="6" placeholder="Mínimo de 6 caracteres" required></div>
       <div class="field"><label for="confirmar">Confirmar senha</label><input id="confirmar" type="password" minlength="6" placeholder="Repita a senha" required></div>
@@ -42,6 +43,7 @@ const msg=document.getElementById('mensagem');
 const btn=document.getElementById('btnCriar');
 form.addEventListener('submit',async(e)=>{
  e.preventDefault(); msg.className='msg'; msg.textContent='';
+ const nome=document.getElementById('nome').value.trim();
  const email=document.getElementById('email').value.trim();
  const senha=document.getElementById('senha').value;
  const confirmar=document.getElementById('confirmar').value;
@@ -50,9 +52,9 @@ form.addEventListener('submit',async(e)=>{
  btn.disabled=true; btn.textContent='Criando acesso...';
  try{
    const cred=await createUserWithEmailAndPassword(auth,email,senha);
-   await updateProfile(cred.user,{displayName:'Administrador'});
+   await updateProfile(cred.user,{displayName:nome});
    const lote=writeBatch(db);
-   lote.set(doc(db,'usuarios',cred.user.uid),{email, nome:'Administrador', funcao:'ADMINISTRADOR', ativo:true, criadoEm:serverTimestamp()});
+   lote.set(doc(db,'usuarios',cred.user.uid),{email, nome, funcao:'ADMINISTRADOR', ativo:true, criadoEm:serverTimestamp()});
    lote.set(doc(db,'configuracoes','controleAcesso'),{inicializado:true, administradorUid:cred.user.uid, criadoEm:serverTimestamp()});
    await lote.commit();
    msg.className='msg ok'; msg.textContent='Acesso criado com sucesso! Você já pode entrar no NeoScale.';

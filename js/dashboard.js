@@ -1,12 +1,50 @@
-import { db } from "./firebase.js";
+import { db, auth } from "./firebase.js";
 import { encerrarSessao } from "./sessao.js";
-import { collection, getDocs, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { collection, getDocs, getDoc, doc, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const money = v => Number(v||0).toLocaleString("pt-BR",{style:"currency",currency:"BRL"});
 const weight = v => `${Number(v||0).toFixed(3).replace('.',',')} kg`;
 const todayStart = () => { const d=new Date(); d.setHours(0,0,0,0); return d; };
 const asDate = v => v?.toDate ? v.toDate() : (v ? new Date(v) : null);
 const isToday = d => d && d >= todayStart() && d <= new Date();
+
+async function carregarUsuarioLogado(){
+  const aplicar = (nome, funcao) => {
+    const nomeFinal = (nome || 'Usuário').trim();
+    const funcaoFinal = funcao === 'ADMINISTRADOR' ? 'Administrador' : (funcao || 'Usuário conectado');
+    document.getElementById('topUsuarioNome')?.textContent = nomeFinal;
+    document.getElementById('topUsuarioFuncao')?.textContent = funcaoFinal;
+    document.getElementById('menuUsuarioNome')?.textContent = nomeFinal;
+    document.getElementById('menuUsuarioFuncao')?.textContent = funcaoFinal;
+  };
+
+  onAuthStateChanged(auth, async (usuario) => {
+    if(!usuario) return;
+    try {
+      const snap = await getDoc(doc(db, 'usuarios', usuario.uid));
+      const perfil = snap.exists() ? snap.data() : {};
+      const nomePerfil = (perfil.nome || perfil.nomeCompleto || '').trim();
+      const nomeAuth = (usuario.displayName || '').trim();
+      const nomeEmail = (usuario.email || '').split('@')[0].replace(/[._-]+/g, ' ').trim();
+      const nomeFallback = nomeEmail ? nomeEmail.replace(/\b\w/g, c => c.toUpperCase()) : 'Usuário';
+      const nome = (nomePerfil && nomePerfil.toUpperCase() !== 'ADMINISTRADOR') ? nomePerfil :
+                   (nomeAuth && nomeAuth.toUpperCase() !== 'ADMINISTRADOR') ? nomeAuth : nomeFallback;
+      const funcao = perfil.funcao || 'ADMINISTRADOR';
+      aplicar(nome, funcao);
+      const emailEl = document.getElementById('menuUsuarioEmail');
+      if (emailEl) emailEl.textContent = usuario.email || '';
+    } catch(e) {
+      console.error('Não foi possível carregar o usuário logado:', e);
+      const nomeAuth = (usuario.displayName || '').trim();
+      const nomeEmail = (usuario.email || '').split('@')[0].replace(/[._-]+/g, ' ').trim();
+      const nome = (nomeAuth && nomeAuth.toUpperCase() !== 'ADMINISTRADOR') ? nomeAuth : (nomeEmail || 'Usuário');
+      aplicar(nome.replace(/\b\w/g, c => c.toUpperCase()), 'ADMINISTRADOR');
+      const emailEl = document.getElementById('menuUsuarioEmail');
+      if (emailEl) emailEl.textContent = usuario.email || '';
+    }
+  });
+}
 
 function atualizarSaudacao(){ const h=new Date().getHours(); document.getElementById('saudacao').textContent=h<12?'Bom dia!':h<18?'Boa tarde!':'Boa noite!'; }
 function atualizarRelogio(){ const n=new Date(); document.getElementById('dataAtual').textContent=n.toLocaleDateString('pt-BR'); document.getElementById('horaAtual').textContent=n.toLocaleTimeString('pt-BR'); document.getElementById('chartDate').textContent=n.toLocaleDateString('pt-BR'); }
@@ -29,17 +67,46 @@ function renderSales(items){
 async function carregar(){
   const btn=document.getElementById('btnAtualizar'); btn?.classList.add('loading');
   try{
-    const snap=await getDocs(query(collection(db,'comandas'),orderBy('criadoEm','desc'),limit(500)));
-    const all=snap.docs.map(d=>({id:d.id,...d.data()})); const hoje=all.filter(x=>isToday(asDate(x.criadoEm)));
-    const finalizadas=hoje.filter(x=>x.status==='FINALIZADA'); const faturamento=finalizadas.reduce((s,x)=>s+Number(x.total||0),0); const peso=hoje.reduce((s,x)=>s+Number(x.peso||0),0);
-    document.getElementById('totalPesagens').textContent=hoje.length; document.getElementById('faturamento').textContent=money(faturamento); document.getElementById('pesoMedio').textContent=weight(hoje.length?peso/hoje.length:0); document.getElementById('clientes').textContent=finalizadas.length;
-    document.getElementById('pesagensSub').textContent=hoje.length?`${hoje.length} registro${hoje.length===1?'':'s'} no período`:'Nenhuma pesagem registrada hoje'; document.getElementById('faturamentoSub').textContent=finalizadas.length?`${finalizadas.length} venda${finalizadas.length===1?'':'s'} finalizada${finalizadas.length===1?'':'s'}`:'Sem vendas no período'; document.getElementById('pesoSub').textContent=hoje.length?'Média por pesagem':'Sem pesagens no período'; document.getElementById('clientesSub').textContent=`${finalizadas.length} comanda${finalizadas.length===1?'':'s'} finalizada${finalizadas.length===1?'':'s'}`;
-    document.getElementById('sumPesagens').textContent=hoje.length; document.getElementById('sumFaturamento').textContent=money(faturamento); document.getElementById('sumPeso').textContent=weight(peso); document.getElementById('sumClientes').textContent=finalizadas.length;
+    const [comandasSnap, mesasSnap] = await Promise.all([
+      getDocs(query(collection(db,'comandas'),orderBy('criadoEm','desc'),limit(500))),
+      getDocs(collection(db,'mesas'))
+    ]);
+    const all=comandasSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const hoje=all.filter(x=>isToday(asDate(x.criadoEm)));
+    const finalizadas=hoje.filter(x=>x.status==='FINALIZADA');
+    const abertas=all.filter(x=>x.status==='ABERTA');
+    const faturamento=finalizadas.reduce((s,x)=>s+Number(x.total||0),0);
+    const peso=hoje.reduce((s,x)=>s+Number(x.peso||0),0);
+    const ticket=finalizadas.length?faturamento/finalizadas.length:0;
+    const mesas=mesasSnap.docs.map(d=>({id:d.id,...d.data()}));
+    const ocupadas=mesas.filter(m=>m.status==='ABERTA').length;
+
+    document.getElementById('faturamento').textContent=money(faturamento);
+    document.getElementById('totalPesagens').textContent=hoje.length;
+    document.getElementById('clientes').textContent=ocupadas;
+    document.getElementById('comandasAbertas').textContent=abertas.length;
+
+    document.getElementById('faturamentoSub').textContent=finalizadas.length?`${finalizadas.length} venda${finalizadas.length===1?'':'s'} finalizada${finalizadas.length===1?'':'s'}`:'Nenhuma venda finalizada';
+    document.getElementById('pesagensSub').textContent=hoje.length?`${hoje.length} pedido${hoje.length===1?'':'s'} registrado${hoje.length===1?'':'s'}`:'Nenhum pedido registrado';
+    document.getElementById('clientesSub').textContent=`${ocupadas} de ${mesas.length} mesa${mesas.length===1?'':'s'} ocupada${ocupadas===1?'':'s'}`;
+    document.getElementById('comandasSub').textContent=abertas.length?`${abertas.length} aguardando fechamento`:'Nenhuma comanda em aberto';
+
+    document.getElementById('heroVendas').textContent=finalizadas.length;
+    document.getElementById('heroMesas').textContent=ocupadas;
+    document.getElementById('heroComandas').textContent=abertas.length;
+    document.getElementById('heroFaturamento').textContent=money(faturamento);
+    document.getElementById('resumoTitulo').textContent=finalizadas.length||ocupadas||abertas.length?'Operação em andamento.':'Tudo pronto para começar.';
+    document.getElementById('resumoSubtitulo').textContent=finalizadas.length||ocupadas||abertas.length?'Veja em um só lugar o movimento do restaurante, sem precisar abrir cada módulo.':'Acompanhe rapidamente vendas, mesas e comandas assim que o movimento começar.';
+
+    document.getElementById('sumPesagens').textContent=hoje.length;
+    document.getElementById('sumFaturamento').textContent=money(faturamento);
+    document.getElementById('sumPeso').textContent=weight(peso);
+    document.getElementById('ticketMedio').textContent=money(ticket);
+
     drawChart(hoje); renderSales(hoje);
   }catch(e){ console.error('Dashboard:',e); }
   finally{ btn?.classList.remove('loading'); }
 }
-
 function configurarTopbar(){
   const lojaBtn = document.getElementById('btnLoja');
   const usuarioBtn = document.getElementById('btnUsuario');
@@ -101,6 +168,7 @@ function configurarTopbar(){
 
 document.addEventListener('DOMContentLoaded',()=>{
   atualizarSaudacao();
+  carregarUsuarioLogado();
   atualizarRelogio();
   quote();
   carregar();

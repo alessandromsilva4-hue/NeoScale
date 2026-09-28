@@ -1,0 +1,26 @@
+import { db } from './firebase.js';
+import { collection, getDocs, query, orderBy, limit, updateDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { caixaAberto } from './caixa.js';
+import { finalizarComanda } from './comandas.js';
+
+const lista = document.getElementById('listaComandas');
+const busca = document.getElementById('buscaComanda');
+const filtro = document.getElementById('filtroStatus');
+let comandas = [];
+const money = v => `R$ ${Number(v||0).toFixed(2).replace('.', ',')}`;
+const esc = v => String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+function data(v){ if(!v) return '-'; const d=v.toDate?v.toDate():new Date(v); return isNaN(d)?'-':d.toLocaleString('pt-BR'); }
+function status(s){ const c=s==='ABERTA'?'aberta':s==='FINALIZADA'?'finalizada':'cancelada'; return `<span class="badge ${c}">${esc(s||'-')}</span>`; }
+function render(){
+ const termo=busca.value.trim().toLowerCase(), fs=filtro.value;
+ const itens=comandas.filter(c=>(fs==='TODAS'||c.status===fs)&&(!termo||[c.numero,c.codigoBarras,c.produto].some(x=>String(x||'').toLowerCase().includes(termo))));
+ lista.innerHTML=itens.length?itens.map(c=>`<tr><td><strong>#${esc(c.numero||'-')}</strong><small>${esc(c.codigoBarras||'')}</small></td><td>${esc(c.produto||'')}</td><td>${c.peso!=null?Number(c.peso).toFixed(3).replace('.',',')+' kg':'-'}</td><td><strong>${money(c.total)}</strong></td><td>${status(c.status)}</td><td>${data(c.criadoEm)}</td><td><button class="table-btn" data-view="${c.id}"><i class="bi bi-eye"></i></button>${c.status==='ABERTA'?`<button class="table-btn danger" data-cancel="${c.id}"><i class="bi bi-x-circle"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Nenhuma comanda encontrada.</td></tr>';
+ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>abrir(b.dataset.view));
+ document.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=()=>cancelar(b.dataset.cancel));
+ const abertas=comandas.filter(c=>c.status==='ABERTA'); document.getElementById('statAbertas').textContent=abertas.length; document.getElementById('statFinalizadas').textContent=comandas.filter(c=>c.status==='FINALIZADA').length; document.getElementById('statCanceladas').textContent=comandas.filter(c=>c.status==='CANCELADA').length; document.getElementById('statValor').textContent=money(abertas.reduce((s,c)=>s+Number(c.total||0),0));
+}
+async function carregar(){ lista.innerHTML='<tr><td colspan="7" class="empty">Carregando...</td></tr>'; try{ const snap=await getDocs(query(collection(db,'comandas'),orderBy('criadoEm','desc'),limit(300))); comandas=snap.docs.map(d=>({id:d.id,...d.data()})); render(); }catch(e){ console.error(e); lista.innerHTML='<tr><td colspan="7" class="empty">Não foi possível carregar as comandas.</td></tr>'; } }
+function abrir(id){ const c=comandas.find(x=>x.id===id); if(!c)return; document.getElementById('modalTitulo').textContent=`Comanda #${c.numero||''}`; document.getElementById('detalheComanda').innerHTML=`<div class="detail-grid"><div><span>Status</span>${status(c.status)}</div><div><span>Total</span><strong>${money(c.total)}</strong></div><div><span>Produto</span><strong>${esc(c.produto||'-')}</strong></div><div><span>Peso</span><strong>${c.peso!=null?Number(c.peso).toFixed(3).replace('.',',')+' kg':'-'}</strong></div><div><span>Código</span><strong>${esc(c.codigoBarras||'-')}</strong></div><div><span>Criada em</span><strong>${data(c.criadoEm)}</strong></div></div>`; const a=document.getElementById('acoesComanda'); a.innerHTML=c.status==='ABERTA'?`<button class="btn-danger" id="cancelarModal">Cancelar comanda</button><button class="btn-primary" id="finalizarModal">Finalizar pagamento</button>`:`<span class="muted">Esta comanda não está mais aberta.</span>`; document.getElementById('modalComanda').hidden=false; document.getElementById('cancelarModal')?.addEventListener('click',()=>cancelar(c.id)); document.getElementById('finalizarModal')?.addEventListener('click',()=>finalizar(c.id)); }
+async function cancelar(id){ if(!confirm('Cancelar esta comanda?'))return; try{await updateDoc(doc(db,'comandas',id),{status:'CANCELADA',canceladaEm:serverTimestamp()}); document.getElementById('modalComanda').hidden=true; await carregar();}catch(e){alert('Não foi possível cancelar a comanda.');console.error(e);} }
+async function finalizar(id){ const c=comandas.find(x=>x.id===id); if(!c)return; try{const caixa=await caixaAberto(); if(!caixa){alert('Abra o caixa antes de finalizar a comanda.');return;} const forma=prompt('Forma de pagamento (PIX, DINHEIRO, CARTAO):','PIX'); if(!forma)return; await finalizarComanda(id, forma.toUpperCase()); document.getElementById('modalComanda').hidden=true; await carregar();}catch(e){alert(e.message||'Não foi possível finalizar.');console.error(e);} }
+busca.addEventListener('input',render); filtro.addEventListener('change',render); document.getElementById('btnAtualizar').onclick=carregar; document.getElementById('fecharModal').onclick=()=>document.getElementById('modalComanda').hidden=true; document.getElementById('modalComanda').addEventListener('click',e=>{if(e.target.id==='modalComanda')e.currentTarget.hidden=true}); carregar();

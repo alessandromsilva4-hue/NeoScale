@@ -3,7 +3,7 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const ROTAS_POR_PERFIL = {
-    ADMINISTRADOR: ["dashboard", "central", "clientes", "mesas", "comandas", "ficha-tecnica", "pesagem", "pdv", "caixa", "caixa-delivery", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "fiscal", "delivery", "cozinha", "estoque", "compras", "relatorios", "quiosque"],
+    ADMINISTRADOR: ["dashboard", "central", "clientes", "mesas", "comandas", "ficha-tecnica", "pesagem", "pdv", "caixa", "caixa-delivery", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "usuarios", "fiscal", "delivery", "cozinha", "estoque", "compras", "relatorios", "quiosque"],
     CAIXA: ["dashboard", "central", "clientes", "comandas", "pdv", "caixa", "caixa-delivery", "historico", "delivery", "cozinha"],
     OPERADOR: ["dashboard", "central", "pesagem", "comandas", "historico", "delivery", "cozinha"]
 };
@@ -24,6 +24,12 @@ export function protegerPagina(pagina) {
             const perfil = await obterPerfil(usuario.uid);
             // Durante a migração, os usuários já existentes continuam operando.
             // Ao publicar as novas regras, crie o perfil de cada usuário no Firestore.
+            if (perfil && perfil.ativo === false) {
+                await signOut(auth);
+                alert("Este acesso está desativado. Procure o administrador do restaurante.");
+                window.location.replace("index.html");
+                return;
+            }
             const funcao = perfil?.funcao || "ADMINISTRADOR";
             if (!(ROTAS_POR_PERFIL[funcao] || []).includes(pagina)) {
                 alert("Seu perfil não tem permissão para acessar esta tela.");

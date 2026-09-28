@@ -206,17 +206,81 @@ function closeClosing(){
   deliveryEyebrow.textContent='OPERAÇÃO OMNICHANNEL'; deliveryTitle.textContent='Central de Delivery'; deliverySubtitle.textContent='iFood, 99Food e Anota AI em um único fluxo.';
   btnSync.hidden=false; btnClosing.hidden=false; btnConfig.hidden=false; window.scrollTo({top:0,behavior:'smooth'});
 }
+const INTEGRATIONS_KEY='neoscale_store_integrations';
+const DEFAULT_INTEGRATIONS=[
+  {id:'demo-ifood',store:'Minha Loja',storeId:'',cnpj:'',platform:'iFood',active:true,token:''},
+  {id:'demo-99',store:'Minha Loja',storeId:'',cnpj:'',platform:'99Food',active:false,token:''},
+  {id:'demo-anota',store:'Minha Loja',storeId:'',cnpj:'',platform:'Anota AI',active:false,token:''}
+];
+function loadIntegrations(){
+  try{
+    const raw=JSON.parse(localStorage.getItem(INTEGRATIONS_KEY)||'null');
+    return Array.isArray(raw)?raw:DEFAULT_INTEGRATIONS.map(x=>({...x}));
+  }catch{return DEFAULT_INTEGRATIONS.map(x=>({...x}))}
+}
+function saveIntegrations(list){localStorage.setItem(INTEGRATIONS_KEY,JSON.stringify(list))}
+function maskToken(token){
+  const v=String(token||'').trim();
+  if(!v)return 'Não configurado';
+  if(v.length<=10)return '••••••••';
+  return v.slice(0,5)+'••••••••'+v.slice(-4);
+}
+function platformLogo(platform){
+  const map={iFood:'ifood','99Food':'food99','Anota AI':'anota'};
+  return `<span class="integration-platform-badge ${map[platform]||''}">${platform}</span>`;
+}
+function renderIntegrationKeys(){
+  const list=loadIntegrations();
+  const anota=list.find(x=>x.platform==='Anota AI')||{};
+  const ifood=list.find(x=>x.platform==='iFood')||{};
+  const set=(id,v)=>{const el=document.getElementById(id);if(el)el.value=v||''};
+  set('anotaStoreId',anota.storeId||'Não configurado');
+  set('anotaIfoodStoreId',anota.ifoodStoreId||ifood.storeId||'Não configurado');
+  set('anotaToken',maskToken(anota.token));
+}
+function renderIntegrationsTab(tab='ifood'){
+  const all=loadIntegrations();
+  const list=tab==='ifood'?all.filter(x=>x.platform==='iFood'):all.filter(x=>x.platform!=='iFood');
+  const tbody=document.getElementById('integrationRows'), empty=document.getElementById('integrationEmpty');
+  if(!tbody)return;
+  tbody.innerHTML=list.map(item=>`<tr>
+    <td>${item.store||'—'}</td>
+    <td>${item.storeId||'—'}</td>
+    <td>${item.cnpj||'—'}</td>
+    <td><span class="integration-platform">${platformLogo(item.platform)}</span></td>
+    <td><span class="integration-status ${item.active?'':'off'}">${item.active?'Ativa':'Desativada'}</span></td>
+    <td><div class="integration-actions"><button type="button" class="integration-switch ${item.active?'on':''}" data-toggle-integration="${item.id}" title="Ativar ou desativar"><span></span></button><button type="button" class="integration-action-btn" data-remove-integration="${item.id}" title="Remover"><i class="bi bi-trash3"></i></button></div></td>
+  </tr>`).join('');
+  empty.hidden=list.length>0;
+}
+function openIntegrationModal(platform){
+  const modal=document.getElementById('integrationModal');
+  if(!modal)return;
+  if(platform)document.getElementById('newIntegrationPlatform').value=platform;
+  modal.hidden=false;
+  document.getElementById('newIntegrationStore').focus();
+}
+function closeIntegrationModal(){const m=document.getElementById('integrationModal');if(m)m.hidden=true}
+function renderIntegrationPage(){
+  renderIntegrationKeys();
+  const active=document.querySelector('.integration-tab.active');
+  renderIntegrationsTab(active?.dataset.integrationTab||'ifood');
+}
 function openIntegrations(){
   const c=loadConfig();
   document.getElementById('serviceUrl').value=c.serviceUrl||SERVICE_DEFAULT;
   document.getElementById('operationMode').value='live';
   dashboard.hidden=true;
+  closingPanel.hidden=true;
   integrationPanel.hidden=false;
   deliveryEyebrow.textContent='CONFIGURAÇÃO';
-  deliveryTitle.textContent='Integrações de Delivery';
-  deliverySubtitle.textContent='Conecte o NeoScale às plataformas e mantenha os pedidos em um único fluxo.';
+  deliveryTitle.textContent='Integrações';
+  deliverySubtitle.textContent='Configurações de lojas e plataformas conectadas ao NeoScale.';
   btnSync.hidden=true;
-  btnConfig.innerHTML='<i class="bi bi-arrow-left"></i> Voltar à Central';
+  btnClosing.hidden=true;
+  btnConfig.hidden=true;
+  document.querySelector('.delivery-head .head-actions')?.classList.add('integration-header-hidden');
+  renderIntegrationPage();
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
@@ -228,11 +292,66 @@ function closeIntegrations(){
   deliveryTitle.textContent='Central de Delivery';
   deliverySubtitle.textContent='iFood, 99Food e Anota AI em um único fluxo.';
   btnSync.hidden=false;
-  btnConfig.innerHTML='<i class="bi bi-sliders"></i> Integrações';
+  btnClosing.hidden=false;
+  btnConfig.hidden=false;
+  document.querySelector('.delivery-head .head-actions')?.classList.remove('integration-header-hidden');
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
 btnConfig.onclick=()=>{if(integrationPanel.hidden)openIntegrations();else closeIntegrations()};
+
+// Controles da tela Multi Lojas
+document.getElementById('btnAddIntegration')?.addEventListener('click',()=>openIntegrationModal());
+document.getElementById('btnCatalogIntegrations')?.addEventListener('click',()=>{
+  const c=document.getElementById('integrationCatalog'); if(c)c.hidden=!c.hidden;
+});
+document.getElementById('closeCatalog')?.addEventListener('click',()=>{const c=document.getElementById('integrationCatalog');if(c)c.hidden=true});
+document.getElementById('toggleTechnicalConfig')?.addEventListener('click',e=>{
+  const body=document.getElementById('technicalConfigBody'); if(!body)return; body.hidden=!body.hidden; e.currentTarget.innerHTML=body.hidden?'<i class="bi bi-chevron-down"></i>':'<i class="bi bi-chevron-up"></i>';
+});
+document.getElementById('closeIntegrationModal')?.addEventListener('click',closeIntegrationModal);
+document.getElementById('cancelIntegration')?.addEventListener('click',closeIntegrationModal);
+document.querySelector('[data-close-integration-modal]')?.addEventListener('click',closeIntegrationModal);
+document.addEventListener('click',e=>{
+  const copy=e.target.closest('[data-copy]');
+  if(copy){
+    const source=document.getElementById(copy.dataset.copy);
+    if(source){
+      const list=loadIntegrations();
+      let value=source.value;
+      const anota=list.find(x=>x.platform==='Anota AI');
+      const ifood=list.find(x=>x.platform==='iFood');
+      if(source.id==='anotaStoreId')value=anota?.storeId||'';
+      if(source.id==='anotaIfoodStoreId')value=anota?.ifoodStoreId||ifood?.storeId||'';
+      if(source.id==='anotaToken')value=anota?.token||'';
+      if(value)navigator.clipboard?.writeText(value).then(()=>{copy.innerHTML='<i class="bi bi-check2"></i>';setTimeout(()=>copy.innerHTML='<i class="bi bi-copy"></i>',1000)});
+    }
+  }
+  const tab=e.target.closest('[data-integration-tab]');
+  if(tab){document.querySelectorAll('.integration-tab').forEach(x=>x.classList.remove('active'));tab.classList.add('active');renderIntegrationsTab(tab.dataset.integrationTab)}
+  const toggle=e.target.closest('[data-toggle-integration]');
+  if(toggle){const list=loadIntegrations();const item=list.find(x=>x.id===toggle.dataset.toggleIntegration);if(item){item.active=!item.active;saveIntegrations(list);renderIntegrationPage()}}
+  const remove=e.target.closest('[data-remove-integration]');
+  if(remove){const list=loadIntegrations().filter(x=>x.id!==remove.dataset.removeIntegration);saveIntegrations(list);renderIntegrationPage()}
+  const catalogCard=e.target.closest('[data-catalog-platform]');
+  if(catalogCard)openIntegrationModal(catalogCard.dataset.catalogPlatform);
+});
+document.getElementById('confirmIntegration')?.addEventListener('click',()=>{
+  const platform=document.getElementById('newIntegrationPlatform').value;
+  const store=document.getElementById('newIntegrationStore').value.trim();
+  const storeId=document.getElementById('newIntegrationId').value.trim();
+  const cnpj=document.getElementById('newIntegrationCnpj').value.trim();
+  const token=document.getElementById('newIntegrationToken').value.trim();
+  if(!store){alert('Informe o nome da loja.');return}
+  const list=loadIntegrations();
+  list.push({id:'int-'+Date.now(),store,storeId,cnpj,platform,active:true,token,ifoodStoreId:platform==='iFood'?storeId:''});
+  saveIntegrations(list);
+  ['newIntegrationStore','newIntegrationId','newIntegrationCnpj','newIntegrationToken'].forEach(id=>document.getElementById(id).value='');
+  closeIntegrationModal();
+  const tab=platform==='iFood'?'ifood':'other';
+  document.querySelectorAll('.integration-tab').forEach(x=>x.classList.toggle('active',x.dataset.integrationTab===tab));
+  renderIntegrationPage();
+});
 btnClosing.onclick=openClosing;
 btnBackDelivery.onclick=closeClosing;
 btnRefreshClosing.onclick=()=>{renderClosing(); sync();};
@@ -304,7 +423,8 @@ function showDeliveryRoute(route){
 }
 function routeFromHash(){
   const h=String(location.hash||'').replace('#','');
-  const route=h==='caixa-delivery'?'caixa':h==='entregadores'?'entregadores':h==='relatorios-delivery'?'relatorios':'central';
+  const route=h==='caixa-delivery'?'caixa':h==='entregadores'?'entregadores':h==='relatorios-delivery'?'relatorios':h==='integracoes'?'integracoes':'central';
+  if(route==='integracoes'){openIntegrations();return;}
   showDeliveryRoute(route);
 }
 document.getElementById('btnOpenDeliveryCash')?.addEventListener('click',()=>{

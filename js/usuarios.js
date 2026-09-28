@@ -1,0 +1,27 @@
+import { auth, db } from './firebase.js';
+import { onAuthStateChanged, sendPasswordResetEmail, createUserWithEmailAndPassword, updateProfile, signOut } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { initializeApp, getApps } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js';
+import { getAuth as getSecondaryAuth, setPersistence, inMemoryPersistence } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
+import { collection, getDocs, doc, setDoc, updateDoc, serverTimestamp, query, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+const cfg = { apiKey:'AIzaSyCq-uHd3KqO8n02MpY-CqV3QP31p8SExhg', authDomain:'neoscale-6f7af.firebaseapp.com', projectId:'neoscale-6f7af', storageBucket:'neoscale-6f7af.firebasestorage.app', messagingSenderId:'844489196273', appId:'1:844489196273:web:ea887303bc54df3e965f50' };
+const secondaryApp = getApps().find(a=>a.name==='NeoScaleUserCreation') || initializeApp(cfg,'NeoScaleUserCreation');
+const secondaryAuth = getSecondaryAuth(secondaryApp);
+await setPersistence(secondaryAuth, inMemoryPersistence);
+
+const form=document.getElementById('userForm'), btn=document.getElementById('btnCriar'), msg=document.getElementById('mensagem'), tbody=document.getElementById('listaUsuarios'), busca=document.getElementById('busca');
+let usuarios=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const funcaoLabel=f=>({ADMINISTRADOR:'Administrador',CAIXA:'Caixa',OPERADOR:'Operador'}[f]||f||'Operador');
+const badge=f=>`<span class="badge ${(f||'').toLowerCase()}">${esc(funcaoLabel(f))}</span>`;
+function show(text,type='ok'){msg.className='msg '+type;msg.textContent=text;}
+function dataFmt(v){if(!v)return '-'; const d=v.toDate?v.toDate():new Date(v); return isNaN(d)?'-':d.toLocaleDateString('pt-BR');}
+function render(){const term=busca.value.trim().toLowerCase();const arr=usuarios.filter(u=>(u.nome||'').toLowerCase().includes(term)||(u.email||'').toLowerCase().includes(term));if(!arr.length){tbody.innerHTML='<tr><td colspan="5" class="empty">Nenhum funcionário encontrado.</td></tr>';return;}tbody.innerHTML=arr.map(u=>`<tr><td><span class="user-name">${esc(u.nome||'Usuário')}</span><span class="user-email">${esc(u.email||'-')}</span></td><td>${badge(u.funcao)}</td><td>${u.ativo===false?'<span class="badge off">Desativado</span>':'<span class="badge operador">Ativo</span>'}</td><td>${dataFmt(u.criadoEm)}</td><td><div class="actions"><button class="btn-small" data-reset="${esc(u.email)}"><i class="bi bi-key"></i> Senha</button><button class="btn-small" data-toggle="${u.uid}" data-active="${u.ativo!==false}">${u.ativo===false?'Ativar':'Desativar'}</button></div></td></tr>`).join('');}
+async function carregar(){try{const snap=await getDocs(query(collection(db,'usuarios'),orderBy('nome')));usuarios=snap.docs.map(d=>({uid:d.id,...d.data()}));render();}catch(e){console.error(e);show('Não foi possível carregar os funcionários.','err');}}
+
+onAuthStateChanged(auth,async user=>{if(!user)return;document.getElementById('currentUser').textContent=`Logado como ${user.displayName||user.email}`;await carregar();});
+
+form.addEventListener('submit',async e=>{e.preventDefault();show('');btn.disabled=true;btn.innerHTML='<i class="bi bi-hourglass-split"></i> Cadastrando...';const nome=document.getElementById('nome').value.trim(),email=document.getElementById('email').value.trim(),senha=document.getElementById('senha').value,funcao=document.getElementById('funcao').value;try{const cred=await createUserWithEmailAndPassword(secondaryAuth,email,senha);await updateProfile(cred.user,{displayName:nome});await setDoc(doc(db,'usuarios',cred.user.uid),{uid:cred.user.uid,nome,email,funcao,ativo:true,criadoEm:serverTimestamp(),criadoPor:auth.currentUser?.uid||null});await signOut(secondaryAuth);form.reset();show('Funcionário cadastrado com sucesso. O administrador atual continua conectado.');await carregar();}catch(e){console.error(e);const m={'auth/email-already-in-use':'Este e-mail já possui um acesso.','auth/invalid-email':'Digite um e-mail válido.','auth/weak-password':'A senha precisa ter pelo menos 6 caracteres.','permission-denied':'Seu usuário não tem permissão para cadastrar funcionários.'};show(m[e.code]||m[e.message]||`Não foi possível cadastrar. ${e.code||''}`,'err');}finally{btn.disabled=false;btn.innerHTML='<i class="bi bi-person-plus"></i> Cadastrar funcionário';}});
+
+busca.addEventListener('input',render);
+tbody.addEventListener('click',async e=>{const reset=e.target.closest('[data-reset]');const toggle=e.target.closest('[data-toggle]');if(reset){try{await sendPasswordResetEmail(auth,reset.dataset.reset);show('E-mail de redefinição de senha enviado para '+reset.dataset.reset+'.');}catch(err){console.error(err);show('Não foi possível enviar o e-mail de redefinição.','err');}}if(toggle){const uid=toggle.dataset.toggle;const active=toggle.dataset.active==='true';try{if(uid===auth.currentUser?.uid){show('Não é possível desativar o usuário que está conectado.','err');return;}await updateDoc(doc(db,'usuarios',uid),{ativo:!active,atualizadoEm:serverTimestamp()});show(!active?'Funcionário ativado.':'Funcionário desativado.');await carregar();}catch(err){console.error(err);show('Não foi possível alterar o status do funcionário.','err');}}});

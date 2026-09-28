@@ -1,2 +1,30 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>NeoScale | Mesas</title><link rel="icon" href="img/favicon.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css">
-<link rel="stylesheet" href="css/tema-verde.css"><style>.module-page{min-height:80vh;display:grid;place-items:center}.module-card{max-width:650px;width:100%;padding:42px;text-align:center;background:#fff;border:1px solid #e6ecef;border-radius:20px;box-shadow:0 12px 35px rgba(18,35,45,.06)}.module-card i{font-size:42px;color:#087a57}.module-card h2{margin:15px 0 8px}.module-card p{color:#71808a;line-height:1.6}.module-card a{display:inline-flex;margin-top:20px;padding:11px 17px;border-radius:10px;background:#087a57;color:#fff;text-decoration:none;font-weight:700;font-size:12px}</style></head><body><div class="layout"><aside class="sidebar" data-sidebar></aside><main class="content module-page"><section class="module-card"><i class="bi bi-grid-3x3-gap"></i><h2>Mesas</h2><p>Controle de mesas e atendimento no salão.</p><p><strong>Módulo preparado na nova arquitetura do NeoScale.</strong><br>A lógica operacional existente será conectada a esta central sem perder os fluxos atuais.</p><a href="central.html">Voltar para a Central</a></section></main></div><script src="js/sidebar-menu.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('mesas');</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NeoScale | Mesas</title><link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/tema-verde.css"><link rel="stylesheet" href="css/mesas.css">
+</head>
+<body>
+<div class="layout"><aside class="sidebar" data-sidebar></aside>
+<main class="content mesas-page">
+<header class="mesas-header"><div><h2>Mesas</h2><p>Controle de mesas e atendimento no salão.</p></div><div class="mesas-actions"><button class="btn-mesa" id="btnConfigMesas" type="button"><i class="bi bi-sliders"></i> Configurar mesas</button></div></header>
+<div id="mesaMensagem" class="mesa-message"></div>
+<section class="mesa-kpis"><div class="mesa-kpi"><i class="bi bi-grid-3x3-gap"></i><div><strong id="qtdTotal">0</strong><span>Total de mesas</span></div></div><div class="mesa-kpi"><i class="bi bi-check-circle"></i><div><strong id="qtdLivres">0</strong><span>Mesas livres</span></div></div><div class="mesa-kpi"><i class="bi bi-person-fill"></i><div><strong id="qtdOcupadas">0</strong><span>Mesas ocupadas</span></div></div></section>
+<div class="mesas-toolbar"><button class="mesa-filter active" data-filtro-mesa="TODAS">Todas</button><button class="mesa-filter" data-filtro-mesa="LIVRE">Livres</button><button class="mesa-filter" data-filtro-mesa="ABERTA">Ocupadas</button></div>
+<section id="mesasGrid" class="mesas-grid"><div class="mesas-empty">Carregando mesas...</div></section>
+</main></div>
+
+<div class="mesa-modal" id="mesaModal">
+<div class="mesa-modal-box">
+<header class="mesa-modal-head"><div><h3>Mesa <span id="numeroMesaModal">—</span></h3><span>Pedido e consumo da mesa</span></div><button class="modal-close" id="btnFecharMesaModal" type="button"><i class="bi bi-x-lg"></i></button></header>
+<div class="mesa-modal-body">
+<section class="mesa-panel"><h4>Cliente</h4><div class="cliente-row"><input id="clienteMesa" placeholder="Nome do cliente (opcional)"><button id="btnSalvarCliente" type="button"><i class="bi bi-check2"></i> Salvar</button></div>
+<h4 style="margin-top:20px">Produtos</h4><div class="produto-search"><input id="buscaProdutoMesa" placeholder="Buscar produto..."><select id="categoriaProdutoMesa"></select></div><div id="produtosMesa" class="produtos-mesa"></div></section>
+<section class="mesa-panel"><h4>Itens da mesa</h4><table class="mesa-table"><thead><tr><th>Produto</th><th>Qtd.</th><th>Preço</th><th>Total</th><th></th></tr></thead><tbody id="itensMesa"></tbody></table><div class="mesa-total-box"><span>Total da mesa</span><strong id="totalMesa">R$ 0,00</strong></div></section>
+</div>
+<footer class="mesa-modal-footer"><div class="mesa-payment"><label for="formaPagamentoMesa">Pagamento</label><select id="formaPagamentoMesa"><option>Dinheiro</option><option>Pix</option><option>Cartão</option><option>Débito</option><option>Crédito</option><option>Outros</option></select></div><div class="mesa-footer-actions"><button class="btn-danger" id="btnCancelarMesa" type="button">Liberar / cancelar</button><button class="btn-mesa" id="btnAbrirMesa" type="button">Abrir mesa</button><button class="btn-success" id="btnFecharMesa" type="button"><i class="bi bi-cash-coin"></i> Fechar mesa e receber</button></div></footer>
+</div></div>
+<script src="js/sidebar-menu.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('mesas'); import './js/mesas.js';</script>
+</body></html>

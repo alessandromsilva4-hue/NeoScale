@@ -113,32 +113,80 @@
 </section>
 
 <section class="integration-page" id="integrationPanel" hidden>
-  <div class="integration-warning"><i class="bi bi-info-circle"></i><span>As credenciais ficam no serviço de integração do NeoScale. <strong>Nunca coloque client secret diretamente no HTML.</strong></span></div>
-
-  <div class="integration-settings-card">
-    <div class="integration-form">
-      <label>URL do serviço de integração<input id="serviceUrl" placeholder="https://seu-backend-neoscale.exemplo"></label>
-      <label>Modo de operação<select id="operationMode"><option value="live">Produção / APIs</option></select></label>
+  <div class="integration-page-top">
+    <div>
+      <h3>Integrações</h3>
+      <div class="integration-breadcrumb"><span>Início</span><i class="bi bi-chevron-right"></i><span>Configurações</span><i class="bi bi-chevron-right"></i><strong>Multi Lojas</strong></div>
+    </div>
+    <div class="integration-top-actions">
+      <button id="btnCatalogIntegrations" class="btn secondary"><i class="bi bi-grid-3x3-gap"></i> Catálogo de integrações</button>
+      <button id="btnAddIntegration" class="btn primary"><i class="bi bi-plus-lg"></i> Integrar</button>
     </div>
   </div>
 
-  <div class="integration-grid">
-    <article class="integration-card">
-      <div class="integration-card-icon ifood"><i class="bi bi-bag-check"></i></div>
-      <div class="integration-card-body"><div><h4>iFood</h4><span>OAuth 2.0 + pedidos + status + tracking</span></div><em id="cfgIfood">Pronto para credenciais</em></div>
-    </article>
-    <article class="integration-card">
-      <div class="integration-card-icon food99"><i class="bi bi-bag"></i></div>
-      <div class="integration-card-body"><div><h4>99Food</h4><span>API de pedidos + cardápio + logística</span></div><em id="cfg99">Pronto para autorização</em></div>
-    </article>
-    <article class="integration-card">
-      <div class="integration-card-icon anota"><i class="bi bi-phone"></i></div>
-      <div class="integration-card-body"><div><h4>Anota AI</h4><span>OAuth + pedidos + cardápio</span></div><em id="cfgAnota">Pronto para autorização</em></div>
-    </article>
+  <div class="integration-main-card anota-key-card">
+    <div class="integration-card-title">
+      <div><h4>Chave de integração com a Anota AI</h4><p>Para integrar o sistema Anota AI com nossos parceiros, utilize as chaves (tokens) abaixo:</p></div>
+    </div>
+    <div class="anota-key-grid">
+      <label>ID da loja<div class="copy-field"><input id="anotaStoreId" readonly value=""><button type="button" data-copy="anotaStoreId" title="Copiar"><i class="bi bi-copy"></i></button></div></label>
+      <label>ID da loja iFood<div class="copy-field"><input id="anotaIfoodStoreId" readonly value=""><button type="button" data-copy="anotaIfoodStoreId" title="Copiar"><i class="bi bi-copy"></i></button></div></label>
+      <label class="full">Chave de integração (Token)<div class="copy-field"><input id="anotaToken" readonly value=""><button type="button" data-copy="anotaToken" title="Copiar"><i class="bi bi-copy"></i></button></div></label>
+    </div>
   </div>
 
-  <div class="integration-page-actions"><button id="saveConfig" class="btn primary"><i class="bi bi-check2-circle"></i> Salvar configuração</button></div>
+  <div class="integration-main-card my-integrations-card">
+    <div class="integration-card-title">
+      <div><h4>Minhas integrações</h4><p>Aqui você habilita ou desabilita suas integrações. Em caso de informações e cancelamento, entre em contato com o suporte.</p></div>
+    </div>
+    <div class="integration-tabs" role="tablist">
+      <button class="integration-tab active" data-integration-tab="ifood">iFood</button>
+      <button class="integration-tab" data-integration-tab="other">Outras</button>
+    </div>
+    <div class="integration-table-wrap">
+      <table class="integration-table">
+        <thead><tr><th>Nome da loja <i class="bi bi-arrow-down-up"></i></th><th>ID da loja <i class="bi bi-arrow-down-up"></i></th><th>CNPJ <i class="bi bi-arrow-down-up"></i></th><th>Integrações <i class="bi bi-arrow-down-up"></i></th><th>Status <i class="bi bi-arrow-down-up"></i></th><th>Ações</th></tr></thead>
+        <tbody id="integrationRows"></tbody>
+      </table>
+      <div id="integrationEmpty" class="integration-empty" hidden>Nenhuma integração cadastrada nesta categoria.</div>
+    </div>
+  </div>
+
+  <div class="integration-technical-card">
+    <div class="integration-technical-head"><div><strong>Configuração técnica</strong><small>Conexão do NeoScale com o serviço de integração.</small></div><button id="toggleTechnicalConfig" class="icon-btn" type="button" title="Mostrar configuração"><i class="bi bi-chevron-down"></i></button></div>
+    <div id="technicalConfigBody" class="technical-config-body" hidden>
+      <div class="integration-form">
+        <label>URL do serviço de integração<input id="serviceUrl" placeholder="https://seu-backend-neoscale.exemplo"></label>
+        <label>Modo de operação<select id="operationMode"><option value="live">Produção / APIs</option></select></label>
+      </div>
+      <div class="integration-page-actions"><button id="saveConfig" class="btn primary"><i class="bi bi-check2-circle"></i> Salvar configuração</button></div>
+    </div>
+  </div>
+
+  <div class="integration-catalog" id="integrationCatalog" hidden>
+    <div class="integration-catalog-head"><div><h4>Catálogo de integrações</h4><p>Conecte as plataformas disponíveis ao NeoScale.</p></div><button id="closeCatalog" class="icon-btn" type="button"><i class="bi bi-x-lg"></i></button></div>
+    <div class="integration-grid">
+      <article class="integration-card catalog-card" data-catalog-platform="iFood"><div class="integration-card-icon ifood"><i class="bi bi-bag-check"></i></div><div class="integration-card-body"><div><h4>iFood</h4><span>Pedidos, status e operação de delivery.</span></div><em>Disponível</em></div></article>
+      <article class="integration-card catalog-card" data-catalog-platform="99Food"><div class="integration-card-icon food99"><i class="bi bi-bag"></i></div><div class="integration-card-body"><div><h4>99Food</h4><span>Pedidos, cardápio e logística.</span></div><em>Disponível</em></div></article>
+      <article class="integration-card catalog-card" data-catalog-platform="Anota AI"><div class="integration-card-icon anota"><i class="bi bi-phone"></i></div><div class="integration-card-body"><div><h4>Anota AI</h4><span>Pedidos e operação integrada.</span></div><em>Disponível</em></div></article>
+    </div>
+  </div>
 </section>
+
+<div class="integration-modal" id="integrationModal" hidden>
+  <div class="integration-modal-backdrop" data-close-integration-modal></div>
+  <div class="integration-modal-box" role="dialog" aria-modal="true" aria-labelledby="integrationModalTitle">
+    <div class="integration-modal-head"><div><h3 id="integrationModalTitle">Integrar loja</h3><p>Cadastre os dados da loja para organizar suas integrações.</p></div><button id="closeIntegrationModal" class="icon-btn" type="button"><i class="bi bi-x-lg"></i></button></div>
+    <div class="integration-modal-form">
+      <label>Plataforma<select id="newIntegrationPlatform"><option value="iFood">iFood</option><option value="99Food">99Food</option><option value="Anota AI">Anota AI</option></select></label>
+      <label>Nome da loja<input id="newIntegrationStore" placeholder="Nome da loja"></label>
+      <label>ID da loja<input id="newIntegrationId" placeholder="ID da loja"></label>
+      <label>CNPJ<input id="newIntegrationCnpj" placeholder="00.000.000/0000-00"></label>
+      <label class="full">Token / chave de integração<input id="newIntegrationToken" type="password" placeholder="Cole o token somente se necessário"></label>
+    </div>
+    <div class="integration-modal-actions"><button id="cancelIntegration" class="btn secondary">Cancelar</button><button id="confirmIntegration" class="btn primary"><i class="bi bi-check2-circle"></i> Salvar integração</button></div>
+  </div>
+</div>
 </main></div>
 <script type="module" src="js/delivery.js"></script><script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("delivery");</script>
 <script src="js/sidebar-menu.js"></script>
