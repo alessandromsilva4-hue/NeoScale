@@ -1,6 +1,5 @@
 {
   "hosting": {
-    "target": "sistema-neoscale",
     "public": ".",
     "ignore": [
       "firebase.json",

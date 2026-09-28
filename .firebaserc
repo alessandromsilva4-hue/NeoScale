@@ -1,5 +1,15 @@
 {
   "projects": {
     "default": "neoscale-6f7af"
-  }
+  },
+  "targets": {
+    "neoscale-6f7af": {
+      "hosting": {
+        "sistema-neoscale": [
+          "sistema-neoscale"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }
