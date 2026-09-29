@@ -18,8 +18,11 @@ export async function proximaComanda() {
         const snap = await transaction.get(ref);
         const atual = Number(snap.exists() ? snap.data().valor || 0 : 0);
         const proximo = atual + 1;
+        if (proximo > 9999) {
+            throw new Error("A sequência de comandas atingiu o limite de 9999.");
+        }
         transaction.set(ref, { valor: proximo, atualizadoEm: serverTimestamp() }, { merge: true });
-        return String(proximo).padStart(6, "0");
+        return String(proximo).padStart(4, "0");
     });
 }
 
@@ -66,7 +69,7 @@ export async function buscarComanda(codigo) {
 
     if (resultado.empty) {
         resultado = await getDocs(
-            query(collection(db, "comandas"), where("numero", "==", valor.padStart(6, "0")))
+            query(collection(db, "comandas"), where("numero", "==", valor.padStart(4, "0")))
         );
     }
 

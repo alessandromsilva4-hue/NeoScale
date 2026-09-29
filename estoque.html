@@ -1,2 +1,78 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>NeoScale | Estoque</title><link rel="icon" href="img/favicon.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css">
-<link rel="stylesheet" href="css/tema-verde.css"><style>.module-page{min-height:80vh;display:grid;place-items:center}.module-card{max-width:650px;width:100%;padding:42px;text-align:center;background:#fff;border:1px solid #e6ecef;border-radius:20px;box-shadow:0 12px 35px rgba(18,35,45,.06)}.module-card i{font-size:42px;color:#087a57}.module-card h2{margin:15px 0 8px}.module-card p{color:#71808a;line-height:1.6}.module-card a{display:inline-flex;margin-top:20px;padding:11px 17px;border-radius:10px;background:#087a57;color:#fff;text-decoration:none;font-weight:700;font-size:12px}</style></head><body><div class="layout"><aside class="sidebar" data-sidebar></aside><main class="content module-page"><section class="module-card"><i class="bi bi-boxes"></i><h2>Estoque</h2><p>Controle de entradas, saídas e saldo de estoque.</p><p><strong>Módulo preparado na nova arquitetura do NeoScale.</strong><br>A lógica operacional existente será conectada a esta central sem perder os fluxos atuais.</p><a href="central.html">Voltar para a Central</a></section></main></div><script src="js/sidebar-menu.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('estoque');</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Estoque</title>
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/tabela.css">
+<link rel="stylesheet" href="css/tema-verde.css">
+<style>
+.estoque-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}
+.estoque-card{background:#fff;border:1px solid #e3ece8;border-radius:14px;padding:18px;display:flex;align-items:center;gap:12px;box-shadow:0 6px 20px rgba(18,35,45,.04)}
+.estoque-card i{width:42px;height:42px;border-radius:12px;display:grid;place-items:center;background:#e8f7f1;color:#087a57;font-size:20px}.estoque-card small{display:block;color:#74828a;font-size:11px;margin-bottom:3px}.estoque-card strong{font-size:20px;color:#16252c}
+.estoque-toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;margin-bottom:14px}.estoque-toolbar .busca{flex:1;max-width:430px}.estoque-toolbar input{width:100%;padding:11px 13px;border:1px solid #d9e4e0;border-radius:10px;outline:none}.estoque-toolbar input:focus{border-color:#08a878}
+.btn-estoque{border:0;border-radius:10px;padding:11px 15px;background:#087a57;color:#fff;font-weight:700;cursor:pointer}.btn-estoque.sec{background:#edf5f2;color:#145b48}.btn-estoque:disabled{opacity:.6;cursor:not-allowed}
+.status-estoque{display:inline-flex;padding:5px 8px;border-radius:999px;font-size:11px;font-weight:700}.status-ok{background:#e7f7ef;color:#087a57}.status-baixo{background:#fff4dc;color:#9a6700}.status-zerado{background:#fdeaea;color:#b42318}
+.acoes-estoque{display:flex;gap:6px}.acao-estoque{width:34px;height:34px;border:1px solid #dfe9e5;border-radius:9px;background:#fff;cursor:pointer;color:#087a57}.acao-estoque:hover{background:#eef8f4}
+.modal-estoque[hidden]{display:none!important}.modal-estoque{position:fixed;inset:0;background:rgba(18,35,45,.46);z-index:1000;display:flex;align-items:center;justify-content:center;padding:20px}.modal-estoque .modal-box{width:min(520px,100%);background:#fff;border-radius:16px;box-shadow:0 20px 55px rgba(0,0,0,.2);overflow:hidden}.modal-head{padding:18px 20px;border-bottom:1px solid #e7eeeb;display:flex;justify-content:space-between;align-items:center}.modal-head h3{margin:0}.modal-close{border:0;background:transparent;font-size:22px;cursor:pointer;color:#34444b}.modal-body{padding:20px}.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}.modal-grid .full{grid-column:1/-1}.modal-grid label{display:block;font-size:12px;font-weight:700;margin-bottom:6px;color:#43545b}.modal-grid input,.modal-grid select,.modal-grid textarea{width:100%;box-sizing:border-box;padding:11px;border:1px solid #d8e4df;border-radius:9px}.modal-foot{padding:14px 20px;border-top:1px solid #e7eeeb;display:flex;justify-content:flex-end;gap:8px}
+.empty-estoque{text-align:center;padding:32px;color:#74828a}.muted{color:#74828a;font-size:12px}
+@media(max-width:900px){.estoque-resumo{grid-template-columns:repeat(2,1fr)}.estoque-toolbar{align-items:stretch;flex-direction:column}.estoque-toolbar .busca{max-width:none}.table-card{overflow:auto}}
+@media(max-width:560px){.estoque-resumo{grid-template-columns:1fr}.modal-grid{grid-template-columns:1fr}.modal-grid .full{grid-column:auto}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" data-sidebar></aside>
+<main class="content">
+<header class="page-header">
+<h2>Estoque</h2>
+<p>Controle de entradas, saídas e saldo dos produtos.</p>
+</header>
+
+<section class="estoque-resumo">
+<div class="estoque-card"><i class="bi bi-box-seam"></i><div><small>Produtos controlados</small><strong id="totalProdutos">0</strong></div></div>
+<div class="estoque-card"><i class="bi bi-check-circle"></i><div><small>Estoque normal</small><strong id="totalOk">0</strong></div></div>
+<div class="estoque-card"><i class="bi bi-exclamation-triangle"></i><div><small>Estoque baixo</small><strong id="totalBaixo">0</strong></div></div>
+<div class="estoque-card"><i class="bi bi-x-circle"></i><div><small>Sem estoque</small><strong id="totalZerado">0</strong></div></div>
+</section>
+
+<section class="table-card">
+<div class="estoque-toolbar">
+<div class="busca"><input id="buscaEstoque" type="search" placeholder="Pesquisar produto..."></div>
+<div style="display:flex;gap:8px"><button id="btnAtualizarEstoque" class="btn-estoque sec" type="button"><i class="bi bi-arrow-clockwise"></i> Atualizar</button></div>
+</div>
+<table>
+<thead><tr><th>Produto</th><th>Categoria</th><th>Tipo</th><th>Saldo</th><th>Mínimo</th><th>Status</th><th>Ações</th></tr></thead>
+<tbody id="listaEstoque"><tr><td colspan="7" class="empty-estoque">Carregando estoque...</td></tr></tbody>
+</table>
+</section>
+</main>
+</div>
+
+<div id="modalMovimentoEstoque" class="modal-estoque" hidden>
+<div class="modal-box" role="dialog" aria-modal="true" aria-labelledby="tituloMovimentoEstoque">
+<div class="modal-head"><h3 id="tituloMovimentoEstoque">Movimentar estoque</h3><button id="fecharMovimentoEstoque" class="modal-close" type="button" aria-label="Fechar"><i class="bi bi-x-lg"></i></button></div>
+<div class="modal-body">
+<p id="produtoMovimentoNome" class="muted" style="margin-top:0"></p>
+<div class="modal-grid">
+<div><label for="tipoMovimentoEstoque">Movimento</label><select id="tipoMovimentoEstoque"><option value="entrada">Entrada</option><option value="saida">Saída</option></select></div>
+<div><label for="quantidadeMovimento">Quantidade</label><input id="quantidadeMovimento" type="number" min="0.001" step="0.001" placeholder="0,000"></div>
+<div class="full"><label for="observacaoMovimento">Observação</label><textarea id="observacaoMovimento" rows="3" placeholder="Ex.: compra, perda, ajuste..."></textarea></div>
+</div>
+</div>
+<div class="modal-foot"><button id="cancelarMovimentoEstoque" class="btn-estoque sec" type="button">Cancelar</button><button id="salvarMovimentoEstoque" class="btn-estoque" type="button">Salvar movimento</button></div>
+</div>
+</div>
+
+<script src="js/sidebar-menu.js"></script>
+<script type="module">
+import { protegerPagina } from './js/sessao.js';
+protegerPagina('estoque');
+</script>
+<script type="module" src="js/estoque.js"></script>
+</body>
+</html>

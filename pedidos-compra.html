@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Pedidos de compra</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/tema-verde.css">
+<link rel="stylesheet" href="css/compras.css?v=20260929b">
+<link rel="icon" type="image/png" href="img/favicon.png">
+
+<style>
+.input-with-action{display:flex;align-items:center;gap:10px}.input-with-action .form-control{flex:1}.cnpj-status{font-size:12px;color:#6b7280;white-space:nowrap}.cnpj-status.success{color:#008f6b;font-weight:600}.cnpj-lookup-box{margin-bottom:12px;padding:12px 14px;border:1px solid #dceee8;background:#f6fbf9;border-radius:12px}
+</style>
+
+<style id="neoscale-compras-buttons-fix">
+/* Correção visual dos botões do módulo Compras — independente do CSS externo */
+.compras-page button.btn-primary,
+.compras-page .btn-primary {
+  appearance:none !important; -webkit-appearance:none !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  gap:7px !important; min-height:38px !important; padding:0 14px !important;
+  border:1px solid #008b68 !important; border-radius:10px !important;
+  background:#008b68 !important; color:#fff !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  cursor:pointer !important; box-sizing:border-box !important;
+  box-shadow:0 5px 14px rgba(0,139,104,.16) !important;
+  text-decoration:none !important;
+}
+.compras-page button.btn-primary:hover,
+.compras-page .btn-primary:hover {
+  background:#00785b !important; border-color:#00785b !important;
+  transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,139,104,.21) !important;
+}
+.compras-page button.btn-secondary,
+.compras-page .btn-secondary {
+  appearance:none !important; -webkit-appearance:none !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  gap:7px !important; min-height:38px !important; padding:0 14px !important;
+  border:1px solid #d5e7e1 !important; border-radius:10px !important;
+  background:#fff !important; color:#166b57 !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  cursor:pointer !important; box-sizing:border-box !important;
+  box-shadow:0 4px 12px rgba(18,70,58,.05) !important;
+  text-decoration:none !important;
+}
+.compras-page button.btn-secondary:hover,
+.compras-page .btn-secondary:hover {
+  background:#f2faf7 !important; border-color:#b9ddd1 !important;
+  color:#125c4b !important; transform:translateY(-1px);
+  box-shadow:0 7px 16px rgba(18,70,58,.09) !important;
+}
+.compras-page .modal-footer { display:flex !important; justify-content:flex-end !important; align-items:center !important; gap:10px !important; }
+.compras-page .modal-footer #modalCancelar {
+  min-width:96px !important; height:38px !important; padding:0 16px !important;
+  border:1px solid #d5e7e1 !important; border-radius:10px !important;
+  background:#fff !important; color:#166b57 !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  box-shadow:0 4px 12px rgba(18,70,58,.05) !important;
+  appearance:none !important; -webkit-appearance:none !important; cursor:pointer !important;
+}
+.compras-page .modal-footer #modalCancelar:hover { background:#f2faf7 !important; border-color:#b9ddd1 !important; transform:translateY(-1px); }
+.compras-page .modal-footer #modalSalvar {
+  min-width:96px !important; height:38px !important; padding:0 18px !important;
+  border:1px solid #008b68 !important; border-radius:10px !important;
+  background:#008b68 !important; color:#fff !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  box-shadow:0 5px 14px rgba(0,139,104,.16) !important;
+  appearance:none !important; -webkit-appearance:none !important; cursor:pointer !important;
+}
+.compras-page .modal-footer #modalSalvar:hover { background:#00785b !important; border-color:#00785b !important; transform:translateY(-1px); }
+.compras-page .modal-footer #modalCancelar:focus-visible,
+.compras-page .modal-footer #modalSalvar:focus-visible { outline:3px solid rgba(0,139,104,.18) !important; outline-offset:2px; }
+</style>
+
+
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" data-sidebar></aside>
+  <main class="content compras-page">
+    <header class="page-header compras-header">
+      <div>
+        <div class="eyebrow"><i class="bi bi-bag-check"></i> Suprimentos</div>
+        <h2>Pedidos de compra</h2>
+        <p>Formalize pedidos, valores, prazos e recebimentos.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" id="btnAtualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+        <button class="btn-primary" id="btnNovaAcao"><i class="bi bi-plus-circle"></i> Novo pedido</button>
+      </div>
+    </header>
+    <section class="tab-panel active" data-panel="pedidos">
+      <div class="module-stats">
+  <div class="module-stat"><div class="stat-icon"><i class="bi bi-cart-check"></i></div><div><div class="stat-label">Em andamento</div><div class="stat-value" id="statPed">0</div><div class="stat-note">pedidos ativos</div></div></div>
+  <div class="module-stat"><div class="stat-icon"><i class="bi bi-truck"></i></div><div><div class="stat-label">Em trânsito</div><div class="stat-value" id="statPedTrans">0</div><div class="stat-note">aguardando chegada</div></div></div>
+  <div class="module-stat"><div class="stat-icon"><i class="bi bi-box-seam"></i></div><div><div class="stat-label">Recebimento parcial</div><div class="stat-value" id="statPedParcial">0</div><div class="stat-note">faltam itens</div></div></div>
+  <div class="module-stat"><div class="stat-icon"><i class="bi bi-currency-dollar"></i></div><div><div class="stat-label">Valor em aberto</div><div class="stat-value" id="statValor">R$ 0,00</div><div class="stat-note">pedidos ativos</div></div></div>
+</div>
+      <div class="panel-head"><div><span class="section-kicker">3 · Pedido</span><h3>Pedidos de compra</h3><p>Formalize a compra e mantenha a previsão de entrega registrada.</p></div><button class="btn-primary" id="btnNovoPedido"><i class="bi bi-plus"></i> Novo pedido</button></div>
+      <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaPed" placeholder="Pesquisar pedido, fornecedor ou documento..."></div><select id="filtroPed"><option value="">Todos os status</option><option value="APROVADO">Aprovado</option><option value="ENVIADO">Enviado</option><option value="EM_TRANSITO">Em trânsito</option><option value="RECEBIMENTO_PARCIAL">Recebimento parcial</option><option value="ENTREGUE">Entregue</option><option value="CANCELADO">Cancelado</option></select></div>
+      <div class="module-table"><div class="table-wrap"><table><thead><tr><th>Nº</th><th>Data</th><th>Fornecedor</th><th>Origem</th><th>Total</th><th>Entrega</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaPed"></tbody></table></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <section class="modal-card modal-large" role="dialog" aria-modal="true">
+    <header class="modal-header"><div><span class="modal-kicker">Suprimentos</span><h3 id="modalTitulo"></h3><p id="modalSubtitulo"></p></div><button type="button" class="modal-close" id="modalX" aria-label="Fechar"><i class="bi bi-x-lg"></i></button></header>
+    <form id="modalForm"><div id="modalBody"></div><footer class="modal-footer"><button type="button" class="btn-secondary" id="modalCancelar">Cancelar</button><button type="submit" class="btn-primary" id="modalSalvar">Salvar</button></footer></form>
+  </section>
+</div>
+
+<script src="js/sidebar-menu.js"></script>
+<script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('compras');</script>
+<script type="module" src="js/compras.js"></script>
+</body>
+</html>

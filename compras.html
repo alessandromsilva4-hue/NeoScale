@@ -1,2 +1,183 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>NeoScale | Compras</title><link rel="icon" href="img/favicon.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css">
-<link rel="stylesheet" href="css/tema-verde.css"><style>.module-page{min-height:80vh;display:grid;place-items:center}.module-card{max-width:650px;width:100%;padding:42px;text-align:center;background:#fff;border:1px solid #e6ecef;border-radius:20px;box-shadow:0 12px 35px rgba(18,35,45,.06)}.module-card i{font-size:42px;color:#087a57}.module-card h2{margin:15px 0 8px}.module-card p{color:#71808a;line-height:1.6}.module-card a{display:inline-flex;margin-top:20px;padding:11px 17px;border-radius:10px;background:#087a57;color:#fff;text-decoration:none;font-weight:700;font-size:12px}</style></head><body><div class="layout"><aside class="sidebar" data-sidebar></aside><main class="content module-page"><section class="module-card"><i class="bi bi-cart3"></i><h2>Compras</h2><p>Compras e abastecimento do estoque.</p><p><strong>Módulo preparado na nova arquitetura do NeoScale.</strong><br>A lógica operacional existente será conectada a esta central sem perder os fluxos atuais.</p><a href="central.html">Voltar para a Central</a></section></main></div><script src="js/sidebar-menu.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('compras');</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Compras</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/tema-verde.css">
+<link rel="stylesheet" href="css/compras.css?v=20260929b">
+<link rel="icon" type="image/png" href="img/favicon.png">
+
+<style>
+.input-with-action{display:flex;align-items:center;gap:10px}.input-with-action .form-control{flex:1}.cnpj-status{font-size:12px;color:#6b7280;white-space:nowrap}.cnpj-status.success{color:#008f6b;font-weight:600}.cnpj-lookup-box{margin-bottom:12px;padding:12px 14px;border:1px solid #dceee8;background:#f6fbf9;border-radius:12px}
+</style>
+
+<style id="neoscale-compras-buttons-fix">
+/* Correção visual dos botões do módulo Compras — independente do CSS externo */
+.compras-page button.btn-primary,
+.compras-page .btn-primary {
+  appearance:none !important; -webkit-appearance:none !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  gap:7px !important; min-height:38px !important; padding:0 14px !important;
+  border:1px solid #008b68 !important; border-radius:10px !important;
+  background:#008b68 !important; color:#fff !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  cursor:pointer !important; box-sizing:border-box !important;
+  box-shadow:0 5px 14px rgba(0,139,104,.16) !important;
+  text-decoration:none !important;
+}
+.compras-page button.btn-primary:hover,
+.compras-page .btn-primary:hover {
+  background:#00785b !important; border-color:#00785b !important;
+  transform:translateY(-1px); box-shadow:0 8px 18px rgba(0,139,104,.21) !important;
+}
+.compras-page button.btn-secondary,
+.compras-page .btn-secondary {
+  appearance:none !important; -webkit-appearance:none !important;
+  display:inline-flex !important; align-items:center !important; justify-content:center !important;
+  gap:7px !important; min-height:38px !important; padding:0 14px !important;
+  border:1px solid #d5e7e1 !important; border-radius:10px !important;
+  background:#fff !important; color:#166b57 !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  cursor:pointer !important; box-sizing:border-box !important;
+  box-shadow:0 4px 12px rgba(18,70,58,.05) !important;
+  text-decoration:none !important;
+}
+.compras-page button.btn-secondary:hover,
+.compras-page .btn-secondary:hover {
+  background:#f2faf7 !important; border-color:#b9ddd1 !important;
+  color:#125c4b !important; transform:translateY(-1px);
+  box-shadow:0 7px 16px rgba(18,70,58,.09) !important;
+}
+.compras-page .modal-footer { display:flex !important; justify-content:flex-end !important; align-items:center !important; gap:10px !important; }
+.compras-page .modal-footer #modalCancelar {
+  min-width:96px !important; height:38px !important; padding:0 16px !important;
+  border:1px solid #d5e7e1 !important; border-radius:10px !important;
+  background:#fff !important; color:#166b57 !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  box-shadow:0 4px 12px rgba(18,70,58,.05) !important;
+  appearance:none !important; -webkit-appearance:none !important; cursor:pointer !important;
+}
+.compras-page .modal-footer #modalCancelar:hover { background:#f2faf7 !important; border-color:#b9ddd1 !important; transform:translateY(-1px); }
+.compras-page .modal-footer #modalSalvar {
+  min-width:96px !important; height:38px !important; padding:0 18px !important;
+  border:1px solid #008b68 !important; border-radius:10px !important;
+  background:#008b68 !important; color:#fff !important;
+  font:700 12px/1 Inter,Arial,sans-serif !important;
+  box-shadow:0 5px 14px rgba(0,139,104,.16) !important;
+  appearance:none !important; -webkit-appearance:none !important; cursor:pointer !important;
+}
+.compras-page .modal-footer #modalSalvar:hover { background:#00785b !important; border-color:#00785b !important; transform:translateY(-1px); }
+.compras-page .modal-footer #modalCancelar:focus-visible,
+.compras-page .modal-footer #modalSalvar:focus-visible { outline:3px solid rgba(0,139,104,.18) !important; outline-offset:2px; }
+</style>
+
+
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" data-sidebar></aside>
+  <main class="content compras-page">
+    <header class="page-header compras-header">
+      <div>
+        <div class="eyebrow"><i class="bi bi-bag-check"></i> Suprimentos</div>
+        <h2>Compras</h2>
+        <p>Do pedido interno à cotação, aprovação, entrega e entrada no estoque.</p>
+      </div>
+      <div class="header-actions">
+        <button class="btn-secondary" id="btnAtualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+        <button class="btn-primary" id="btnNovaAcao"><i class="bi bi-plus-circle"></i> Nova requisição</button>
+      </div>
+    </header>
+
+    <section class="purchase-hero">
+      <div class="hero-copy">
+        <span class="hero-kicker"><i class="bi bi-diagram-3"></i> Fluxo de compras</span>
+        <h1>Controle cada compra até a mercadoria chegar.</h1>
+        <p>Crie a requisição, compare fornecedores, aprove o pedido e acompanhe a entrega em um único lugar.</p>
+      </div>
+    </section>
+
+    <section class="stats-grid compras-stats" aria-label="Resumo de compras">
+      <button type="button" class="stat-card compras-stat" data-stat-tab="requisicoes" title="Abrir requisições pendentes">
+        <span class="stat-icon icon-blue"><i class="bi bi-clipboard-check"></i></span>
+        <span class="stat-content"><small>Requisições pendentes</small><strong id="statReq">0</strong><em>aguardando andamento</em></span>
+        <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="stat-card compras-stat" data-stat-tab="cotacoes" title="Abrir cotações em aberto">
+        <span class="stat-icon icon-purple"><i class="bi bi-chat-square-text"></i></span>
+        <span class="stat-content"><small>Cotações em aberto</small><strong id="statCot">0</strong><em>aguardando análise</em></span>
+        <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="stat-card compras-stat" data-stat-tab="pedidos" title="Abrir pedidos em andamento">
+        <span class="stat-icon icon-orange"><i class="bi bi-cart-check"></i></span>
+        <span class="stat-content"><small>Pedidos em andamento</small><strong id="statPed">0</strong><em>compras ativas</em></span>
+        <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="stat-card compras-stat" data-stat-tab="acompanhamento" title="Abrir acompanhamento das entregas">
+        <span class="stat-icon icon-teal"><i class="bi bi-truck"></i></span>
+        <span class="stat-content"><small>Entregas pendentes</small><strong id="statEnt">0</strong><em>aguardando recebimento</em></span>
+        <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="stat-card compras-stat" data-stat-tab="fornecedores" title="Abrir fornecedores ativos">
+        <span class="stat-icon icon-green"><i class="bi bi-building"></i></span>
+        <span class="stat-content"><small>Fornecedores ativos</small><strong id="statForn">0</strong><em>empresas cadastradas</em></span>
+        <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
+      </button>
+      <button type="button" class="stat-card compras-stat" data-stat-tab="pedidos" title="Abrir pedidos de compra ativos">
+        <span class="stat-icon icon-dark"><i class="bi bi-currency-dollar"></i></span>
+        <span class="stat-content"><small>Compras em andamento</small><strong id="statValor">R$ 0,00</strong><em>valor dos pedidos ativos</em></span>
+        <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
+      </button>
+    </section>
+
+
+
+    <section class="tab-panel active" data-panel="requisicoes">
+      <div class="panel-head"><div><span class="section-kicker">1 · Solicitação</span><h3>Requisições de compra</h3><p>O que o restaurante precisa comprar antes de consultar o mercado.</p></div><button class="btn-primary" id="btnNovaReq"><i class="bi bi-plus"></i> Nova requisição</button></div>
+      <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaReq" placeholder="Pesquisar número, solicitante ou item..."></div><select id="filtroReq"><option value="">Todos os status</option><option value="ABERTA">Aberta</option><option value="EM_COTACAO">Em cotação</option><option value="ATENDIDA">Atendida</option><option value="CANCELADA">Cancelada</option></select></div>
+      <div class="table-wrap"><table><thead><tr><th>Nº</th><th>Data</th><th>Solicitante</th><th>Itens</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaReq"></tbody></table></div>
+    </section>
+
+    <section class="tab-panel" data-panel="cotacoes">
+      <div class="panel-head"><div><span class="section-kicker">2 · Comparação</span><h3>Cotações</h3><p>Compare preço, frete, prazo e condição antes de escolher o fornecedor.</p></div><button class="btn-primary" id="btnNovaCot"><i class="bi bi-plus"></i> Nova cotação</button></div>
+      <div class="info-strip"><i class="bi bi-lightbulb"></i><span>Uma requisição pode receber cotações de diferentes fornecedores. A aprovação registra qual proposta seguirá para o pedido.</span></div>
+      <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaCot" placeholder="Pesquisar cotação ou fornecedor..."></div><select id="filtroCot"><option value="">Todos os status</option><option value="ABERTA">Aberta</option><option value="EM_ANALISE">Em análise</option><option value="APROVADA">Aprovada</option><option value="RECUSADA">Recusada</option></select></div>
+      <div class="table-wrap"><table><thead><tr><th>Nº</th><th>Requisição</th><th>Fornecedor</th><th>Valor</th><th>Frete</th><th>Prazo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaCot"></tbody></table></div>
+    </section>
+
+    <section class="tab-panel" data-panel="fornecedores">
+      <div class="panel-head"><div><span class="section-kicker">Base de fornecedores</span><h3>Empresas e fornecedores</h3><p>Centralize contatos, condições comerciais e prazos de entrega.</p></div><button class="btn-primary" id="btnNovoFornecedor"><i class="bi bi-plus"></i> Novo fornecedor</button></div>
+      <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaForn" placeholder="Pesquisar empresa, CNPJ, telefone ou contato..."></div></div>
+      <div class="table-wrap"><table><thead><tr><th>Empresa</th><th>CNPJ/CPF</th><th>Contato</th><th>Telefone</th><th>Condição</th><th>Prazo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaForn"></tbody></table></div>
+    </section>
+
+    <section class="tab-panel" data-panel="pedidos">
+      <div class="panel-head"><div><span class="section-kicker">3 · Pedido</span><h3>Pedidos de compra</h3><p>Formalize a compra e mantenha a previsão de entrega registrada.</p></div><button class="btn-primary" id="btnNovoPedido"><i class="bi bi-plus"></i> Novo pedido</button></div>
+      <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaPed" placeholder="Pesquisar pedido, fornecedor ou documento..."></div><select id="filtroPed"><option value="">Todos os status</option><option value="APROVADO">Aprovado</option><option value="ENVIADO">Enviado</option><option value="EM_TRANSITO">Em trânsito</option><option value="RECEBIMENTO_PARCIAL">Recebimento parcial</option><option value="ENTREGUE">Entregue</option><option value="CANCELADO">Cancelado</option></select></div>
+      <div class="table-wrap"><table><thead><tr><th>Nº</th><th>Data</th><th>Fornecedor</th><th>Origem</th><th>Total</th><th>Entrega</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaPed"></tbody></table></div>
+    </section>
+
+    <section class="tab-panel" data-panel="acompanhamento">
+      <div class="panel-head"><div><span class="section-kicker">4 · Recebimento</span><h3>Acompanhamento de compras</h3><p>Veja cada pedido desde a aprovação até a entrada efetiva da mercadoria no estoque.</p></div></div>
+      <div class="flow-legend"><span><b class="dot done"></b> Concluído</span><span><b class="dot current"></b> Etapa atual</span><span><b class="dot"></b> Próxima etapa</span></div>
+      <div class="tracking-grid" id="trackingGrid"></div>
+    </section>
+  </main>
+</div>
+
+<div class="modal" id="modal" hidden>
+  <section class="modal-card modal-large" role="dialog" aria-modal="true">
+    <header class="modal-header"><div><span class="modal-kicker">Compras</span><h3 id="modalTitulo"></h3><p id="modalSubtitulo"></p></div><button type="button" class="modal-close" id="modalX" aria-label="Fechar"><i class="bi bi-x-lg"></i></button></header>
+    <form id="modalForm"><div id="modalBody"></div><footer class="modal-footer"><button type="button" class="btn-secondary" id="modalCancelar">Cancelar</button><button type="submit" class="btn-primary" id="modalSalvar">Salvar</button></footer></form>
+  </section>
+</div>
+
+<script src="js/sidebar-menu.js"></script>
+<script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('compras');</script>
+<script type="module" src="js/compras.js"></script>
+</body>
+</html>

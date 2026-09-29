@@ -23,7 +23,13 @@ const MENU = [
   { section: 'OPERAÇÃO', items: [
     ['cozinha.html','bi-display','Produção / KDS','cozinha'],
     ['estoque.html','bi-boxes','Estoque','estoque'],
-    ['compras.html','bi-cart3','Compras','compras']
+    { href:'compras.html', icon:'bi-cart3', label:'Compras', key:'compras', children:[
+      ['requisicoes.html','bi-clipboard-check','Requisições','requisicoes'],
+      ['cotacoes.html','bi-chat-square-text','Cotações','cotacoes'],
+      ['fornecedores.html','bi-building','Fornecedores','fornecedores'],
+      ['pedidos-compra.html','bi-cart-check','Pedidos de compra','pedidos'],
+      ['acompanhamento.html','bi-truck','Acompanhamento','acompanhamento']
+    ] }
   ]},
   { section: 'FINANCEIRO', items: [
     ['caixa.html','bi-cash-stack','Caixa','caixa'],
@@ -45,6 +51,27 @@ function paginaAtual(){
   return (location.pathname.split('/').pop() || 'dashboard.html').replace('.html','').toLowerCase();
 }
 
+function areaComprasAtual(){
+  const mapa = {
+    'requisicoes': 'requisicoes',
+    'cotacoes': 'cotacoes',
+    'fornecedores': 'fornecedores',
+    'pedidos-compra': 'pedidos',
+    'acompanhamento': 'acompanhamento'
+  };
+  return mapa[paginaAtual()] || (paginaAtual() === 'compras' ? 'compras' : null);
+}
+
+function itemAtivo(item, atual){
+  if (!Array.isArray(item)) {
+    if (item.key === 'compras') {
+      return atual === 'compras' || (item.children || []).some(child => child[3] === areaComprasAtual());
+    }
+    return atual === item.key;
+  }
+  return atual === item[3];
+}
+
 function lerEstadoMenu(){
   try { return JSON.parse(localStorage.getItem(MENU_STATE_KEY) || '{}'); }
   catch { return {}; }
@@ -56,8 +83,9 @@ function salvarEstadoMenu(estado){
 
 function construirSidebar(el){
   const atual = paginaAtual();
+  const areaCompra = areaComprasAtual();
   const estado = lerEstadoMenu();
-  const grupoAtivo = MENU.findIndex(group => group.items.some(([, , , key]) => key === atual));
+  const grupoAtivo = MENU.findIndex(group => group.items.some(item => itemAtivo(item, atual)));
 
   el.innerHTML = `
     <div class="sidebar-brand">
@@ -67,7 +95,7 @@ function construirSidebar(el){
     </div>
     <nav class="sidebar-menu" aria-label="Menu principal">
       ${MENU.map((group, index) => {
-        const temAtivo = group.items.some(([, , , key]) => key === atual);
+        const temAtivo = group.items.some(item => itemAtivo(item, atual));
         const aberto = temAtivo || estado[group.section] === true;
         return `
           <div class="sidebar-section ${aberto ? 'is-open' : ''}" data-section="${group.section}">
@@ -75,7 +103,22 @@ function construirSidebar(el){
               <span>${group.section}</span><i class="bi bi-chevron-down" aria-hidden="true"></i>
             </button>
             <div class="sidebar-section-items" id="sidebar-group-${index}">
-              ${group.items.map(([href,icon,label,key]) => `<a href="${href}" class="${atual===key?'active':''}" data-page="${key}"><i class="bi ${icon}"></i><span>${label}</span></a>`).join('')}
+              ${group.items.map(item => {
+                if (Array.isArray(item)) {
+                  const [href,icon,label,key] = item;
+                  return `<a href="${href}" class="${atual===key?'active':''}" data-page="${key}"><i class="bi ${icon}"></i><span>${label}</span></a>`;
+                }
+                const activeParent = itemAtivo(item, atual);
+                const childOpen = activeParent;
+                return `<div class="sidebar-menu-group ${childOpen?'is-open':''}" data-menu-key="${item.key}">
+                  <button type="button" class="sidebar-menu-parent ${activeParent?'active':''}" data-page="${item.key}" aria-expanded="${childOpen}">
+                    <i class="bi ${item.icon}"></i><span>${item.label}</span><i class="bi bi-chevron-right menu-submenu-arrow" aria-hidden="true"></i>
+                  </button>
+                  <div class="sidebar-menu-submenu">
+                    ${item.children.map(([href,icon,label,key]) => `<a href="${href}" class="sidebar-menu-child ${areaCompra===key?'active':''}" data-page="${key}"><i class="bi ${icon}"></i><span>${label}</span></a>`).join('')}
+                  </div>
+                </div>`;
+              }).join('')}
             </div>
           </div>`;
       }).join('')}
@@ -102,6 +145,15 @@ function construirSidebar(el){
       const novoEstado = {};
       if (abrir) novoEstado[nome] = true;
       salvarEstadoMenu(novoEstado);
+    });
+  });
+
+  el.querySelectorAll('.sidebar-menu-parent').forEach(parent => {
+    parent.addEventListener('click', () => {
+      const group = parent.closest('.sidebar-menu-group');
+      const abrir = !group.classList.contains('is-open');
+      group.classList.toggle('is-open', abrir);
+      parent.setAttribute('aria-expanded', String(abrir));
     });
   });
 

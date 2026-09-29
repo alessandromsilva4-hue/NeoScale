@@ -69,3 +69,11 @@ button.store.top-action,button.user-card.top-action{padding:0}
 .operation-image picture,.operation-image picture img{width:100%;height:100%;display:block}
 .operation-image img{object-fit:cover;object-position:center}
 @media(max-width:700px){.user-card.top-action{min-width:0}.user-dropdown{right:-5px}}
+
+
+/* Dashboard enxuto: os números ficam nos cards, evitando repetição no banner e no rodapé do gráfico. */
+.operation-banner { min-height: 174px; }
+.operation-copy { width: 100%; max-width: 650px; }
+.operation-banner .operation-copy { padding-right: 40px; }
+.operation-total, .operation-tags, .summary-row { display: none !important; }
+@media(max-width:700px){ .operation-banner { min-height: 210px; } .operation-copy { width: 100%; } }

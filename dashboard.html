@@ -12,7 +12,7 @@
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/sidebar.css">
 <link rel="stylesheet" href="css/tema-verde.css">
-<link rel="stylesheet" href="css/dashboard.css?v=20260928-02">
+<link rel="stylesheet" href="css/dashboard.css?v=20260929-01">
 <link rel="icon" type="image/png" href="img/favicon.png">
 </head>
 <body>
@@ -86,16 +86,6 @@
       <span class="eyebrow">RESUMO DA OPERAÇÃO</span>
       <h1 id="resumoTitulo">Tudo sob controle.</h1>
       <p id="resumoSubtitulo">Acompanhe rapidamente vendas, mesas e comandas do restaurante.</p>
-      <div class="operation-tags">
-        <span><i class="bi bi-receipt"></i><b id="heroVendas">0</b> vendas hoje</span>
-        <span><i class="bi bi-grid-3x3-gap"></i><b id="heroMesas">0</b> mesas ocupadas</span>
-        <span><i class="bi bi-journal-text"></i><b id="heroComandas">0</b> comandas abertas</span>
-      </div>
-    </div>
-    <div class="operation-total">
-      <small>Faturamento hoje</small>
-      <strong id="heroFaturamento">R$ 0,00</strong>
-      <span><i class="bi bi-arrow-up-right"></i> vendas finalizadas</span>
     </div>
   </div>
   <aside class="quick-panel">
@@ -117,13 +107,13 @@
   <article class="metric-card"><div class="metric-icon green"><i class="bi bi-journal-text"></i></div><div class="metric-body"><span>Comandas abertas</span><strong id="comandasAbertas">0</strong><small id="comandasSub">Nenhuma comanda em aberto</small></div><i class="bi bi-chevron-right metric-arrow"></i></article>
 </section>
 <section class="main-grid">
-  <article class="panel chart-panel"><div class="section-head"><div class="section-title"><div class="section-icon"><i class="bi bi-activity"></i></div><div><h3>Movimento do dia</h3><p>Pedidos e faturamento por horário</p></div></div><div class="period-controls"><button class="period active">Hoje</button><button class="period">7 dias</button><button class="period">30 dias</button><button class="date-control"><i class="bi bi-calendar3"></i><span id="chartDate"></span><i class="bi bi-chevron-down"></i></button></div></div><div class="chart-wrap"><div class="y-axis"><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span></div><div class="chart"><div class="grid-lines"></div><div id="bars" class="bars"></div><svg id="lineChart" class="line-chart" preserveAspectRatio="none"></svg><div id="xLabels" class="x-labels"></div></div></div><div class="legend"><span><i class="dot pesagens"></i> Pedidos</span><span><i class="dot faturamento"></i> Faturamento</span></div><div class="summary-row"><div><i class="bi bi-currency-dollar"></i><span>Faturamento</span><strong id="sumFaturamento">R$ 0,00</strong><small>Hoje</small></div><div><i class="bi bi-receipt"></i><span>Pedidos</span><strong id="sumPesagens">0</strong><small>Hoje</small></div><div><i class="bi bi-box-seam"></i><span>Peso total</span><strong id="sumPeso">0,000 kg</strong><small>Hoje</small></div><div><i class="bi bi-graph-up-arrow"></i><span>Ticket médio</span><strong id="ticketMedio">R$ 0,00</strong><small>Vendas finalizadas</small></div></div></article>
+  <article class="panel chart-panel"><div class="section-head"><div class="section-title"><div class="section-icon"><i class="bi bi-activity"></i></div><div><h3>Movimento do dia</h3><p>Pedidos e faturamento por horário</p></div></div><div class="period-controls"><button class="period active">Hoje</button><button class="period">7 dias</button><button class="period">30 dias</button><button class="date-control"><i class="bi bi-calendar3"></i><span id="chartDate"></span><i class="bi bi-chevron-down"></i></button></div></div><div class="chart-wrap"><div class="y-axis"><span>50</span><span>40</span><span>30</span><span>20</span><span>10</span><span>0</span></div><div class="chart"><div class="grid-lines"></div><div id="bars" class="bars"></div><svg id="lineChart" class="line-chart" preserveAspectRatio="none"></svg><div id="xLabels" class="x-labels"></div></div></div><div class="legend"><span><i class="dot pesagens"></i> Pedidos</span><span><i class="dot faturamento"></i> Faturamento</span></div></article>
   <article class="panel sales-panel"><div class="section-head compact"><div class="section-title"><div class="section-icon"><i class="bi bi-receipt"></i></div><div><h3>Últimas vendas</h3><p>Movimentações mais recentes</p></div></div><a href="historico.html">Ver todas <i class="bi bi-chevron-right"></i></a></div><div id="salesList" class="sales-list"><div class="empty-state"><i class="bi bi-inbox"></i><strong>Nenhuma venda registrada hoje</strong><span>As vendas finalizadas aparecerão aqui.</span></div></div></article>
 </section>
 <section class="bottom-grid"><div class="status-panel"><div class="status-title">Status da operação</div><div class="status-item"><i class="bi bi-speedometer2"></i><div><strong>Balança</strong><span id="balancaStatus">Pronta para conectar</span></div></div><div class="status-item"><i class="bi bi-printer"></i><div><strong>Impressora</strong><span>Disponível</span></div></div><div class="status-item"><i class="bi bi-shield-check"></i><div><strong>Sistema</strong><span class="ok">Online</span></div></div><div class="status-item"><i class="bi bi-database-check"></i><div><strong>Banco de dados</strong><span class="ok">Sincronizado</span></div></div></div><div class="quote-panel"><i class="bi bi-quote"></i><div><strong id="fraseDia">“A simplicidade é o último grau da sofisticação.”</strong><span id="autorFrase">Leonardo da Vinci</span></div></div></section>
 <footer class="dashboard-footer"><span>NeoScale v1.0 &nbsp;|&nbsp; Gestão Inteligente para o seu negócio</span><span><i></i> Sistema Online</span></footer>
 </main></div>
-<script type="module" src="js/dashboard.js?v=20260928-02"></script>
+<script type="module" src="js/dashboard.js?v=20260929-01"></script>
 <script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("dashboard");</script>
 <script src="js/sidebar-menu.js?v=20260928-02"></script>
 </body></html>

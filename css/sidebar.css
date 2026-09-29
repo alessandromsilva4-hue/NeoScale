@@ -90,3 +90,29 @@
 
 /* O usuário e o botão Sair ficam exclusivamente no menu do Administrador no topo. */
 .sidebar-footer:empty{display:none;}
+
+
+/* Compras: submenu lateral */
+.sidebar-menu-group{margin:2px 0;}
+.sidebar-menu-parent{position:relative;}
+.sidebar-menu-parent .menu-submenu-arrow{margin-left:auto!important;width:auto!important;min-width:0!important;font-size:9px!important;transition:transform .18s ease;}
+.sidebar-menu-group.is-open .menu-submenu-arrow{transform:rotate(180deg);}
+.sidebar-menu-submenu{display:none;padding:0 0 2px 14px;}
+.sidebar-menu-group.is-open .sidebar-menu-submenu{display:block;}
+.sidebar-menu-child{font-size:11px!important;padding:8px 10px!important;margin:1px 0!important;border-radius:8px!important;}
+.sidebar-menu-child.active{background:#00a879!important;color:#fff!important;}
+.sidebar-menu-parent.active{background:#152a35!important;color:#fff!important;}
+@media(max-width:900px){
+  .sidebar-menu-submenu{padding-left:8px;}
+}
+@media(max-width:640px){
+  .sidebar-menu-submenu{padding-left:12px;}
+}
+
+.sidebar-menu-parent{width:100%;display:flex;align-items:center;gap:12px;border:0;background:transparent;text-align:left;color:#b7c4cc;text-decoration:none;cursor:pointer;font:inherit;margin:2px 0;padding:9px 11px;border-radius:9px;transition:none;}
+.sidebar-menu-parent:hover{background:#152a35;color:#fff;}
+.sidebar-menu-parent i:first-child{font-size:15px;width:22px;min-width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;}
+.sidebar-menu-parent span{font-weight:500;}
+.sidebar-menu-parent.active{background:#152a35!important;color:#fff!important;}
+.sidebar-menu-parent .menu-submenu-arrow{margin-left:auto!important;}
+.sidebar-menu-group.is-open .sidebar-menu-parent .menu-submenu-arrow{transform:rotate(90deg);}

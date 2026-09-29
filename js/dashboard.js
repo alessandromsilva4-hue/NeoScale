@@ -13,10 +13,14 @@ async function carregarUsuarioLogado(){
   const aplicar = (nome, funcao) => {
     const nomeFinal = (nome || 'Usuário').trim();
     const funcaoFinal = funcao === 'ADMINISTRADOR' ? 'Administrador' : (funcao || 'Usuário conectado');
-    document.getElementById('topUsuarioNome')?.textContent = nomeFinal;
-    document.getElementById('topUsuarioFuncao')?.textContent = funcaoFinal;
-    document.getElementById('menuUsuarioNome')?.textContent = nomeFinal;
-    document.getElementById('menuUsuarioFuncao')?.textContent = funcaoFinal;
+    const topNome = document.getElementById('topUsuarioNome');
+    const topFuncao = document.getElementById('topUsuarioFuncao');
+    const menuNome = document.getElementById('menuUsuarioNome');
+    const menuFuncao = document.getElementById('menuUsuarioFuncao');
+    if (topNome) topNome.textContent = nomeFinal;
+    if (topFuncao) topFuncao.textContent = funcaoFinal;
+    if (menuNome) menuNome.textContent = nomeFinal;
+    if (menuFuncao) menuFuncao.textContent = funcaoFinal;
   };
 
   onAuthStateChanged(auth, async (usuario) => {
@@ -91,17 +95,8 @@ async function carregar(){
     document.getElementById('clientesSub').textContent=`${ocupadas} de ${mesas.length} mesa${mesas.length===1?'':'s'} ocupada${ocupadas===1?'':'s'}`;
     document.getElementById('comandasSub').textContent=abertas.length?`${abertas.length} aguardando fechamento`:'Nenhuma comanda em aberto';
 
-    document.getElementById('heroVendas').textContent=finalizadas.length;
-    document.getElementById('heroMesas').textContent=ocupadas;
-    document.getElementById('heroComandas').textContent=abertas.length;
-    document.getElementById('heroFaturamento').textContent=money(faturamento);
     document.getElementById('resumoTitulo').textContent=finalizadas.length||ocupadas||abertas.length?'Operação em andamento.':'Tudo pronto para começar.';
-    document.getElementById('resumoSubtitulo').textContent=finalizadas.length||ocupadas||abertas.length?'Veja em um só lugar o movimento do restaurante, sem precisar abrir cada módulo.':'Acompanhe rapidamente vendas, mesas e comandas assim que o movimento começar.';
-
-    document.getElementById('sumPesagens').textContent=hoje.length;
-    document.getElementById('sumFaturamento').textContent=money(faturamento);
-    document.getElementById('sumPeso').textContent=weight(peso);
-    document.getElementById('ticketMedio').textContent=money(ticket);
+    document.getElementById('resumoSubtitulo').textContent='Acompanhe a operação pelo resumo abaixo e acesse rapidamente cada módulo quando precisar.';
 
     drawChart(hoje); renderSales(hoje);
   }catch(e){ console.error('Dashboard:',e); }
@@ -109,6 +104,8 @@ async function carregar(){
 }
 function configurarTopbar(){
   const lojaBtn = document.getElementById('btnLoja');
+  const lojaNome = lojaBtn?.querySelector('strong');
+  const lojaDescricao = lojaBtn?.querySelector('small');
   const usuarioBtn = document.getElementById('btnUsuario');
   const menuLoja = document.getElementById('menuLoja');
   const menuUsuario = document.getElementById('menuUsuario');
@@ -160,10 +157,24 @@ function configurarTopbar(){
 
   document.querySelectorAll('[data-store]').forEach(item => {
     item.addEventListener('click', () => {
-      localStorage.setItem('neoscaleLojaAtiva', item.dataset.store);
+      const loja = item.dataset.store || 'principal';
+      localStorage.setItem('neoscaleLojaAtiva', loja);
+      document.querySelectorAll('[data-store]').forEach(x => x.classList.remove('active'));
+      item.classList.add('active');
+      if (lojaNome) lojaNome.textContent = item.querySelector('strong')?.textContent || 'Loja Principal';
+      if (lojaDescricao) lojaDescricao.textContent = item.querySelector('small')?.textContent || 'Sistema de Pesagem e Vendas';
       fecharMenus();
     });
   });
+
+  const lojaAtiva = localStorage.getItem('neoscaleLojaAtiva') || 'principal';
+  const lojaSelecionada = Array.from(document.querySelectorAll('[data-store]')).find(item => item.dataset.store === lojaAtiva);
+  if (lojaSelecionada) {
+    document.querySelectorAll('[data-store]').forEach(x => x.classList.remove('active'));
+    lojaSelecionada.classList.add('active');
+    if (lojaNome) lojaNome.textContent = lojaSelecionada.querySelector('strong')?.textContent || 'Loja Principal';
+    if (lojaDescricao) lojaDescricao.textContent = lojaSelecionada.querySelector('small')?.textContent || 'Sistema de Pesagem e Vendas';
+  }
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
