@@ -121,3 +121,18 @@
     width:100% !important;
   }
 }
+
+/* Envio de cotações */
+.send-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}
+.send-channel{display:flex;align-items:center;gap:12px;text-align:left;padding:15px;border:1px solid #dce8e4;border-radius:12px;background:#fff;cursor:pointer;transition:.16s ease;box-shadow:0 3px 12px rgba(20,70,60,.04)}
+.send-channel:hover{transform:translateY(-1px);border-color:#9ed4c5;background:#f7fcfa}
+.send-channel>i{font-size:25px;color:#008b68}.send-channel span{display:flex;flex-direction:column;gap:3px}.send-channel strong{font-size:13px;color:#183a31}.send-channel small{font-size:10px;color:#7c8d88}
+.send-preview{border:1px solid #e0e9e6;border-radius:12px;padding:12px;background:#fbfdfc}.send-preview-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.send-preview-head strong{font-size:11px;color:#36534b}.send-message{width:100%;min-height:220px;box-sizing:border-box;border:1px solid #d6e3df;border-radius:9px;padding:11px;font:12px/1.55 Inter,Arial,sans-serif;resize:vertical;color:#334a44;background:#fff}
+.send-note{display:flex;gap:8px;align-items:flex-start;margin-top:12px;padding:10px 12px;border-radius:9px;background:#f3faf7;color:#60736d;font-size:10px}.send-note i{color:#008b68;margin-top:1px}
+@media(max-width:650px){.send-choice-grid{grid-template-columns:1fr}}
+
+/* Modal dos módulos de Compras */
+.compras-page ~ .modal[hidden]{display:none!important}
+.compras-page ~ .modal:not([hidden]){display:flex!important}
+
+.req-view-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin-bottom:18px}.req-view-grid>div{padding:12px 14px;border:1px solid var(--border,#e5e7eb);border-radius:10px;background:var(--surface,#fff)}.req-view-grid>div.full{grid-column:1/-1}.req-view-grid span{display:block;font-size:11px;text-transform:uppercase;opacity:.65;margin-bottom:4px}.req-view-grid strong{font-size:14px}.action-btn{cursor:pointer}

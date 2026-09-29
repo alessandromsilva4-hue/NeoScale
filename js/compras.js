@@ -1,6 +1,6 @@
 import { db } from './firebase.js';
 import {
-  collection, getDocs, setDoc, updateDoc, doc, query, orderBy, limit,
+  collection, getDocs, setDoc, updateDoc, deleteDoc, doc, query, orderBy, limit,
   runTransaction, serverTimestamp
 } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
@@ -27,7 +27,14 @@ function openModal(title, sub, type, id=null, html='') {
 }
 function closeModal(){ modal.hidden = true; body.innerHTML=''; formType=''; currentId=null; }
 function opts(arr, placeholder='Selecione') { return `<option value="">${placeholder}</option>` + arr.map(x => `<option value="${esc(x.id)}">${esc(x.nome || x.razaoSocial || x.empresa || x.nomeFantasia || '')}</option>`).join(''); }
-function productOptions(selected=''){ return `<option value="">Selecione o produto</option>` + state.produtos.map(x => `<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(x.nome)}</option>`).join(''); }
+function productOptions(selected='') {
+  const produtos = [...state.produtos].filter(x => x && x.id && String(x.nome || '').trim()).sort((a,b) => String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
+  return `<option value="">Selecione o produto</option>` + produtos.map(x => {
+    const inativo = x.ativo === false;
+    const label = `${x.nome}${inativo ? ' (inativo)' : ''}`;
+    return `<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(label)}</option>`;
+  }).join('');
+}
 
 function itemEditor(items=[], cls='item-row') {
   const rows = items.length ? items : [{}];
@@ -107,24 +114,59 @@ function receiveForm(p) {
 }
 
 function renderReq(){
-  const t=($('buscaReq').value||'').toLowerCase(), f=$('filtroReq').value;
+  if(!$('listaReq')) return;
+  const t=($('buscaReq')?.value||'').toLowerCase(), f=$('filtroReq')?.value||'';
   const rows=state.req.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.solicitante,...(x.itens||[]).map(i=>i.produtoNome)].join(' ').toLowerCase().includes(t)));
-  $('listaReq').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.solicitante||'-')}</td><td>${(x.itens||[]).length}</td><td>${priority(x.prioridade||'NORMAL')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</td><td><button class="action-btn" data-action="req-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="req-cot" data-id="${x.id}" title="Criar cotação"><i class="bi bi-chat-square-text"></i></button></td></tr>`).join(''):'<tr><td colspan="7" class="empty">Nenhuma requisição encontrada.</td></tr>';
+  $('listaReq').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.solicitante||'-')}</td><td>${(x.itens||[]).length}</td><td>${priority(x.prioridade||'NORMAL')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</td><td><button class="action-btn" data-action="req-view" data-id="${x.id}" title="Ver requisição"><i class="bi bi-eye"></i></button> <button class="action-btn" data-action="req-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="req-send-cot" data-id="${x.id}" title="Enviar para cotação"><i class="bi bi-send"></i></button> <button class="action-btn" data-action="req-cot" data-id="${x.id}" title="Abrir cotação"><i class="bi bi-chat-square-text"></i></button> ${x.status==='ABERTA'?`<button class="action-btn danger" data-action="req-delete" data-id="${x.id}" title="Excluir requisição"><i class="bi bi-trash3"></i></button>`:x.status==='EM_COTACAO'?`<button class="action-btn danger" data-action="req-cancel" data-id="${x.id}" title="Cancelar requisição"><i class="bi bi-x-circle"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Nenhuma requisição encontrada.</td></tr>';
 }
+function telefoneWhatsApp(v){ return String(v||'').replace(/\D/g,''); }
+function fornecedorContatoCotacao(c){ return state.forn.find(f=>f.id===c?.fornecedorId) || {}; }
+function montarMensagemCotacao(c){
+  const forn=fornecedorContatoCotacao(c);
+  const req=state.req.find(r=>r.id===c.reqId);
+  const itens=(req?.itens||[]).map(i=>`• ${i.produtoNome||i.nome||'Item'} — ${num(i.quantidade)} ${i.tipoVenda==='peso'?'kg':'un.'}`).join('\\n');
+  return `Olá${forn.contato?`, ${forn.contato}`:''}!\\n\\nSegue a cotação ${c.numero||''} do NeoScale para a requisição ${c.reqNumero||req?.numero||'-'}.\\n\\n${itens?`Itens:\\n${itens}\\n\\n`:''}Valor dos produtos: ${money(c.valor)}\\nFrete: ${money(c.frete)}\\nPrazo de entrega: ${c.prazoEntrega||'-'}\\nCondição de pagamento: ${c.condicaoPagamento||'-'}${c.validade?`\\nValidade da proposta: ${dateBR(c.validade)}`:''}\\n\\nPor favor, confirme os valores e condições desta proposta.`;
+}
+function envioCotacaoForm(c){
+  if(!c)return;
+  const forn=fornecedorContatoCotacao(c);
+  const tel=telefoneWhatsApp(forn.telefone||forn.celular||'');
+  const email=forn.email||'';
+  const msg=montarMensagemCotacao(c);
+  openModal(`Enviar ${c.numero||'cotação'}`,'Escolha como deseja enviar esta cotação ao fornecedor.','envio-cotacao',c.id,
+    `<div class="send-choice-grid">
+      <button type="button" class="send-channel send-whatsapp" data-send-channel="whatsapp"><i class="bi bi-whatsapp"></i><span><strong>WhatsApp</strong><small>${tel?esc(forn.telefone):'Telefone não cadastrado'}</small></span></button>
+      <button type="button" class="send-channel send-email" data-send-channel="email"><i class="bi bi-envelope"></i><span><strong>E-mail</strong><small>${email?esc(email):'E-mail não cadastrado'}</small></span></button>
+    </div>
+    <div class="send-preview"><div class="send-preview-head"><strong>Mensagem</strong><button type="button" class="btn-secondary small" id="copiarMensagem"><i class="bi bi-copy"></i> Copiar</button></div><textarea id="mensagemCotacao" class="send-message">${esc(msg)}</textarea></div>
+    <div class="send-note"><i class="bi bi-info-circle"></i> O NeoScale abrirá o WhatsApp ou o seu aplicativo de e-mail com a mensagem preenchida. Depois do envio, o registro ficará salvo na cotação.</div>`);
+}
+async function registrarEnvioCotacao(id,canal){
+  const c=state.cot.find(x=>x.id===id); if(!c)return;
+  await updateDoc(doc(db,'cotacoesCompra',id),{ultimoEnvio:{canal,em:serverTimestamp()},atualizadoEm:serverTimestamp()});
+  const label=canal==='whatsapp'?'WhatsApp':'e-mail';
+  closeModal(); await load();
+  alert(`Cotação registrada como enviada por ${label}.`);
+}
+
 function renderCot(){
-  const t=($('buscaCot').value||'').toLowerCase(), f=$('filtroCot').value;
+  if(!$('listaCot')) return;
+  const t=($('buscaCot')?.value||'').toLowerCase(), f=$('filtroCot')?.value||'';
   const rows=state.cot.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.reqNumero,x.fornecedorNome].join(' ').toLowerCase().includes(t)));
-  $('listaCot').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${esc(x.reqNumero||'-')}</td><td>${esc(x.fornecedorNome||'-')}</td><td><strong>${money(x.valor)}</strong></td><td>${money(x.frete)}</td><td>${esc(x.prazoEntrega||'-')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_ANALISE:'Em análise',APROVADA:'Aprovada',RECUSADA:'Recusada'})}</td><td><button class="action-btn" data-action="cot-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> ${x.status!=='APROVADA'&&x.status!=='RECUSADA'?`<button class="action-btn" data-action="cot-aprovar" data-id="${x.id}" title="Aprovar"><i class="bi bi-check2"></i></button>`:''} ${x.status==='APROVADA'?`<button class="action-btn" data-action="cot-ped" data-id="${x.id}" title="Criar pedido"><i class="bi bi-cart-plus"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhuma cotação encontrada.</td></tr>';
+  $('listaCot').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${esc(x.reqNumero||'-')}</td><td>${esc(x.fornecedorNome||'-')}</td><td><strong>${money(x.valor)}</strong></td><td>${money(x.frete)}</td><td>${esc(x.prazoEntrega||'-')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_ANALISE:'Em análise',APROVADA:'Aprovada',RECUSADA:'Recusada'})}</td><td><button class="action-btn" data-action="cot-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn send-cot-action" data-action="cot-enviar" data-id="${x.id}" title="Enviar por WhatsApp ou e-mail"><i class="bi bi-send"></i></button> ${x.status!=='APROVADA'&&x.status!=='RECUSADA'?`<button class="action-btn" data-action="cot-aprovar" data-id="${x.id}" title="Aprovar"><i class="bi bi-check2"></i></button>`:''} ${x.status==='APROVADA'?`<button class="action-btn" data-action="cot-ped" data-id="${x.id}" title="Criar pedido"><i class="bi bi-cart-plus"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhuma cotação encontrada.</td></tr>';
 }
 function renderForn(){
-  const t=($('buscaForn').value||'').toLowerCase(); const rows=state.forn.filter(x=>[x.razaoSocial,x.nomeFantasia,x.documento,x.contato,x.telefone].join(' ').toLowerCase().includes(t));
+  if(!$('listaForn')) return;
+  const t=($('buscaForn')?.value||'').toLowerCase(); const rows=state.forn.filter(x=>[x.razaoSocial,x.nomeFantasia,x.documento,x.contato,x.telefone].join(' ').toLowerCase().includes(t));
   $('listaForn').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.razaoSocial||x.nome)}</strong><div class="muted">${esc(x.nomeFantasia||'')}</div></td><td>${esc(x.documento||'-')}</td><td>${esc(x.contato||'-')}</td><td>${esc(x.telefone||'-')}</td><td>${esc(x.condicaoPagamento||'-')}</td><td>${esc(x.prazoEntrega||'-')}</td><td>${status(x.ativo===false?'INATIVO':'ATIVO',{ATIVO:'Ativo',INATIVO:'Inativo'})}</td><td><button class="action-btn" data-action="forn-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum fornecedor cadastrado.</td></tr>';
 }
 function renderPed(){
-  const t=($('buscaPed').value||'').toLowerCase(), f=$('filtroPed').value; const rows=state.ped.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.fornecedorNome,x.documento].join(' ').toLowerCase().includes(t)));
+  if(!$('listaPed')) return;
+  const t=($('buscaPed')?.value||'').toLowerCase(), f=$('filtroPed')?.value||''; const rows=state.ped.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.fornecedorNome,x.documento].join(' ').toLowerCase().includes(t)));
   $('listaPed').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.fornecedorNome||'-')}</td><td>${esc(x.origem||'-')}</td><td>${money(x.total)}</td><td>${dateBR(x.dataPrevista)}</td><td>${status(x.status||'APROVADO')}</td><td><button class="action-btn" data-action="ped-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="ped-next" data-id="${x.id}" title="Avançar etapa"><i class="bi bi-arrow-right"></i></button> ${x.status!=='ENTREGUE'&&x.status!=='CANCELADO'?`<button class="action-btn" data-action="ped-receber" data-id="${x.id}" title="Receber mercadoria"><i class="bi bi-box-seam"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum pedido encontrado.</td></tr>';
 }
 function renderTracking(){
+  if(!$('trackingGrid')) return;
   const rows=state.ped.filter(x=>!['ENTREGUE','CANCELADO'].includes(x.status)); const steps=['APROVADO','ENVIADO','EM_TRANSITO','RECEBIMENTO_PARCIAL','ENTREGUE'];
   $('trackingGrid').innerHTML=rows.length?rows.map(x=>{const idx=Math.max(0,steps.indexOf(x.status||'APROVADO')); return `<article class="tracking-card"><h4>${esc(x.numero||x.id.slice(0,8))} · ${esc(x.fornecedorNome||'-')}</h4><div class="muted">Entrega prevista: ${dateBR(x.dataPrevista)} · Total: ${money(x.total)}</div><div class="timeline">${steps.map((s,i)=>`<div class="timeline-step ${i<idx?'done':''} ${i===idx?'current':''}">${s==='RECEBIMENTO_PARCIAL'?'Recebimento parcial':s.replace('_',' ')}</div>`).join('')}</div><div class="tracking-actions"><button class="btn-secondary small" data-action="ped-next" data-id="${x.id}"><i class="bi bi-arrow-right"></i> Avançar etapa</button><button class="btn-primary small" data-action="ped-receber" data-id="${x.id}"><i class="bi bi-box-seam"></i> Receber mercadoria</button></div></article>`}).join(''):'<div class="empty">Não há compras em andamento. Os pedidos entregues continuam registrados em Pedidos de compra.</div>';
 }
@@ -148,16 +190,27 @@ function renderStats(){
 function renderAll(){renderReq();renderCot();renderForn();renderPed();renderTracking();renderStats();}
 
 async function load(){
-  const [p,r,c,f,pe]=await Promise.all([
-    getDocs(collection(db,'produtos')),
-    getDocs(query(collection(db,'requisicoesCompra'),orderBy('criadoEm','desc'),limit(200))),
-    getDocs(query(collection(db,'cotacoesCompra'),orderBy('criadoEm','desc'),limit(200))),
-    getDocs(query(collection(db,'fornecedores'),orderBy('razaoSocial'),limit(200))),
-    getDocs(query(collection(db,'pedidosCompra'),orderBy('criadoEm','desc'),limit(200)))
-  ]);
-  state.produtos=p.docs.map(d=>({id:d.id,...d.data()})).filter(x=>x.ativo!==false);
-  state.req=r.docs.map(d=>({id:d.id,...d.data()})); state.cot=c.docs.map(d=>({id:d.id,...d.data()})); state.forn=f.docs.map(d=>({id:d.id,...d.data()})); state.ped=pe.docs.map(d=>({id:d.id,...d.data()}));
+  // Cada coleção é carregada de forma independente. Assim, uma falha de
+  // permissão/índice em uma coleção não derruba toda a interface de Compras.
+  const consultas = [
+    ['produtos', () => getDocs(collection(db,'produtos'))],
+    ['requisicoesCompra', () => getDocs(query(collection(db,'requisicoesCompra'),orderBy('criadoEm','desc'),limit(200)))],
+    ['cotacoesCompra', () => getDocs(query(collection(db,'cotacoesCompra'),orderBy('criadoEm','desc'),limit(200)))],
+    ['fornecedores', () => getDocs(query(collection(db,'fornecedores'),orderBy('razaoSocial'),limit(200)))],
+    ['pedidosCompra', () => getDocs(query(collection(db,'pedidosCompra'),orderBy('criadoEm','desc'),limit(200)))]
+  ];
+  const resultados = await Promise.all(consultas.map(async ([nome,fn]) => {
+    try { return [nome, await fn(), null]; }
+    catch (erro) { console.warn(`NeoScale Compras: não foi possível carregar ${nome}.`, erro); return [nome, null, erro]; }
+  }));
+  const docs = Object.fromEntries(resultados.map(([nome,snap]) => [nome, snap?.docs || []]));
+  state.produtos=docs.produtos.map(d=>({id:d.id,...d.data()})).filter(x=>x && String(x.nome||'').trim());
+  state.req=docs.requisicoesCompra.map(d=>({id:d.id,...d.data()}));
+  state.cot=docs.cotacoesCompra.map(d=>({id:d.id,...d.data()}));
+  state.forn=docs.fornecedores.map(d=>({id:d.id,...d.data()}));
+  state.ped=docs.pedidosCompra.map(d=>({id:d.id,...d.data()}));
   renderAll();
+  return resultados;
 }
 
 async function save(){
@@ -178,6 +231,8 @@ async function save(){
       await setDoc(ref,{...data,itens,total:num(data.total),numero:old?.numero||`PC-${Date.now().toString().slice(-6)}`,fornecedorNome:forn?.razaoSocial||forn?.nome||'',status:old?.status||'APROVADO',criadoEm:old?.criadoEm||serverTimestamp(),atualizadoEm:serverTimestamp()},{merge:true});
     } else if(formType==='receive') {
       await receivePurchase(currentId);
+    } else if(formType==='envio-cotacao') {
+      // O envio é registrado pelo clique do canal; não há dados para salvar aqui.
     }
     closeModal(); await load();
   } catch(e){ console.error(e); alert(e.message || 'Não foi possível salvar. Verifique os campos e as permissões do Firebase.'); }
@@ -218,6 +273,10 @@ async function receivePurchase(id){
 }
 
 
+function paginaAtualCompras(){
+  return (location.pathname.split('/').pop() || 'compras.html').replace('.html','').toLowerCase();
+}
+
 const PAGE_AREAS = {
   'compras':'overview',
   'requisicoes':'requisicoes',
@@ -226,7 +285,7 @@ const PAGE_AREAS = {
   'pedidos-compra':'pedidos',
   'acompanhamento':'acompanhamento'
 };
-const CURRENT_AREA = PAGE_AREAS[paginaAtual()] || 'overview';
+const CURRENT_AREA = PAGE_AREAS[paginaAtualCompras()] || 'overview';
 
 function navegarArea(area, params=''){
   const urls={
@@ -264,6 +323,27 @@ $('modal')?.addEventListener('click',e=>{if(e.target===modal)closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape' && $('modal') && !modal.hidden)closeModal()});
 
 $('modalBody')?.addEventListener('click',e=>{
+  const channel=e.target.closest('[data-send-channel]');
+  if(channel){
+    const c=state.cot.find(x=>x.id===currentId); const forn=fornecedorContatoCotacao(c); const msg=$('mensagemCotacao')?.value||montarMensagemCotacao(c||{});
+    if(channel.dataset.sendChannel==='whatsapp') {
+      const tel=telefoneWhatsApp(forn.telefone||forn.celular||'');
+      if(!tel){ alert('Cadastre um telefone/WhatsApp no fornecedor antes de enviar.'); return; }
+      window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`,'_blank','noopener');
+      registrarEnvioCotacao(currentId,'whatsapp');
+    } else {
+      const email=forn.email||'';
+      if(!email){ alert('Cadastre o e-mail no fornecedor antes de enviar.'); return; }
+      const assunto=`Cotação ${c?.numero||''} - NeoScale`;
+      window.location.href=`mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(assunto)}&body=${encodeURIComponent(msg)}`;
+      registrarEnvioCotacao(currentId,'email');
+    }
+    return;
+  }
+  if(e.target.closest('#copiarMensagem')){
+    navigator.clipboard?.writeText($('mensagemCotacao')?.value||'').then(()=>alert('Mensagem copiada.')).catch(()=>{});
+    return;
+  }
   if(e.target.closest('#addItem'))addItemRow();
   const r=e.target.closest('.remove-row');
   if(r){
@@ -279,16 +359,59 @@ $('modalBody')?.addEventListener('change',e=>{
   }
 });
 
+function reqView(r){
+  if(!r) return;
+  const itens=(r.itens||[]).map(i=>`<tr><td>${esc(i.produtoNome||i.nome||'-')}</td><td>${num(i.quantidade)}</td><td>${i.tipoVenda==='peso'?'kg':'un.'}</td><td>${esc(i.observacao||'-')}</td></tr>`).join('');
+  openModal(`Requisição ${r.numero||r.id.slice(0,8)}`, 'Detalhamento completo da solicitação de compra.', 'view-req', r.id,
+    `<div class="req-view-grid"><div><span>Solicitante</span><strong>${esc(r.solicitante||'-')}</strong></div><div><span>Prioridade</span><strong>${esc(r.prioridade||'NORMAL')}</strong></div><div><span>Data necessária</span><strong>${dateBR(r.dataNecessaria)}</strong></div><div><span>Status</span><strong>${status(r.status||'ABERTA',{ABERTA:'Aberta',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</strong></div><div class="full"><span>Centro de custo / setor</span><strong>${esc(r.centroCusto||'-')}</strong></div><div class="full"><span>Justificativa</span><strong>${esc(r.justificativa||'-')}</strong></div></div><div class="items-editor"><table><thead><tr><th>Produto</th><th>Quantidade</th><th>Unidade</th><th>Observação</th></tr></thead><tbody>${itens||'<tr><td colspan="4" class="empty">Nenhum item informado.</td></tr>'}</tbody></table></div>`);
+}
+async function excluirOuCancelarReq(r, modo){
+  if(!r) return;
+  const isDelete=modo==='delete';
+  const acao=isDelete?'excluir definitivamente':'cancelar';
+  if(!confirm(`Deseja ${acao} a requisição ${r.numero||r.id.slice(0,8)}?`)) return;
+  try{
+    if(isDelete){
+      await deleteDoc(doc(db,'requisicoesCompra',r.id));
+      state.req=state.req.filter(x=>x.id!==r.id);
+      alert('Requisição excluída com sucesso.');
+    }else{
+      await updateDoc(doc(db,'requisicoesCompra',r.id),{status:'CANCELADA',atualizadoEm:serverTimestamp()});
+      r.status='CANCELADA';
+      alert('Requisição cancelada com sucesso.');
+    }
+    renderReq();
+    renderStats();
+  }catch(e){
+    console.error(e);
+    alert(`Não foi possível ${acao} a requisição. Verifique as permissões do Firebase.`);
+  }
+}
+async function enviarReqCotacao(r){
+  if(!r) return;
+  if(r.status==='EM_COTACAO'){ location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(r.id)}`; return; }
+  try{
+    await updateDoc(doc(db,'requisicoesCompra',r.id),{status:'EM_COTACAO',atualizadoEm:serverTimestamp()});
+    r.status='EM_COTACAO';
+    renderReq();
+    location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(r.id)}`;
+  }catch(e){ console.error(e); alert('Não foi possível enviar a requisição para cotação. Verifique as permissões do Firebase.'); }
+}
 $('listaReq')?.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
-  const x=state.req.find(x=>x.id===b.dataset.id);
+  const x=state.req.find(x=>x.id===b.dataset.id); if(!x)return;
+  if(b.dataset.action==='req-view')reqView(x);
   if(b.dataset.action==='req-edit')reqForm(x);
+  if(b.dataset.action==='req-send-cot')enviarReqCotacao(x);
   if(b.dataset.action==='req-cot')location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(x.id)}`;
+  if(b.dataset.action==='req-delete')excluirOuCancelarReq(x,'delete');
+  if(b.dataset.action==='req-cancel')excluirOuCancelarReq(x,'cancel');
 });
 $('listaCot')?.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
   const x=state.cot.find(x=>x.id===b.dataset.id);
   if(b.dataset.action==='cot-edit')cotForm(x);
+  if(b.dataset.action==='cot-enviar')envioCotacaoForm(x);
   if(b.dataset.action==='cot-aprovar')approveCot(x.id);
   if(b.dataset.action==='cot-ped')location.href=`pedidos-compra.html?novo=1&cotId=${encodeURIComponent(x.id)}&fornecedorId=${encodeURIComponent(x.fornecedorId||'')}`;
 });
@@ -312,14 +435,16 @@ $('trackingGrid')?.addEventListener('click',e=>{
 ['buscaReq','filtroReq','buscaCot','filtroCot','buscaForn','buscaPed','filtroPed']
   .forEach(id=>$(id)?.addEventListener('input',()=>renderAll()));
 
-function renderAll(){
-  if($('listaReq')) renderReq();
-  if($('listaCot')) renderCot();
-  if($('listaForn')) renderForn();
-  if($('listaPed')) renderPed();
-  if($('trackingGrid')) renderTracking();
-  if($('statReq')) renderStats();
-}
+// Disponibiliza as ações da interface globalmente para garantir que os
+// botões continuem funcionando mesmo quando o carregamento dos dados demora.
+window.NeoScaleCompras = {
+  reqForm, cotForm, fornecedorForm, pedForm, receiveForm,
+  closeModal, load, save, advance, approveCot, receivePurchase,
+  envioCotacaoForm, registrarEnvioCotacao,
+  get __state(){ return state; },
+  get __currentId(){ return currentId; },
+  __sendCotacao: registrarEnvioCotacao
+};
 
 load().then(()=>{
   const params=new URLSearchParams(location.search);
@@ -328,4 +453,4 @@ load().then(()=>{
     if(CURRENT_AREA==='cotacoes') cotForm(id?{reqId:id}:{});
     else if(CURRENT_AREA==='pedidos') pedForm(cotId?{cotId,fornecedorId:forn||''}:{});
   }
-}).catch(e=>{console.error(e);alert('Não foi possível carregar o módulo de Compras. Verifique sua conexão e permissões do Firebase.')});
+}).catch(e=>console.error('NeoScale Compras: falha inesperada ao montar a interface.',e));
