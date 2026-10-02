@@ -1,5 +1,5 @@
 import { db } from './firebase.js';
-import { collection, addDoc, query, where, orderBy, limit, getDocs, updateDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { collection, addDoc, query, where, orderBy, limit, getDocs, updateDoc, doc, serverTimestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 
 const CAIXAS='caixas', MOV='movimentosCaixa';
 export async function caixaAberto(){
@@ -15,7 +15,21 @@ export async function registrarMovimento({caixaId,tipo,valor,forma='Dinheiro',de
  return addDoc(collection(db,MOV),{caixaId,tipo,valor:Number(valor||0),forma,descricao,referencia,criadoEm:serverTimestamp()});
 }
 export async function fecharCaixa(caixaId, valorContado, dados={}){
- const ref=doc(db,CAIXAS,caixaId); await updateDoc(ref,{status:'FECHADO',valorContado:Number(valorContado||0),valorEsperadoDinheiro:Number(dados.valorEsperadoDinheiro||0),diferenca:Number(dados.diferenca||0),fechadoEm:serverTimestamp()});
+ const ref=doc(db,CAIXAS,caixaId);
+ await updateDoc(ref,{status:'FECHADO',valorContado:Number(valorContado||0),valorEsperadoDinheiro:Number(dados.valorEsperadoDinheiro||0),diferenca:Number(dados.diferenca||0),fechadoEm:serverTimestamp()});
+ // Após o fechamento, as comandas canceladas deste caixa deixam de aparecer
+ // na tela operacional. O registro permanece no Firestore para auditoria/relatório.
+ try{
+   const snap=await getDocs(query(collection(db,CAIXAS),where('__name__','==',caixaId),limit(1)));
+   if(!snap.empty){
+     const cq=await getDocs(query(collection(db,'comandas'),where('caixaId','==',caixaId),where('status','==','CANCELADA'),limit(300)));
+     if(!cq.empty){
+       const batch=writeBatch(db);
+       cq.docs.forEach(d=>batch.update(d.ref,{ocultarAposFechamento:true}));
+       await batch.commit();
+     }
+   }
+ }catch(e){ console.warn('Não foi possível ocultar as comandas canceladas após o fechamento:',e); }
 }
 export async function listarCaixas(){
  const q=query(collection(db,CAIXAS),orderBy('abertoEm','desc')); const s=await getDocs(q); return s.docs.map(d=>({id:d.id,...d.data()}));

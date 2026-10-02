@@ -1,4 +1,5 @@
-import { auth } from './firebase.js';
+import { auth, db } from './firebase.js';
+import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { caixaAberto,abrirCaixa,fecharCaixa,listarMovimentos,calcularCaixa,registrarMovimento } from './caixa.js';
 const $=id=>document.getElementById(id), br=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); let atual=null; let tipoMov='SANGRIA'; let movimentosAtuais=[];
@@ -36,7 +37,7 @@ async function render(){
  }catch(e){ console.error(e); msg('Não foi possível acessar o Caixa no Firebase. Se você já entrou no sistema, verifique as regras do Firestore para permitir acesso aos usuários autenticados.'); }
 }
 $('btnAbrir').onclick=async()=>{clearMsg(); try{const op=$('operador').value.trim()||'Operador'; await abrirCaixa($('valorInicial').value,op); msg('Caixa aberto com sucesso. O PDV já poderá registrar as vendas neste caixa.',true); await render();}catch(e){console.error(e);msg(e.message||'Não foi possível abrir o caixa.')}};
-function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroEsperado){
+async function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroEsperado){
  // RELATORIO DO CAIXA NORMAL: somente movimentos do caixa normal.
  // Delivery usa colecoes separadas (caixasDelivery/movimentosCaixaDelivery) e nunca entra aqui.
  const ehDelivery = m => {
@@ -45,6 +46,12 @@ function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroEsperad
  };
  const movimentosNormais = movs.filter(m => !ehDelivery(m));
  const vendas=movimentosNormais.filter(m=>m.tipo==='VENDA');
+ let comandasCanceladas=[];
+ try{
+   const snap=await getDocs(query(collection(db,'comandas'),where('caixaId','==',caixa.id)));
+   comandasCanceladas=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>c.status==='CANCELADA');
+ }catch(e){ console.warn('Não foi possível carregar as comandas canceladas para o relatório:',e); }
+
 
  const sangrias=movimentosNormais.filter(m=>m.tipo==='SANGRIA');
  const suprimentos=movimentosNormais.filter(m=>m.tipo==='SUPRIMENTO');
@@ -81,10 +88,11 @@ function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroEsperad
  const linhasMov=movimentos.length?movimentos.map(m=>`<div class="row"><span>${esc(m.tipo)} ${m.descricao?'- '+esc(m.descricao):''}</span><span>${money(m.valor)}</span></div>`).join(''):'<div class="muted">NENHUMA MOVIMENTAÇÃO</div>';
  const produtos=vendas.map(v=>({descricao:v.descricao||'Venda',qtd:1,valor:Number(v.valor||0)}));
  const linhasProdutos=produtos.length?produtos.map(v=>`<div class="row"><span>${esc(v.descricao)} <b>x${v.qtd}</b></span><span>${money(v.valor)}</span></div>`).join(''):'<div class="muted">NENHUM PRODUTO REGISTRADO</div>';
+ const linhasCanceladas=comandasCanceladas.length?comandasCanceladas.map(c=>`<div class="cancelada"><div><b>COMANDA #${esc(c.numero||'-')}</b> — ${money(c.total)}</div><div>MOTIVO: ${esc(c.cancelamentoMotivo||'Não informado')}</div><div>OPERADOR: ${esc(c.canceladaPor||'Operador')}</div><div>HORÁRIO: ${esc(dataHora(c.canceladaEm))}</div></div>`).join(''):'<div class="muted">NENHUMA COMANDA CANCELADA</div>';
  const popup=window.open('','_blank','width=520,height=900');
  if(!popup){msg('Caixa fechado, mas o navegador bloqueou o relatório. Permita pop-ups para visualizar o relatório.',false);return;}
  popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NeoScale — Fechamento de Caixa</title><style>
- *{box-sizing:border-box}body{margin:0;background:#e9e9e9;color:#000;font-family:"Courier New",Courier,monospace;font-size:13px;font-weight:600}.sheet{width:80mm;min-height:100vh;margin:16px auto;background:#fff;padding:12px 10px 28px;box-shadow:0 2px 10px #0002}.center{text-align:center}.brand{font-size:20px;font-weight:900;letter-spacing:.4px}.title{font-size:14px;font-weight:900;margin-top:3px}.sub{font-size:11px;font-weight:700}.sep{border-top:1px dashed #000;margin:9px 0}.sep2{border-top:2px solid #000;margin:10px 0}.section{font-weight:900;font-size:13px;margin:7px 0 4px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;line-height:1.32;margin:1px 0}.row span:last-child{text-align:right;white-space:nowrap}.three{grid-template-columns:minmax(0,1fr) 74px 74px}.three span:nth-child(2),.three span:nth-child(3){text-align:right}.muted{font-size:11px;color:#000;font-weight:700}.total{font-size:14px;font-weight:900}.signature{margin-top:34px;padding-top:18px;text-align:center;min-height:135px}.signature-line{border-top:1.5px solid #000;margin:0 5px;padding-top:7px;font-weight:900}.signature .name{margin-top:10px}.signature .date{margin-top:9px}.actions{position:fixed;right:20px;top:20px;display:flex;gap:8px}.actions button{border:0;border-radius:8px;padding:9px 12px;background:#008f70;color:#fff;font-weight:800;cursor:pointer}.actions .close{background:#222}@media(max-width:700px){.sheet{margin:0;width:80mm;box-shadow:none}.actions{position:sticky;top:0;justify-content:center;background:#fff;padding:8px;margin:0 -10px 8px}.actions button{font-family:Arial,sans-serif}}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:80mm;padding:0 8px 28px}.actions{display:none!important}}
+ *{box-sizing:border-box}body{margin:0;background:#e9e9e9;color:#000;font-family:"Courier New",Courier,monospace;font-size:13px;font-weight:600}.sheet{width:80mm;min-height:100vh;margin:16px auto;background:#fff;padding:12px 10px 28px;box-shadow:0 2px 10px #0002}.center{text-align:center}.brand{font-size:20px;font-weight:900;letter-spacing:.4px}.title{font-size:14px;font-weight:900;margin-top:3px}.sub{font-size:11px;font-weight:700}.sep{border-top:1px dashed #000;margin:9px 0}.sep2{border-top:2px solid #000;margin:10px 0}.section{font-weight:900;font-size:13px;margin:7px 0 4px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;line-height:1.32;margin:1px 0}.row span:last-child{text-align:right;white-space:nowrap}.cancelada{border:1px solid #000;padding:6px;margin:5px 0;line-height:1.35}.three{grid-template-columns:minmax(0,1fr) 74px 74px}.three span:nth-child(2),.three span:nth-child(3){text-align:right}.muted{font-size:11px;color:#000;font-weight:700}.total{font-size:14px;font-weight:900}.signature{margin-top:34px;padding-top:18px;text-align:center;min-height:135px}.signature-line{border-top:1.5px solid #000;margin:0 5px;padding-top:7px;font-weight:900}.signature .name{margin-top:10px}.signature .date{margin-top:9px}.actions{position:fixed;right:20px;top:20px;display:flex;gap:8px}.actions button{border:0;border-radius:8px;padding:9px 12px;background:#008f70;color:#fff;font-weight:800;cursor:pointer}.actions .close{background:#222}@media(max-width:700px){.sheet{margin:0;width:80mm;box-shadow:none}.actions{position:sticky;top:0;justify-content:center;background:#fff;padding:8px;margin:0 -10px 8px}.actions button{font-family:Arial,sans-serif}}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:80mm;padding:0 8px 28px}.actions{display:none!important}}
  </style></head><body><div class="sheet"><div class="actions no-print"><button onclick="window.print()">IMPRIMIR</button><button class="close" onclick="window.close()">FECHAR</button></div>
  <div class="center"><div class="brand">NEOSCALE</div><div class="title">RELATÓRIO DE FECHAMENTO DE CAIXA</div><div class="sub">GERADO: ${esc(dataHora(fechamento))}</div></div>
  <div class="sep"></div>
@@ -98,12 +106,12 @@ function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroEsperad
  <div class="sep"></div><div class="section">CONFERÊNCIA</div><div class="row"><span>Valor esperado</span><span>${money(dinheiroEsperado)}</span></div><div class="row"><span>Valor contado</span><span>${money(valorContado)}</span></div><div class="row total"><span>DIFERENÇA</span><span>${money(diferencaDinheiro)}</span></div>
  <div class="sep"></div><div class="section">MOVIMENTAÇÕES</div>${linhasMov}
  <div class="sep"></div><div class="section">VENDAS DO CAIXA</div><div class="row"><span>Quantidade de vendas</span><span>${vendas.length}</span></div>${linhasProdutos}
- <div class="sep2"></div><div class="row total"><span>TOTAL DO CAIXA</span><span>${money(totalVendas)}</span></div>
+ <div class="sep"></div><div class="section">COMANDAS CANCELADAS</div>${linhasCanceladas}<div class="sep2"></div><div class="row total"><span>TOTAL DO CAIXA</span><span>${money(totalVendas)}</span></div>
  <div class="signature"><div class="signature-line">ASSINATURA DO OPERADOR</div><div class="name">Nome: ${esc(caixa.operador||'OPERADOR')}</div><div class="date">Data: ____/____/________</div></div>
  </div></body></html>`);
  popup.document.close();
 }
-async function fecharAtual(){if(!atual)return;clearMsg();try{const m=await listarMovimentos(atual.id),c=calcularCaixa(atual,m),cont=Number($('valorContado').value||0),dinheiro=resumoDinheiro(atual,m),dif=cont-dinheiro;if(cont<0){msg('Informe um valor contado válido.');return;}if(!confirm(`Conferência do caixa\n\nDinheiro esperado: ${br(dinheiro)}\nDinheiro contado: ${br(cont)}\nDiferença: ${br(dif)}\n\nConfirma o fechamento?`))return;await fecharCaixa(atual.id,cont);imprimirRelatorioVendas(atual,m,c,cont,dinheiro);msg(`Caixa fechado com sucesso. Diferença em dinheiro: ${br(dif)}. Relatório de vendas aberto para impressão.`,true);await render();}catch(e){console.error(e);msg(e.message||'Não foi possível fechar o caixa.');}}
+async function fecharAtual(){if(!atual)return;clearMsg();try{const m=await listarMovimentos(atual.id),c=calcularCaixa(atual,m),cont=Number($('valorContado').value||0),dinheiro=resumoDinheiro(atual,m),dif=cont-dinheiro;if(cont<0){msg('Informe um valor contado válido.');return;}if(!confirm(`Conferência do caixa\n\nDinheiro esperado: ${br(dinheiro)}\nDinheiro contado: ${br(cont)}\nDiferença: ${br(dif)}\n\nConfirma o fechamento?`))return;await fecharCaixa(atual.id,cont);await imprimirRelatorioVendas(atual,m,c,cont,dinheiro);msg(`Caixa fechado com sucesso. Diferença em dinheiro: ${br(dif)}. Relatório de vendas aberto para impressão.`,true);await render();}catch(e){console.error(e);msg(e.message||'Não foi possível fechar o caixa.');}}
 $('btnFechar').onclick=fecharAtual;const btnFecharPainel=$('btnFecharPainel');if(btnFecharPainel)btnFecharPainel.onclick=fecharAtual;
 onAuthStateChanged(auth,user=>{
  if(!user){window.location.href='index.html';return;}

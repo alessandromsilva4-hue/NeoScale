@@ -1,6 +1,7 @@
 import { db } from './firebase.js';
 import { collection, getDocs, query, orderBy, limit, updateDoc, doc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
 import { caixaAberto } from './caixa.js';
+let caixaAtualId = null;
 import { finalizarComanda, adicionarItemComanda } from './comandas.js';
 
 const lista = document.getElementById('listaComandas');
@@ -16,7 +17,7 @@ function data(v){ if(!v) return '-'; const d=v.toDate?v.toDate():new Date(v); re
 function status(s){ const c=s==='ABERTA'?'aberta':s==='FINALIZADA'?'finalizada':s==='TRANSFERIDA'?'transferida':'cancelada'; const label=s==='TRANSFERIDA'?'TRANSFERIDA':(s||'-'); return `<span class="badge ${c}">${esc(label)}</span>`; }
 function render(){
  const termo=busca.value.trim().toLowerCase(), fs=filtro.value;
- const itens=comandas.filter(c=>(fs==='TODAS'||c.status===fs)&&(!termo||[c.numero,c.codigoBarras,c.produto,c.tipo,...(Array.isArray(c.itens)?c.itens.map(i=>i.nome):[])].some(x=>String(x||'').toLowerCase().includes(termo))));
+ const itens=comandas.filter(c=>(!c.ocultarAposFechamento)&&(fs==='TODAS'||c.status===fs)&&(!termo||[c.numero,c.codigoBarras,c.produto,c.tipo,...(Array.isArray(c.itens)?c.itens.map(i=>i.nome):[])].some(x=>String(x||'').toLowerCase().includes(termo))));
  lista.innerHTML=itens.length?itens.map(c=>{
    const provisoria=c.tipo==='PROVISORIA';
    const itemCount=Array.isArray(c.itens)?c.itens.reduce((n,i)=>n+Number(i.quantidade||0),0):0;
@@ -51,7 +52,22 @@ function render(){
  document.querySelectorAll('[data-cancel]').forEach(b=>b.onclick=e=>{e.stopPropagation();cancelar(b.dataset.cancel)});
  const abertas=comandas.filter(c=>c.status==='ABERTA'); document.getElementById('statAbertas').textContent=abertas.length; document.getElementById('statFinalizadas').textContent=comandas.filter(c=>c.status==='FINALIZADA').length; document.getElementById('statCanceladas').textContent=comandas.filter(c=>c.status==='CANCELADA').length; document.getElementById('statValor').textContent=money(abertas.reduce((s,c)=>s+Number(c.total||0),0));
 }
-async function carregar(){ lista.innerHTML='<div class="empty grid-empty">Carregando...</div>'; try{ const snap=await getDocs(query(collection(db,'comandas'),orderBy('criadoEm','desc'),limit(300))); comandas=snap.docs.map(d=>({id:d.id,...d.data()})); render(); }catch(e){ console.error(e); lista.innerHTML='<div class="empty grid-empty">Não foi possível carregar as comandas.</div>'; } }
+async function carregar(){
+ lista.innerHTML='<div class="empty grid-empty">Carregando...</div>';
+ try{
+   // A tela operacional do Caixa só mostra canceladas enquanto o caixa ao qual
+   // elas pertencem estiver aberto. Depois do fechamento elas continuam no
+   // Firestore para auditoria/relatório, mas deixam de aparecer aqui.
+   const caixa=await caixaAberto();
+   caixaAtualId=caixa?.id||null;
+   const snap=await getDocs(query(collection(db,'comandas'),orderBy('criadoEm','desc'),limit(300)));
+   comandas=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>{
+     if(c.status!=='CANCELADA') return true;
+     return !!caixaAtualId && c.caixaId===caixaAtualId && c.ocultarAposFechamento!==true;
+   });
+   render();
+ }catch(e){ console.error(e); lista.innerHTML='<div class="empty grid-empty">Não foi possível carregar as comandas.</div>'; }
+}
 function abrir(id){
  const c=comandas.find(x=>x.id===id); if(!c)return;
  modoEdicao=false; pendentesEdicao=[];
@@ -147,6 +163,25 @@ async function enviarPendentesCaixa(id){
  }catch(e){console.error(e);alert(e.message||'Não foi possível enviar os itens.');}
 }
 
-async function cancelar(id){ if(!confirm('Cancelar esta comanda?'))return; try{await updateDoc(doc(db,'comandas',id),{status:'CANCELADA',canceladaEm:serverTimestamp()}); document.getElementById('modalComanda').hidden=true; await carregar();}catch(e){alert('Não foi possível cancelar a comanda.');console.error(e);} }
+async function cancelar(id){
+ const c=comandas.find(x=>x.id===id); if(!c)return;
+ const motivo=prompt(`Informe o motivo do cancelamento da comanda #${c.numero||''}:`,'');
+ if(motivo===null)return;
+ const texto=motivo.trim();
+ if(!texto){alert('Informe o motivo do cancelamento.');return;}
+ try{
+   const caixa=await caixaAberto();
+   await updateDoc(doc(db,'comandas',id),{
+     status:'CANCELADA',
+     canceladaEm:serverTimestamp(),
+     cancelamentoMotivo:texto,
+     canceladaPor:(caixa?.operador||'Operador'),
+     caixaId:caixa?.id||c.caixaId||null,
+     ocultarAposFechamento:false
+   });
+   document.getElementById('modalComanda').hidden=true;
+   await carregar();
+ }catch(e){alert('Não foi possível cancelar a comanda.');console.error(e);}
+}
 async function finalizar(id){ const c=comandas.find(x=>x.id===id); if(!c)return; try{const caixa=await caixaAberto(); if(!caixa){alert('Abra o caixa antes de finalizar a comanda.');return;} const forma=prompt('Forma de pagamento (PIX, DINHEIRO, CARTAO):','PIX'); if(!forma)return; await finalizarComanda(id, forma.toUpperCase()); document.getElementById('modalComanda').hidden=true; await carregar();}catch(e){alert(e.message||'Não foi possível finalizar.');console.error(e);} }
 busca.addEventListener('input',render); filtro.addEventListener('change',render); document.getElementById('btnAtualizar').onclick=carregar; document.getElementById('fecharModal').onclick=()=>document.getElementById('modalComanda').hidden=true; document.getElementById('modalComanda').addEventListener('click',e=>{if(e.target.id==='modalComanda')e.currentTarget.hidden=true}); carregar();
