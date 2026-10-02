@@ -14,15 +14,21 @@ export async function abrirCaixa(valorInicial, operador='Operador'){
 export async function registrarMovimento({caixaId,tipo,valor,forma='Dinheiro',descricao='',referencia=null}){
  return addDoc(collection(db,MOV),{caixaId,tipo,valor:Number(valor||0),forma,descricao,referencia,criadoEm:serverTimestamp()});
 }
-export async function fecharCaixa(caixaId, valorContado){
- const ref=doc(db,CAIXAS,caixaId); await updateDoc(ref,{status:'FECHADO',valorContado:Number(valorContado||0),fechadoEm:serverTimestamp()});
+export async function fecharCaixa(caixaId, valorContado, dados={}){
+ const ref=doc(db,CAIXAS,caixaId); await updateDoc(ref,{status:'FECHADO',valorContado:Number(valorContado||0),valorEsperadoDinheiro:Number(dados.valorEsperadoDinheiro||0),diferenca:Number(dados.diferenca||0),fechadoEm:serverTimestamp()});
 }
 export async function listarCaixas(){
  const q=query(collection(db,CAIXAS),orderBy('abertoEm','desc')); const s=await getDocs(q); return s.docs.map(d=>({id:d.id,...d.data()}));
 }
+function ehMovimentoDelivery(m){
+ const forma=String(m?.forma||'').trim().toLowerCase();
+ const origem=String(m?.origem||m?.tipoCaixa||m?.caixaTipo||'').trim().toLowerCase();
+ const desc=String(m?.descricao||'').trim().toLowerCase();
+ return origem==='delivery' || origem==='caixa delivery' || origem==='caixadelivery' || /delivery|caixa delivery|ifood|99food|anota ai|anota aí|entregador/.test(`${origem} ${forma} ${desc} ${String(m?.referencia||'').toLowerCase()}`);
+}
 export async function listarMovimentos(caixaId=null){
  let q=caixaId?query(collection(db,MOV),where('caixaId','==',caixaId),orderBy('criadoEm','desc')):query(collection(db,MOV),orderBy('criadoEm','desc'));
- const s=await getDocs(q); return s.docs.map(d=>({id:d.id,...d.data()}));
+ const s=await getDocs(q); return s.docs.map(d=>({id:d.id,...d.data()})).filter(m=>!ehMovimentoDelivery(m));
 }
 export function calcularCaixa(caixa,movs){
  const entrada=movs.filter(m=>['VENDA','SUPRIMENTO'].includes(m.tipo)).reduce((a,m)=>a+Number(m.valor||0),0);

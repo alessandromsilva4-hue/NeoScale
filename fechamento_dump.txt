@@ -10,9 +10,6 @@ let valoresSistema={dinheiro:0,pix:0,debito:0,credito:0};
 let historicoFechados=[];
 let filtroHistorico='todos';
 let filtroPeriodo='todos', filtroOperador='', filtroStatus='todos';
-let conciliacoesCaixaMap=new Map();
-let conciliacoesDeliveryMap=new Map();
-let caixasDelivery=[];
 
 // O Fechamento possui leitura própria para não depender do módulo de caixa.
 async function listarMovimentosFechamento(caixaId=null){
@@ -65,22 +62,7 @@ async function carregarDados(){
  try{
   // Busca os caixas diretamente, sem orderBy. Assim a tela não depende de índice do Firestore.
   caixas=await obterColecaoSeguro('caixas',8000);
-  // Caixa Loja/PDV e Caixa Delivery são estruturas independentes.
-  await carregarCaixasDelivery();
   caixas.sort((a,b)=>{const da=dataObj(a.abertoEm)?.getTime()||0, db=dataObj(b.abertoEm)?.getTime()||0; return db-da;});
-
-  // Carrega também as conciliações já realizadas para não reapresentar caixas como PENDENTES.
-  try{
-    const [concL, concD]=await Promise.all([obterColecaoSeguro('conciliacoesCaixa',8000), obterColecaoSeguro('conciliacoesDelivery',8000)]);
-    conciliacoesCaixaMap=new Map();
-    for(const c of concL){ if(c.caixaId) conciliacoesCaixaMap.set(String(c.caixaId),{...c,id:c.id}); }
-    conciliacoesDeliveryMap=new Map();
-    for(const c of concD){ if(c.caixaId) conciliacoesDeliveryMap.set(String(c.caixaId),{...c,id:c.id}); }
-  }catch(e){
-    console.warn('Conciliações não puderam ser carregadas; os caixas serão tratados como não conciliados.',e);
-    conciliacoesCaixaMap=new Map();
-    conciliacoesDeliveryMap=new Map();
-  }
 
   // Uma única leitura dos movimentos evita ficar esperando uma consulta para cada caixa.
   let movimentos=[];
@@ -104,7 +86,7 @@ async function carregarDados(){
   if(tbody) tbody.innerHTML=rows.length?rows.join(''):'<tr><td colspan="9" class="vazio"><i class="bi bi-inbox"></i><br>Nenhum caixa registrado ainda.</td></tr>';
   aplicarFiltrosFechamento();
   document.querySelectorAll('[data-ver-caixa]').forEach(btn=>btn.addEventListener('click',e=>{e.stopPropagation();abrirDetalheCaixa(btn.dataset.verCaixa);}));
-  renderHistoricoFechados(); renderHistoricoConciliacoes(); preencherCaixas(); preencherCaixaDelivery(); atualizarConciliacaoDelivery();
+  renderHistoricoFechados(); preencherCaixas(); preencherCaixaDelivery(); atualizarConciliacaoDelivery();
  }catch(e){
   console.error('Erro ao carregar fechamento:',e);
   const msg=e?.message?.startsWith('TIMEOUT_')?'O Firestore demorou para responder. Verifique a conexão e tente Atualizar novamente.':'Não foi possível ler a coleção "caixas". Verifique as regras/permissões do Firestore.';
@@ -185,73 +167,16 @@ function configurarDetalheCaixa(){
  document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharDetalheCaixa();});
 }
 
-function renderHistoricoConciliacoes(){
- const tbody=$('tbodyHistoricoConciliacoes'); if(!tbody)return;
- const lista=Array.from(conciliacoesCaixaMap.values()).map(c=>({...c,_tipo:'Caixa Loja',_operador:c.operador||'Operador',_caixaId:c.caixaId,_data:c.criadoEm})).sort((a,b)=>(dataObj(b._data)?.getTime()||0)-(dataObj(a._data)?.getTime()||0));
- const qtdOk=lista.filter(c=>String(c.status||'').toUpperCase()==='CONCILIADO').length;
- const qtdDiv=lista.filter(c=>String(c.status||'').toUpperCase()==='DIVERGENTE').length;
- const totalS=lista.reduce((a,c)=>a+Number(c.totalSistema||0),0);
- const totalC=lista.reduce((a,c)=>a+Number(c.totalConferido||0),0);
- if($('concHistQtd'))$('concHistQtd').textContent=lista.length;
- if($('concHistQtdOk'))$('concHistQtdOk').textContent=qtdOk;
- if($('concHistQtdDiv'))$('concHistQtdDiv').textContent=qtdDiv;
- if($('concHistTotalSistema'))$('concHistTotalSistema').textContent=br(totalS);
- if($('concHistTotalConferido'))$('concHistTotalConferido').textContent=br(totalC);
- if(!lista.length){tbody.innerHTML='<tr><td colspan="8" class="vazio"><i class="bi bi-check2-all"></i><br>Nenhuma conciliação do Caixa Loja realizada ainda.</td></tr>';return;}
- tbody.innerHTML=lista.map(c=>{
-   const st=String(c.status||'').toUpperCase(), dif=Number(c.diferenca||0);
-   const badge=st==='CONCILIADO'?'<span class="status-badge status-fechado"><i class="bi bi-check-circle"></i> Conciliado</span>':'<span class="status-badge status-divergente"><i class="bi bi-exclamation-triangle"></i> Divergente</span>';
-   return `<tr><td>${c._operador}</td><td>${c._caixaId||'—'}</td><td>${data(c._data)}</td><td>${br(c.totalSistema)}</td><td>${br(c.totalConferido)}</td><td class="${Math.abs(dif)<0.005?'dif-ok':'dif-bad'}">${br(dif)}</td><td>${badge}</td><td><button type="button" class="btn-ver-caixa btn-ver-conciliacao" data-ver-conc="${c.id||''}"><i class="bi bi-eye"></i> Ver</button></td></tr>`;
- }).join('');
- tbody.querySelectorAll('[data-ver-conc]').forEach(btn=>btn.addEventListener('click',()=>abrirDetalheConciliacao(btn.dataset.verConc)));
- renderHistoricoConciliacoesDelivery();
-}
-function renderHistoricoConciliacoesDelivery(){
- const tbody=$('tbodyHistoricoConciliacoesDelivery'); if(!tbody)return;
- const lista=Array.from(conciliacoesDeliveryMap.values()).map(c=>({...c,_data:c.criadoEm})).sort((a,b)=>(dataObj(b._data)?.getTime()||0)-(dataObj(a._data)?.getTime()||0));
- const qtdOk=lista.filter(c=>String(c.status||'').toUpperCase()==='CONCILIADO').length;
- const qtdDiv=lista.filter(c=>String(c.status||'').toUpperCase()==='DIVERGENTE').length;
- const totalS=lista.reduce((a,c)=>a+Number(c.totalSistema||0),0);
- const totalC=lista.reduce((a,c)=>a+Number(c.totalConferido||0),0);
- if($('concDeliveryHistQtd'))$('concDeliveryHistQtd').textContent=lista.length;
- if($('concDeliveryHistQtdOk'))$('concDeliveryHistQtdOk').textContent=qtdOk;
- if($('concDeliveryHistQtdDiv'))$('concDeliveryHistQtdDiv').textContent=qtdDiv;
- if($('concDeliveryHistTotalSistema'))$('concDeliveryHistTotalSistema').textContent=br(totalS);
- if($('concDeliveryHistTotalConferido'))$('concDeliveryHistTotalConferido').textContent=br(totalC);
- if(!lista.length){tbody.innerHTML='<tr><td colspan="11" class="vazio"><i class="bi bi-bicycle"></i><br>Nenhuma conciliação do Delivery realizada ainda.</td></tr>';return;}
- const money=(obj,key)=>br(Number((obj||{})[key]||0));
- tbody.innerHTML=lista.map(c=>{
-   const st=String(c.status||'').toUpperCase(), dif=Number(c.diferenca||0), conf=c.conferidoPorPlataforma||{}, sys=c.sistemaPorPlataforma||{};
-   const badge=st==='CONCILIADO'?'<span class="status-badge status-fechado"><i class="bi bi-check-circle"></i> Conciliado</span>':'<span class="status-badge status-divergente"><i class="bi bi-exclamation-triangle"></i> Divergente</span>';
-   return `<tr><td>${c.caixaId||'—'}</td><td>${data(c._data)}</td><td>${money(conf,'ifood')}</td><td>${money(conf,'99food')}</td><td>${money(conf,'anota')}</td><td>${money(conf,'balcao')}</td><td>${br(c.totalSistema)}</td><td>${br(c.totalConferido)}</td><td class="${Math.abs(dif)<0.005?'dif-ok':'dif-bad'}">${br(dif)}</td><td>${badge}</td><td><button type="button" class="btn-ver-caixa btn-ver-conciliacao" data-ver-conc-delivery="${c.id||''}"><i class="bi bi-eye"></i> Ver</button></td></tr>`;
- }).join('');
- tbody.querySelectorAll('[data-ver-conc-delivery]').forEach(btn=>btn.addEventListener('click',()=>abrirDetalheConciliacao(btn.dataset.verConcDelivery)));
-}
-
-function abrirDetalheConciliacao(id){
- const c=conciliacoesCaixaMap.get(id)||conciliacoesDeliveryMap.get(id); if(!c)return;
- const tipo=conciliacoesCaixaMap.has(id)?'Caixa Loja':'Caixa Delivery';
- const detalhes=tipo==='Caixa Loja'
-  ? `Dinheiro: ${br(c.conferencia?.dinheiro)} | PIX: ${br(c.conferencia?.pix)} | Débito: ${br(c.conferencia?.debito)} | Crédito: ${br(c.conferencia?.credito)}`
-  : Object.entries(c.conferidoPorPlataforma||{}).map(([k,v])=>`${k}: ${br(v)}`).join(' | ');
- alert(`Conciliação ${tipo}\n\nOperador: ${c.operador||'—'}\nCaixa: ${c.caixaId||'—'}\nData: ${data(c.criadoEm)}\nStatus: ${c.status||'—'}\nTotal sistema: ${br(c.totalSistema)}\nTotal conferido: ${br(c.totalConferido)}\nDiferença: ${br(c.diferenca)}\n\nValores conferidos:\n${detalhes}\n\nObservação: ${c.observacao||'—'}`);
-}
-
-function caixasPendentesConciliacao(){
- return caixas.filter(c=>String(c.status||'').toUpperCase()==='FECHADO' && !conciliacoesCaixaMap.has(String(c.id)));
-}
 function preencherCaixas(){
  const sel=$('caixaConciliacao'); if(!sel)return;
- const pendentes=caixasPendentesConciliacao();
- sel.innerHTML=pendentes.map(c=>`<option value="${c.id}">${c.operador||'Operador'} — ${data(c.fechadoEm)} — ${br(c.valorContado)}</option>`).join('');
- if(!sel.options.length){sel.innerHTML='<option value="">Nenhum caixa para conciliar</option>';$('carregarConciliacao').disabled=true;$('salvarConciliacao').disabled=true;$('statusConc').textContent='SEM CAIXA PARA CONCILIAR';$('resultadoConc')?.classList.remove('conciliado');$('concAlerta').innerHTML='<i class="bi bi-check-circle"></i> Não há caixa fechado aguardando conciliação.';return;}
- $('carregarConciliacao').disabled=false;$('salvarConciliacao').disabled=false;$('statusConc').textContent='PENDENTE';
+ sel.innerHTML=caixas.filter(c=>c.status==='FECHADO').map(c=>`<option value="${c.id}">${c.operador||'Operador'} — ${data(c.fechadoEm)} — ${br(c.valorContado)}</option>`).join('');
+ if(!sel.options.length){sel.innerHTML='<option value="">Nenhum caixa fechado</option>';$('carregarConciliacao').disabled=true;return;}
+ $('carregarConciliacao').disabled=false;
 }
 
 async function prepararConciliacao(){
  const id=$('caixaConciliacao').value; caixaAtual=caixas.find(c=>c.id===id);
- if(!caixaAtual){$('salvarConciliacao').disabled=true;$('statusConc').textContent='SEM CAIXA PARA CONCILIAR';$('resultadoConc')?.classList.remove('conciliado');$('concAlerta').innerHTML='<i class="bi bi-info-circle"></i> Não há caixa fechado disponível para conciliar.';return;}
- $('salvarConciliacao').disabled=false;
+ if(!caixaAtual){$('concAlerta').innerHTML='<i class="bi bi-exclamation-circle"></i> Não há caixa fechado disponível para conciliar.';return;}
  try{
   const ms=await listarMovimentosFechamento(id); valoresSistema={dinheiro:0,pix:0,debito:0,credito:0};
   ms.filter(m=>m.tipo==='VENDA').forEach(m=>{const k=formaKey(m.forma);if(k)valoresSistema[k]+=Number(m.valor||0);});
@@ -271,10 +196,6 @@ async function salvarConciliacao(){
  if(Math.abs(diferenca)>=0.005 && !observacao){ alert('Informe uma observação/justificativa para salvar uma conciliação com divergência.'); $('obsConciliacao')?.focus(); return; }
  try{
   await addDoc(collection(db,'conciliacoesCaixa'),{caixaId:caixaAtual.id,operador:caixaAtual.operador||'Operador',sistema,conferencia,totalSistema,totalConferido,diferenca,status:Math.abs(diferenca)<0.005?'CONCILIADO':'DIVERGENTE',observacao,criadoEm:serverTimestamp()});
-  const novo={caixaId:caixaAtual.id,operador:caixaAtual.operador||'Operador',sistema,conferencia,totalSistema,totalConferido,diferenca,status:Math.abs(diferenca)<0.005?'CONCILIADO':'DIVERGENTE',observacao,criadoEm:new Date(),id:'local-'+caixaAtual.id};
-  conciliacoesCaixaMap.set(String(caixaAtual.id),novo);
-  renderHistoricoConciliacoes();
-  preencherCaixas();
   $('concAlerta').innerHTML='<i class="bi bi-check-circle-fill"></i> Conciliação salva no Firestore com sucesso.';
  }catch(e){console.error(e);alert('Não foi possível salvar a conciliação.');}
 }
@@ -296,7 +217,7 @@ function aplicarFiltrosFechamento(){
   const dif=Math.abs(Number(c._diferenca||0))>=0.005;
   const okStatus=filtroStatus==='todos'||status===filtroStatus||(filtroStatus==='DIVERGENTE'&&status==='FECHADO'&&dif);
   row.style.display=okBusca&&okPeriodo&&okStatus?'':'none';
- });
+ }
 }
 function csvEsc(v){return '"'+String(v??'').replace(/"/g,'""')+'"';}
 function exportarFechamento(){
@@ -306,13 +227,6 @@ function exportarFechamento(){
 }
 function imprimirFechamento(){window.print();}
 
-// Conciliação Caixa Delivery — mesma estrutura visual e operacional da Caixa Loja
-const DELIVERY_PLATFORMS=[
- ['ifood','iFood','deliverySysIfood','deliveryMaqIfood','deliveryDifIfood'],
- ['food99','99Food','deliverySys99','deliveryMaq99','deliveryDif99'],
- ['anota','Anota aí','deliverySysAnota','deliveryMaqAnota','deliveryDifAnota'],
- ['balcao','Pedido no balcão','deliverySysBalcao','deliveryMaqBalcao','deliveryDifBalcao']
-];
 function inicializarFechamento(){
   const on=(id,evento,fn)=>{const el=$(id); if(el) el.addEventListener(evento,fn);};
   on('atualizar','click',carregarDados);
@@ -331,13 +245,6 @@ function inicializarFechamento(){
   // Os botões de "Ver" e as linhas do histórico são dinâmicos; a delegação mantém tudo clicável.
   $('tbody')?.addEventListener('click',e=>{const btn=e.target.closest('[data-ver-caixa]');if(btn){e.preventDefault();e.stopPropagation();abrirDetalheCaixa(btn.dataset.verCaixa);}});
   $('tbodyHistoricoCaixas')?.addEventListener('click',e=>{const row=e.target.closest('.linha-caixa-clicavel');if(row)abrirDetalheCaixa(row.dataset.caixaId);});
-  // Conciliação Delivery: todos os eventos ficam ligados somente após o DOM estar pronto.
-  DELIVERY_PLATFORMS.forEach(([, , ,mid])=>on(mid,'input',atualizarConciliacaoDelivery));
-  on('deliveryConcObs','input',()=>{const el=$('deliveryContadorObs');if(el)el.textContent=String($('deliveryConcObs')?.value||'').length;});
-  on('carregarConciliacaoDelivery','click',prepararConciliacaoDelivery);
-  on('salvarConciliacaoDelivery','click',salvarConciliacaoDelivery);
-  preencherCaixaDelivery();
-  atualizarConciliacaoDelivery();
   carregarDados();
 }
 
@@ -346,7 +253,13 @@ if(document.readyState==='loading') document.addEventListener('DOMContentLoaded'
 else inicializarFechamento();
 
 
-
+// Conciliação Caixa Delivery — mesma estrutura visual e operacional da Caixa Loja
+const DELIVERY_PLATFORMS=[
+ ['ifood','iFood','deliverySysIfood','deliveryMaqIfood','deliveryDifIfood'],
+ ['food99','99Food','deliverySys99','deliveryMaq99','deliveryDif99'],
+ ['anota','Anota aí','deliverySysAnota','deliveryMaqAnota','deliveryDifAnota'],
+ ['balcao','Pedido no balcão','deliverySysBalcao','deliveryMaqBalcao','deliveryDifBalcao']
+];
 function pedidosDeliveryConcluidos(){
  try{
   const rows=JSON.parse(localStorage.getItem('neoscale_delivery_orders')||'[]');
@@ -379,40 +292,31 @@ function atualizarConciliacaoDelivery(){
  if($('deliveryConcDiferenca'))$('deliveryConcDiferenca').textContent=Math.abs(dif)<0.005?'CONCILIADO':br(dif);
  $('deliveryConcResultado')?.classList.toggle('conciliado',Math.abs(dif)<0.005);
 }
-async function carregarCaixasDelivery(){
- try{
-  const snap=await getDocs(collection(db,'caixasDelivery'));
-  caixasDelivery=snap.docs.map(d=>({id:d.id,...d.data()}));
-  caixasDelivery.sort((a,b)=>(dataObj(b.fechadoEm||b.abertoEm)?.getTime()||0)-(dataObj(a.fechadoEm||a.abertoEm)?.getTime()||0));
- }catch(e){
-  console.error('Não foi possível carregar os caixas do Delivery:',e);
-  caixasDelivery=[];
- }
-}
 function preencherCaixaDelivery(){
  const sel=$('caixaConciliacaoDelivery'); if(!sel)return;
- // IMPORTANTE: a conciliação Delivery usa exclusivamente a coleção caixasDelivery.
- // Nunca utilizar a coleção caixas, que pertence ao Frente de Loja/PDV.
- const fechados=caixasDelivery.filter(c=>String(c.status||'').toUpperCase()==='FECHADO' && !conciliacoesDeliveryMap.has(String(c.id)));
+ const fechados=caixas.filter(c=>c.status==='FECHADO');
  sel.innerHTML=fechados.map(c=>`<option value="${c.id}">${c.operador||'Operador'} — ${data(c.fechadoEm)} — ${br(c.valorContado)}</option>`).join('');
- if(!sel.options.length){sel.innerHTML='<option value="">Nenhum caixa Delivery fechado</option>';$('salvarConciliacaoDelivery')?.setAttribute('disabled','disabled');if($('deliveryConcDiferenca'))$('deliveryConcDiferenca').textContent='SEM CAIXA DELIVERY PARA CONCILIAR';$('deliveryConcResultado')?.classList.remove('conciliado');if($('deliveryConcAlerta'))$('deliveryConcAlerta').innerHTML='<i class="bi bi-info-circle"></i> Não há caixa Delivery fechado para realizar a conciliação.';} else {$('salvarConciliacaoDelivery')?.removeAttribute('disabled');if($('deliveryConcDiferenca'))$('deliveryConcDiferenca').textContent='PENDENTE';}
+ if(!sel.options.length){sel.innerHTML='<option value="">Nenhum caixa fechado</option>';}
 }
 async function prepararConciliacaoDelivery(){
- await carregarCaixasDelivery();
  preencherCaixaDelivery(); atualizarConciliacaoDelivery();
  const sel=$('caixaConciliacaoDelivery');
  if(sel?.value) $('deliveryConcAlerta').innerHTML='<i class="bi bi-check-circle"></i> Caixa selecionado. Confira os valores dos relatórios de cada plataforma do Delivery.';
 }
-async function salvarConciliacaoDelivery(){
+DELIVERY_PLATFORMS.forEach(([, , ,mid])=>$(mid)?.addEventListener('input',atualizarConciliacaoDelivery));
+$('deliveryConcObs')?.addEventListener('input',()=>{const el=$('deliveryContadorObs');if(el)el.textContent=String($('deliveryConcObs').value||'').length;});
+$('carregarConciliacaoDelivery')?.addEventListener('click',prepararConciliacaoDelivery);
+$('salvarConciliacaoDelivery')?.addEventListener('click',async()=>{
  atualizarConciliacaoDelivery();
  const sistema=valoresSistemaDelivery();
  const conferido={}; let totalS=0,totalC=0;
  for(const [k,,sid,mid] of DELIVERY_PLATFORMS){const sys=Number(sistema[k]||0),conf=valorInput(mid);conferido[k]=conf;totalS+=sys;totalC+=conf;}
  const diferenca=totalC-totalS, observacao=String($('deliveryConcObs')?.value||'').trim();
  if(Math.abs(diferenca)>=0.005&&!observacao){alert('Informe uma observação/justificativa para salvar uma divergência no Delivery.');return;}
- try{const caixaId=$('caixaConciliacaoDelivery')?.value||null; await addDoc(collection(db,'conciliacoesDelivery'),{sistemaPorPlataforma:sistema,conferidoPorPlataforma:conferido,totalSistema:totalS,totalConferido:totalC,diferenca,status:Math.abs(diferenca)<0.005?'CONCILIADO':'DIVERGENTE',observacao,caixaId,criadoEm:serverTimestamp()}); if(caixaId){conciliacoesDeliveryMap.set(String(caixaId),{caixaId,sistemaPorPlataforma:sistema,conferidoPorPlataforma:conferido,totalSistema:totalS,totalConferido:totalC,diferenca,status:Math.abs(diferenca)<0.005?'CONCILIADO':'DIVERGENTE',observacao,criadoEm:new Date(),id:'local-'+caixaId});} renderHistoricoConciliacoes(); preencherCaixaDelivery(); alert('Conciliação Caixa Delivery salva com sucesso.');}
+ try{await addDoc(collection(db,'conciliacoesDelivery'),{sistemaPorPlataforma:sistema,conferidoPorPlataforma:conferido,totalSistema:totalS,totalConferido:totalC,diferenca,status:Math.abs(diferenca)<0.005?'CONCILIADO':'DIVERGENTE',observacao,caixaId:$('caixaConciliacaoDelivery')?.value||null,criadoEm:serverTimestamp()});alert('Conciliação Caixa Delivery salva com sucesso.');}
  catch(e){console.error(e);alert('Não foi possível salvar a conciliação do Delivery.');}
-}
+});
+preencherCaixaDelivery(); atualizarConciliacaoDelivery();
 
 
 window.addEventListener('error',e=>console.error('NeoScale Fechamento erro:',e.error||e.message));

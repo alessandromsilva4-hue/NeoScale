@@ -3,9 +3,10 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const ROTAS_POR_PERFIL = {
-    ADMINISTRADOR: ["dashboard", "central", "clientes", "mesas", "comandas", "ficha-tecnica", "pesagem", "pdv", "caixa", "caixa-delivery", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "usuarios", "fiscal", "delivery", "cozinha", "estoque", "compras", "relatorios", "quiosque"],
-    CAIXA: ["dashboard", "central", "clientes", "comandas", "pdv", "caixa", "caixa-delivery", "historico", "delivery", "cozinha"],
-    OPERADOR: ["dashboard", "central", "pesagem", "comandas", "historico", "delivery", "cozinha"]
+    ADMINISTRADOR: ["dashboard", "central", "clientes", "mesas", "comandas", "ficha-tecnica", "pesagem", "pdv", "caixa", "caixa-delivery", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "usuarios", "fiscal", "delivery", "cozinha", "estoque", "compras", "relatorios", "quiosque", "garcom"],
+    CAIXA: ["dashboard", "central", "clientes", "comandas", "pdv", "caixa", "caixa-delivery", "historico", "delivery", "cozinha", "garcom"],
+    OPERADOR: ["dashboard", "central", "pesagem", "comandas", "historico", "delivery", "cozinha"],
+    GARCOM: ["dashboard", "central", "garcom", "comandas"]
 };
 
 async function obterPerfil(uid) {
@@ -30,7 +31,15 @@ export function protegerPagina(pagina) {
                 window.location.replace("index.html");
                 return;
             }
-            const funcao = perfil?.funcao || "ADMINISTRADOR";
+            // Aceita perfis antigos e novos (ex.: GARCOM, GARÇOM, garcom, "Garçom").
+            // O valor armazenado no Firestore é normalizado antes da checagem de rotas.
+            const valorFuncao = perfil?.funcao ?? perfil?.perfil ?? perfil?.role ?? "ADMINISTRADOR";
+            const funcao = String(valorFuncao)
+                .normalize("NFD")
+                .replace(/[\u0300-\u036f]/g, "")
+                .replace(/[^A-Za-z0-9]/g, "")
+                .toUpperCase();
+
             if (!(ROTAS_POR_PERFIL[funcao] || []).includes(pagina)) {
                 alert("Seu perfil não tem permissão para acessar esta tela.");
                 window.location.replace("dashboard.html");

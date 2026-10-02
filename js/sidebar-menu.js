@@ -12,6 +12,7 @@ const MENU = [
     ['produtos.html','bi-box-seam','Produtos','produtos'],
     ['mesas.html','bi-grid-3x3-gap','Mesas','mesas'],
     ['comandas.html','bi-receipt-cutoff','Comandas','comandas'],
+    ['garcom.html','bi-person-walking','Garçom','garcom'],
     ['ficha-tecnica.html','bi-journal-text','Ficha Técnica','ficha-tecnica']
   ]},
   { section: 'VENDAS', items: [

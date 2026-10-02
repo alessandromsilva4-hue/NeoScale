@@ -12,7 +12,7 @@ await setPersistence(secondaryAuth, inMemoryPersistence);
 const form=document.getElementById('userForm'), btn=document.getElementById('btnCriar'), msg=document.getElementById('mensagem'), tbody=document.getElementById('listaUsuarios'), busca=document.getElementById('busca');
 let usuarios=[];
 const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-const funcaoLabel=f=>({ADMINISTRADOR:'Administrador',CAIXA:'Caixa',OPERADOR:'Operador'}[f]||f||'Operador');
+const funcaoLabel=f=>({ADMINISTRADOR:'Administrador',CAIXA:'Caixa',OPERADOR:'Operador',GARCOM:'Garçom'}[f]||f||'Operador');
 const badge=f=>`<span class="badge ${(f||'').toLowerCase()}">${esc(funcaoLabel(f))}</span>`;
 function show(text,type='ok'){msg.className='msg '+type;msg.textContent=text;}
 function dataFmt(v){if(!v)return '-'; const d=v.toDate?v.toDate():new Date(v); return isNaN(d)?'-':d.toLocaleDateString('pt-BR');}

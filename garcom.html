@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NeoScale | Comandas</title>
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/sidebar.css">
+<link rel="stylesheet" href="css/tema-verde.css">
+<link rel="stylesheet" href="css/modulo-operacional.css">
+<style>
+:root{--cmd-green:#08a878;--cmd-green-dark:#087f5b;--cmd-light:#f3f8f6;--cmd-line:#dbe7e2;--cmd-yellow:#f3b900;--cmd-orange:#ff8b00}
+.garcom-page{padding:22px 24px;min-width:0;background:#f5f8f7;min-height:100vh}
+.command-top{display:flex;align-items:center;justify-content:space-between;gap:18px;margin-bottom:16px}.command-top h1{margin:0;font-size:25px}.command-top p{margin:4px 0 0;color:#71807a;font-size:13px}
+.command-actions{display:flex;gap:8px}.btn-green{border:0;background:var(--cmd-green);color:#fff;border-radius:8px;padding:10px 15px;font-weight:800;cursor:pointer}.btn-green:hover{background:var(--cmd-green-dark)}
+.command-toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}.command-tabs{display:flex;border:1px solid #d7e2de;border-radius:8px;overflow:hidden;background:#fff}.command-tabs button{border:0;background:#fff;padding:10px 22px;cursor:pointer;color:#4b5a55;font-weight:700}.command-tabs button.active{background:#08a878;color:#fff}
+.command-status{display:flex;gap:14px;align-items:center;font-size:12px;color:#65746f}.dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px}.dot.green{background:#10b981}.dot.yellow{background:#f0b400}.dot.orange{background:#ff8b00}
+.command-filter{display:flex;gap:9px;margin-bottom:14px}.command-filter .search{position:relative;max-width:280px;flex:1}.command-filter .search i{position:absolute;left:11px;top:11px;color:#73817d}.command-filter input,.command-filter select{height:38px;border:1px solid #d6e1dd;background:#fff;border-radius:7px;padding:0 12px;outline:none}.command-filter input{width:100%;padding-left:32px}.command-filter select{min-width:145px}
+ .command-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:12px;align-items:stretch}.command-tile{min-width:0}.command-tile{position:relative;min-height:116px;border:1px solid #cbdad5;border-radius:12px;background:#fff;color:#12352b;display:flex;flex-direction:column;justify-content:space-between;align-items:stretch;text-align:left;cursor:pointer;transition:.12s;box-shadow:0 2px 7px rgba(18,35,45,.05);padding:15px}.command-tile:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(18,35,45,.09);border-color:#0aa878}.command-tile strong{font-size:22px;line-height:1;color:#12352b}.command-tile small{font-size:11px;font-weight:800;text-transform:uppercase;color:#71807a}.command-tile .tile-value{font-size:13px;font-weight:900;color:#087f5b}.command-tile.provisional{background:#f3fbf7;border-color:#75d3b1}.command-tile.provisional strong{color:#087f5b}.command-tile.provisional small{color:#087f5b}.command-tile.peso{background:#f4fbff;border-color:#8bd0e8}.command-tile.peso strong{color:#0b6f96}.command-tile.peso small{color:#0b7198}.command-tile .tile-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.command-tile .tile-head>div{min-width:0;flex:1}.command-tile .tile-head small{display:block;white-space:normal;line-height:1.25;margin-bottom:3px}.command-tile .tile-head strong{display:block;white-space:nowrap}.command-tile .tile-status{flex:0 0 auto}.command-tile .tile-status{font-size:9px;padding:4px 7px;border-radius:999px;background:#e9f7ef;color:#087a57;font-weight:900;white-space:nowrap}.command-tile.provisional .tile-status{background:#dff6e9;color:#087a57}.command-tile.peso .tile-status{background:#dff3fb;color:#0b7198}.command-tile .tile-bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:10px}.command-tile .tile-action{font-size:11px;font-weight:900;color:#fff;background:#08a878;padding:7px 10px;border-radius:7px;white-space:nowrap}.command-tile.peso .tile-action{background:#159ed1}.command-empty{background:#fff;border:1px dashed #cfdcd7;border-radius:10px;padding:38px;text-align:center;color:#75837f;grid-column:1/-1}.command-empty i{font-size:30px;display:block;margin-bottom:8px}
+.command-legend{margin-top:13px;display:flex;justify-content:flex-end;gap:16px;font-size:11px;color:#6d7a76}
+.modal-overlay{position:fixed;inset:0;background:rgba(10,25,21,.48);display:flex;align-items:center;justify-content:center;padding:18px;z-index:1000}.modal-overlay[hidden]{display:none}.launch-modal{width:min(1120px,100%);max-height:min(780px,94vh);background:#fff;border-radius:13px;box-shadow:0 24px 70px rgba(0,0,0,.22);overflow:hidden;display:flex;flex-direction:column}.launch-head{display:flex;align-items:center;justify-content:space-between;padding:15px 18px;border-bottom:1px solid #e1e9e6}.launch-head h2{margin:0;font-size:19px}.launch-head p{margin:3px 0 0;font-size:12px;color:#75827e}.close-launch{border:0;background:#f1f5f3;border-radius:8px;width:36px;height:36px;cursor:pointer;font-size:17px}.launch-body{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(330px,.7fr);min-height:520px;overflow:hidden}.products-panel{padding:16px;border-right:1px solid #e1e9e6;overflow:auto}.products-search{display:flex;gap:8px;margin-bottom:12px}.products-search input{width:100%;border:1px solid #d5e1dc;border-radius:8px;padding:11px 12px;outline:none}.product-grid-modal{display:grid;grid-template-columns:repeat(4,minmax(120px,1fr));gap:8px}.modal-product{border:1px solid #d6e3de;background:#fff;border-radius:9px;padding:12px;text-align:left;cursor:pointer;min-height:78px}.modal-product:hover{border-color:var(--cmd-green);background:#f4fbf8}.modal-product strong{display:block;font-size:13px;line-height:1.2}.modal-product span{display:block;color:var(--cmd-green-dark);font-weight:900;margin-top:9px;font-size:13px}.order-panel{padding:16px;background:#f7faf9;display:flex;flex-direction:column;min-width:0}.order-title{display:flex;justify-content:space-between;gap:8px;align-items:center}.order-title h3{margin:0;font-size:17px}.order-badge{font-size:9px;padding:4px 7px;border-radius:5px;background:#dff6e9;color:#087a57;font-weight:900}.current-items{background:#fff;border:1px solid #e0e9e5;border-radius:9px;padding:10px;margin-top:10px;max-height:145px;overflow:auto}.current-line,.pending-line-modal{display:flex;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px dashed #dce6e2}.current-line:last-child,.pending-line-modal:last-child{border-bottom:0}.current-line span,.pending-line-modal span{font-size:12px}.current-line strong,.pending-line-modal strong{font-size:12px}.pending-modal{margin-top:10px;background:#eaf4f0;border-radius:9px;padding:10px}.pending-modal h4{margin:0 0 7px;font-size:13px}.remove-pending{border:0;background:#fff0f0;color:#b42318;border-radius:6px;padding:5px 7px;cursor:pointer}.order-total{display:flex;justify-content:space-between;align-items:center;margin-top:auto;padding-top:12px;font-size:16px}.order-total strong{font-size:20px}.launch-actions{display:flex;gap:8px;margin-top:10px}.launch-actions button{flex:1}.btn-cancel-soft{border:1px solid #dbe5e1;background:#fff;color:#53615c;border-radius:8px;padding:10px;font-weight:800;cursor:pointer}.transfer-modal{margin-top:10px;padding-top:10px;border-top:1px solid #dce6e2}.transfer-modal small{display:block;color:#75827e;margin-bottom:6px}.transfer-controls{display:flex;gap:6px}.transfer-controls select{min-width:0;flex:1;border:1px solid #d5e1dc;border-radius:8px;padding:9px;background:#fff}.transfer-controls button{border:0;background:#0aa878;color:#fff;border-radius:8px;padding:0 12px;cursor:pointer}
+@media(max-width:1050px){.product-grid-modal{grid-template-columns:repeat(3,minmax(110px,1fr))}}
+@media(max-width:800px){.launch-body{grid-template-columns:1fr}.products-panel{border-right:0;border-bottom:1px solid #e1e9e6;max-height:48vh}.product-grid-modal{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.garcom-page{padding:14px}.command-grid{grid-template-columns:1fr}.command-tile{max-width:none}.command-top{align-items:flex-start;flex-direction:column}.command-actions{width:100%}.command-actions button{flex:1}.command-toolbar{align-items:flex-start;flex-direction:column}.command-status{flex-wrap:wrap}.command-filter{flex-direction:column}.command-filter .search{max-width:none}.command-filter select{width:100%}.product-grid-modal{grid-template-columns:repeat(2,1fr)}.launch-modal{max-height:96vh}}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside class="sidebar" data-sidebar></aside>
+<main class="content garcom-page">
+  <div class="command-top">
+    <div><h1>Comandas</h1><p>Abra uma comanda provisória ou selecione uma comanda criada pela pesagem.</p></div>
+    <div class="command-actions"><button class="btn-green" id="btnNovaComanda"><i class="bi bi-plus-lg"></i> Criar comanda provisória</button><button class="btn-secondary" id="btnAtualizar"><i class="bi bi-arrow-clockwise"></i></button></div>
+  </div>
+  <div class="command-toolbar">
+    <div class="command-tabs"><button class="active" type="button">Comandas</button><button type="button" onclick="location.href='mesas.html'">Mesas</button></div>
+    <div class="command-status"><span><i class="dot green"></i>Comanda provisória / bebidas</span><span><i class="dot blue"></i>Comanda criada pela pesagem</span></div>
+  </div>
+  <div class="command-filter"><div class="search"><i class="bi bi-search"></i><input id="buscaGarcom" placeholder="Nº da comanda" autocomplete="off"></div><select id="filtroComanda"><option value="TODAS">Todas</option><option value="ABERTA">Abertas</option><option value="PROVISORIA">Provisórias</option><option value="PESO">Com pesagem</option></select></div>
+  <section id="listaComandasGarcom" class="command-grid"><div class="command-empty"><i class="bi bi-grid-3x3-gap"></i>Carregando comandas...</div></section>
+  <div class="command-legend"><span><i class="dot green"></i>Comanda provisória</span><span><i class="dot blue"></i>Comanda da pesagem</span></div>
+</main></div>
+
+<div class="modal-overlay" id="modalLancamento" hidden>
+  <div class="launch-modal" role="dialog" aria-modal="true" aria-labelledby="tituloLancamento">
+    <div class="launch-head"><div><h2 id="tituloLancamento">Comanda</h2><p id="subtituloLancamento">Selecione os produtos para lançar.</p></div><button class="close-launch" id="fecharLancamento" title="Fechar"><i class="bi bi-x-lg"></i></button></div>
+    <div class="launch-body">
+      <section class="products-panel">
+        <div class="products-search"><input id="buscaProdutoModal" placeholder="Buscar produto ou bebida..." autocomplete="off"></div>
+        <div id="produtosGarcom" class="product-grid-modal"><div class="command-empty">Carregando produtos...</div></div>
+      </section>
+      <aside class="order-panel">
+        <div class="order-title"><h3>Comanda <span id="numeroSelecionado">#----</span></h3><span class="order-badge" id="tipoSelecionado">ABERTA</span></div>
+        <div class="current-items" id="itensSelecionada"><div class="pending-empty">Nenhum item lançado.</div></div>
+        <div class="pending-modal"><h4>Itens para enviar</h4><div id="itensPendentes"><div class="pending-empty">Nenhum item selecionado.</div></div></div>
+        <div class="order-total"><span>Total a enviar</span><strong id="totalPendente">R$ 0,00</strong></div>
+        <div class="launch-actions"><button class="btn-cancel-soft" id="btnCancelarPendentes">Cancelar</button><button class="btn-green" id="btnEnviarPendentes"><i class="bi bi-send"></i> Enviar</button></div>
+        <div class="transfer-modal"><small>Cliente começou só com bebida e depois pesou?</small><div class="transfer-controls"><select id="destinoTransferencia"><option value="">Comanda da pesagem</option></select><button id="btnTransferir" title="Transferir"><i class="bi bi-arrow-left-right"></i></button></div></div>
+      </aside>
+    </div>
+  </div>
+</div>
+<script src="js/sidebar-menu.js"></script>
+<script type="module" src="js/garcom.js"></script>
+<script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('garcom');</script>
+</body></html>

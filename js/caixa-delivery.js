@@ -91,13 +91,52 @@ async function salvarMov(){
  await addDoc(collection(db,MOV),{caixaId:atual.id,tipo:$("movTipo").value,forma:$("movForma").value,valor,descricao:$("movDescricao").value.trim(),criadoEm:serverTimestamp()});
  $("movValor").value="";$("movDescricao").value="";await carregar();
 }
+function imprimirRelatorioDelivery(caixa,movs,resumo,contado){
+ const agora=new Date();
+ const dataHora=d=>d?new Date(d).toLocaleString('pt-BR'):'—';
+ const dataItem=v=>v?.toDate?dataHora(v.toDate()):v?dataHora(v):'—';
+ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+ const money=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+ const vendas=vendasLocais();
+ const totalVendas=vendas.reduce((a,v)=>a+Number(v.total||0),0);
+ const recebDin=vendas.filter(v=>v.pagamento==='Dinheiro').reduce((a,v)=>a+Number(v.total||0),0);
+ const emEntregadores=vendas.filter(v=>v.pagamento==='Dinheiro'&&v.recebimento==='ENTREGA'&&v.entregador).reduce((a,v)=>a+Number(v.total||0),0);
+ const aReceber=vendas.filter(v=>v.status!=='CONCLUIDO').reduce((a,v)=>a+Number(v.total||0),0);
+ const plataformas={IFOOD:0,'99FOOD':0,'ANOTA AI':0,BALCÃO:0};
+ cfgOrders().filter(o=>['CONCLUIDO','ENTREGA','PRONTO','PREPARO','NOVO'].includes(o.status)).forEach(o=>{
+   const raw=String(o.plataforma||o.platform||o.origem||o.canal||o.source||'BALCÃO').toUpperCase();
+   const k=raw.includes('99')?'99FOOD':raw.includes('ANOTA')?'ANOTA AI':raw.includes('IFOOD')?'IFOOD':'BALCÃO';
+   plataformas[k]+=Number(o.total||o.valor||0);
+ });
+ const porForma={DINHEIRO:0,PIX:0,'CRÉDITO':0,'DÉBITO':0,ONLINE:0,OUTROS:0};
+ vendas.forEach(v=>{const k=String(v.pagamento||'Outros').toUpperCase(); porForma[k]=(porForma[k]||0)+Number(v.total||0);});
+ const dif=Number(contado||0)-Number(resumo.esperado||0);
+ const linha=(label,value)=>`<div class="row"><span>${esc(label)}</span><span>${money(value)}</span></div>`;
+ const linhasPlataforma=Object.entries(plataformas).map(([k,v])=>linha(k,v)).join('');
+ const linhasForma=Object.entries(porForma).map(([k,v])=>linha(k,v)).join('');
+ const popup=window.open('','_blank','width=520,height=850');
+ if(!popup){alert('O navegador bloqueou o relatório. Permita pop-ups para o NeoScale.');return;}
+ popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NeoScale — Fechamento Caixa Delivery</title><style>
+ *{box-sizing:border-box}body{margin:0;background:#e9e9e9;color:#000;font-family:"Courier New",Courier,monospace;font-size:13px;font-weight:700}.sheet{width:80mm;min-height:100vh;margin:16px auto;background:#fff;padding:12px 10px 20px;box-shadow:0 2px 10px #0002}.center{text-align:center}.brand{font-size:19px;font-weight:900;letter-spacing:.4px}.title{font-size:12px;font-weight:900;margin-top:3px}.sep{border-top:1px dashed #000;margin:8px 0}.section{font-weight:900;font-size:13px;margin:6px 0 4px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;line-height:1.35;margin:2px 0}.row span:last-child{text-align:right;white-space:nowrap}.total{font-weight:900;font-size:14px}.signature{margin-top:48px;padding-top:10px;min-height:125px;text-align:center}.signature-line{border-top:1.5px solid #000;margin:0 3px;padding-top:7px}.signature .name{margin-top:10px}.signature .date{margin-top:8px}.actions{position:fixed;right:20px;top:20px;display:flex;gap:8px}.actions button{border:0;border-radius:8px;padding:9px 12px;background:#008f70;color:#fff;font-weight:800;cursor:pointer}.actions .close{background:#222}@media(max-width:700px){.sheet{margin:0;width:80mm;box-shadow:none}.actions{position:sticky;top:0;justify-content:center;background:#fff;padding:8px;margin:0 -10px 8px}.actions button{font-family:Arial,sans-serif}}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:80mm;padding:0 8px 20px}.actions{display:none!important}}
+ </style></head><body><div class="sheet"><div class="actions no-print"><button onclick="window.print()">IMPRIMIR</button><button class="close" onclick="window.close()">FECHAR</button></div>
+ <div class="center"><div class="brand">NEOSCALE</div><div class="title">RELATÓRIO DE FECHAMENTO — CAIXA DELIVERY</div></div>
+ <div class="sep"></div><div>GERADO: ${esc(dataHora(agora))}</div><div>OPERADOR: ${esc(caixa.operador||'OPERADOR')}</div><div>ABERTURA: ${esc(dataItem(caixa.abertoEm))}</div><div>FECHAMENTO: ${esc(dataHora(agora))}</div>
+ <div class="sep"></div><div class="section">RESUMO</div>${linha('Pedidos',vendas.length)}${linha('Vendas',totalVendas)}${linha('Recebido',totalVendas)}${linha('Em posse entregadores',emEntregadores)}${linha('A receber',aReceber)}
+ <div class="sep"></div><div class="section">VENDAS POR PLATAFORMA</div>${linhasPlataforma}<div class="sep"></div><div class="row total"><span>TOTAL</span><span>${money(totalVendas)}</span></div>
+ <div class="sep"></div><div class="section">RECEBIMENTOS</div>${linhasForma}<div class="sep"></div><div class="row total"><span>TOTAL</span><span>${money(totalVendas)}</span></div>
+ <div class="sep"></div><div class="section">CONFERÊNCIA</div>${linha('Esperado',resumo.esperado)}${linha('Contado',contado)}<div class="row total"><span>DIFERENÇA</span><span>${money(dif)}</span></div>
+ <div class="sep"></div><div class="row total"><span>TOTAL DO CAIXA DELIVERY</span><span>${money(totalVendas)}</span></div>
+ <div class="signature"><div class="signature-line">ASSINATURA DO OPERADOR</div><div class="name">Nome: ${esc(caixa.operador||'OPERADOR')}</div><div class="date">Data: ____/____/________</div></div>
+ </div></body></html>`);
+ popup.document.close();
+}
 async function fechar(){
  if(!atual)return;
  const r=resumo(), contado=Number($("valorContado").value||0);
  if(contado<0)return;
  if(!confirm(`Fechar Caixa Delivery?\nEsperado: ${br(r.esperado)}\nContado: ${br(contado)}\nDiferença: ${br(contado-r.esperado)}`))return;
- await updateDoc(doc(db,CAIXAS,atual.id),{status:"FECHADO",valorContado:contado,diferenca:contado-r.esperado,observacao:$("observacaoFechamento").value.trim(),totalVendas:r.vendas,fechadoEm:serverTimestamp()});
- alert("Caixa Delivery fechado com sucesso."); $("valorContado").value=""; $("observacaoFechamento").value=""; atual=null; await carregar();
+ await updateDoc(doc(db,CAIXAS,atual.id),{status:"FECHADO",valorContado:contado,valorEsperadoDinheiro:r.esperado,diferenca:contado-r.esperado,observacao:$("observacaoFechamento").value.trim(),totalVendas:r.vendas,fechadoEm:serverTimestamp()});
+ imprimirRelatorioDelivery(atual,movimentos,r,contado); alert("Caixa Delivery fechado com sucesso."); $("valorContado").value=""; $("observacaoFechamento").value=""; atual=null; await carregar();
 }
 async function historico(){
  const q=query(collection(db,CAIXAS),where("tipo","==","DELIVERY")); const s=await getDocs(q);
@@ -109,12 +148,12 @@ async function historico(){
 async function carregar(){
  try{
   atual=await caixaAberto(); movimentos=await movs();
-  const aberto=!!atual; $("btnAbrir").hidden=aberto; $("btnFechar").hidden=!aberto;
+  const aberto=!!atual; $("btnAbrir").hidden=aberto; $("btnFechar").hidden=!aberto; const btnFecharPainel=$("btnFecharPainel"); if(btnFecharPainel){btnFecharPainel.hidden=!aberto;btnFecharPainel.disabled=!aberto;}
   $("statusBadge").className="cd-status"+(aberto?" open":""); $("statusBadge").innerHTML=`<i class="bi bi-circle-fill"></i> ${aberto?"CAIXA ABERTO":"CAIXA FECHADO"}`;
   $("movForm").hidden=!aberto;
   render(); await historico();
  }catch(e){console.error(e);$("msg").innerHTML=`<div class="alert err">Não foi possível acessar o Caixa Delivery. <small>${esc(e?.message||"Erro desconhecido")}</small></div>`}
 }
 $("btnAbrir").onclick=async()=>{try{await abrir();await carregar()}catch(e){alert(e.message||"Não foi possível abrir o caixa.")}};
-$("btnFechar").onclick=fechar; $("btnMov").onclick=()=>$("movForm").hidden=!$("movForm").hidden; $("btnSalvarMov").onclick=salvarMov; $("valorContado").oninput=render;
+$("btnFechar").onclick=fechar; const btnFecharPainel=$("btnFecharPainel"); if(btnFecharPainel) btnFecharPainel.onclick=fechar; $("btnMov").onclick=()=>$("movForm").hidden=!$("movForm").hidden; $("btnSalvarMov").onclick=salvarMov; $("valorContado").oninput=render;
 carregar();

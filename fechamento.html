@@ -20,7 +20,11 @@
       <h2>Fechamento Geral</h2>
       <p>Consolide os caixas, confira as vendas e acompanhe as diferenças.</p>
     </div>
-    <button class="btn-atualizar" id="atualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+    <div class="fechamento-header-acoes">
+      <button class="btn-secundario-fechamento" id="imprimirFechamento"><i class="bi bi-printer"></i> Imprimir</button>
+      <button class="btn-secundario-fechamento" id="exportarFechamento"><i class="bi bi-file-earmark-spreadsheet"></i> Exportar</button>
+      <button class="btn-atualizar" id="atualizar"><i class="bi bi-arrow-clockwise"></i> Atualizar</button>
+    </div>
   </div>
 
   <section class="resumo-grid">
@@ -31,17 +35,29 @@
   </section>
 
   <section class="painel-fechamento">
-    <div class="painel-topo">
+    <div class="painel-topo fechamento-painel-topo">
+      <div><h3>Caixas em operação</h3><p>Visão atual dos caixas e conferência rápida de cada operador.</p></div>
+      <div class="fechamento-legenda"><span><i class="dot fechado"></i> Fechado</span><span><i class="dot aberto"></i> Aberto</span><span><i class="dot divergente"></i> Divergência</span></div>
+    </div>
+    <div class="fechamento-filtros">
+      <div class="filtro-campo"><label for="filtroPeriodo">Período</label><select id="filtroPeriodo"><option value="todos">Todos</option><option value="hoje">Hoje</option><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option></select></div>
+      <div class="filtro-campo filtro-busca"><label for="filtroOperador">Operador</label><div class="campo-busca"><i class="bi bi-search"></i><input id="filtroOperador" placeholder="Buscar operador..."></div></div>
+      <div class="filtro-campo"><label for="filtroStatus">Status</label><select id="filtroStatus"><option value="todos">Todos</option><option value="ABERTO">Abertos</option><option value="FECHADO">Fechados</option><option value="DIVERGENTE">Com divergência</option></select></div>
+      <button class="btn-limpar-filtros" id="limparFiltros"><i class="bi bi-eraser"></i> Limpar</button>
+    </div>
+    <div class="painel-topo fechamento-tabela-titulo">
       <div><h3>Resumo dos caixas</h3><p>Histórico de abertura e fechamento dos operadores.</p></div>
       <div class="legenda"><span><i class="dot fechado"></i> Fechado</span><span><i class="dot aberto"></i> Aberto</span></div>
     </div>
     <div class="tabela-wrap">
       <table class="tabela-fechamento">
-        <thead><tr><th>Operador</th><th>Abertura</th><th>Fechamento</th><th>Status</th><th>Inicial</th><th>Contado</th><th>Diferença</th></tr></thead>
-        <tbody id="tbody"><tr><td colspan="7" class="carregando"><i class="bi bi-arrow-repeat"></i> Carregando caixas...</td></tr></tbody>
+        <thead><tr><th>Operador</th><th>Abertura</th><th>Fechamento</th><th>Vendas</th><th>Esperado</th><th>Contado</th><th>Diferença</th><th>Status</th><th>Ação</th></tr></thead>
+        <tbody id="tbody"><tr><td colspan="9" class="carregando"><i class="bi bi-arrow-repeat"></i> Carregando caixas...</td></tr></tbody>
       </table>
     </div>
   </section>
+
+  <div class="fechamento-separador"><span></span><strong>HISTÓRICO</strong><span></span></div>
 
   <section class="painel-historico-caixas">
     <div class="painel-topo historico-caixas-topo">
@@ -58,6 +74,7 @@
       </div>
     </div>
     <div class="historico-caixas-resumo" id="historicoCaixasResumo">
+      <div class="historico-status-card"><span>Conferidos</span><strong id="histQtdConferidos">0</strong><small>sem divergência</small></div>
       <div><span>Caixas fechados</span><strong id="histQtdFechados">0</strong></div>
       <div><span>Total contado</span><strong id="histTotalContado">R$ 0,00</strong></div>
       <div><span>Total de vendas</span><strong id="histTotalVendas">R$ 0,00</strong></div>
@@ -171,34 +188,89 @@
     </div>
   </section>
 
+  <div class="fechamento-separador"><span></span><strong>HISTÓRICO DE CONCILIAÇÕES</strong><span></span></div>
+
+  <section class="painel-historico-caixas" id="historico-conciliacoes">
+    <div class="painel-topo historico-caixas-topo">
+      <div>
+        <div class="eyebrow"><i class="bi bi-check2-all"></i> Auditoria financeira</div>
+        <h3>Histórico de conciliações — Caixa Loja</h3>
+        <p>Consulte as conferências do Caixa Loja, os valores do sistema, os valores conferidos e eventuais diferenças.</p>
+      </div>
+    </div>
+    <div class="historico-caixas-resumo" id="historicoConcResumo">
+      <div class="historico-status-card"><span>Conciliações</span><strong id="concHistQtd">0</strong><small>registradas</small></div>
+      <div><span>Conciliados</span><strong id="concHistQtdOk">0</strong></div>
+      <div><span>Divergentes</span><strong id="concHistQtdDiv">0</strong></div>
+      <div><span>Total sistema</span><strong id="concHistTotalSistema">R$ 0,00</strong></div>
+      <div><span>Total conferido</span><strong id="concHistTotalConferido">R$ 0,00</strong></div>
+    </div>
+    <div class="tabela-wrap">
+      <table class="tabela-fechamento tabela-historico-caixas">
+        <thead><tr><th>Operador</th><th>Caixa</th><th>Data da conciliação</th><th>Total sistema</th><th>Total conferido</th><th>Diferença</th><th>Status</th><th>Ação</th></tr></thead>
+        <tbody id="tbodyHistoricoConciliacoes"><tr><td colspan="9" class="carregando"><i class="bi bi-arrow-repeat"></i> Carregando conciliações...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="painel-conciliacao conciliacao-delivery" id="conciliacao-delivery">
     <div class="conciliacao-topo">
       <div>
-        <div class="eyebrow conc-eyebrow"><i class="bi bi-bicycle"></i> Conferência independente</div>
+        <div class="eyebrow conc-eyebrow"><i class="bi bi-bicycle"></i> Conferência financeira</div>
         <h3>Conciliação Caixa Delivery</h3>
-        <p>Conferência separada do caixa da loja. Informe os valores dos relatórios de Delivery sem misturar as operações.</p>
+        <p>Faça a conferência do Delivery com a mesma estrutura do Caixa Loja, mantendo cada plataforma separada.</p>
+      </div>
+      <div class="conc-controles"><label for="caixaConciliacaoDelivery">Caixa</label><select id="caixaConciliacaoDelivery"></select><button class="btn-conciliar" id="carregarConciliacaoDelivery"><i class="bi bi-search"></i> Conferir</button></div>
+    </div>
+    <div class="conc-alerta" id="deliveryConcAlerta"><i class="bi bi-info-circle"></i> Selecione um caixa Delivery fechado para iniciar a conciliação.</div>
+    <div class="conc-grid">
+      <div class="conc-card"><div class="conc-card-head"><span>iFood</span><i class="bi bi-bicycle"></i></div><div class="conc-linha"><span>Registrado no sistema</span><strong id="deliverySysIfood">R$ 0,00</strong></div><label>Valor no relatório</label><input id="deliveryMaqIfood" type="number" min="0" step="0.01" placeholder="0,00"><div class="conc-diff"><span>Diferença</span><strong id="deliveryDifIfood">R$ 0,00</strong></div></div>
+      <div class="conc-card"><div class="conc-card-head"><span>99Food</span><i class="bi bi-bicycle"></i></div><div class="conc-linha"><span>Registrado no sistema</span><strong id="deliverySys99">R$ 0,00</strong></div><label>Valor no relatório</label><input id="deliveryMaq99" type="number" min="0" step="0.01" placeholder="0,00"><div class="conc-diff"><span>Diferença</span><strong id="deliveryDif99">R$ 0,00</strong></div></div>
+      <div class="conc-card"><div class="conc-card-head"><span>Anota aí</span><i class="bi bi-receipt"></i></div><div class="conc-linha"><span>Registrado no sistema</span><strong id="deliverySysAnota">R$ 0,00</strong></div><label>Valor no relatório</label><input id="deliveryMaqAnota" type="number" min="0" step="0.01" placeholder="0,00"><div class="conc-diff"><span>Diferença</span><strong id="deliveryDifAnota">R$ 0,00</strong></div></div>
+      <div class="conc-card"><div class="conc-card-head"><span>Pedido no balcão</span><i class="bi bi-shop"></i></div><div class="conc-linha"><span>Registrado no sistema</span><strong id="deliverySysBalcao">R$ 0,00</strong></div><label>Valor conferido</label><input id="deliveryMaqBalcao" type="number" min="0" step="0.01" placeholder="0,00"><div class="conc-diff"><span>Diferença</span><strong id="deliveryDifBalcao">R$ 0,00</strong></div></div>
+    </div>
+    <div class="conc-observacao"><div class="conc-observacao-head"><div><label for="deliveryConcObs"><i class="bi bi-chat-left-text"></i> Observações / justificativa</label><p>Registre o motivo quando houver diferença ou qualquer informação importante sobre a conferência.</p></div><span>Opcional quando o caixa bater</span></div><textarea id="deliveryConcObs" rows="4" maxlength="1000" placeholder="Ex.: diferença de relatório do iFood, taxa de plataforma, ajuste ou valor conferido manualmente..."></textarea><div class="obs-contador"><span id="deliveryContadorObs">0</span>/1000</div></div>
+    <div class="delivery-conc-fechamento">
+      <div class="delivery-conc-metricas">
+        <div class="delivery-conc-metrica"><span>Total no sistema</span><strong id="deliveryConcTotalSistema">R$ 0,00</strong><small>Soma das plataformas e balcão</small></div>
+        <div class="delivery-conc-metrica"><span>Total conferido</span><strong id="deliveryConcTotalConferido">R$ 0,00</strong><small>Valores informados nos relatórios</small></div>
+        <div class="delivery-conc-metrica delivery-conc-status" id="deliveryConcResultado"><span>Status da conciliação</span><strong id="deliveryConcDiferenca">Pendente</strong><small>Resultado da conferência</small></div>
+      </div>
+      <div class="delivery-conc-acao">
+        <div><strong>Finalizar conferência</strong><span>Revise os valores acima antes de salvar.</span></div>
+        <button class="btn-salvar-conc" id="salvarConciliacaoDelivery"><i class="bi bi-check2-circle"></i> Salvar conciliação</button>
       </div>
     </div>
-    <div class="delivery-conc-grid">
-      <label>Vendas Delivery no sistema<input id="deliveryConcSistema" type="number" min="0" step="0.01" placeholder="0,00"></label>
-      <label>Valor conferido no Delivery<input id="deliveryConcConferido" type="number" min="0" step="0.01" placeholder="0,00"></label>
-      <label>Taxas das plataformas<input id="deliveryConcTaxas" type="number" min="0" step="0.01" placeholder="0,00"></label>
-    </div>
-    <div class="conc-resumo delivery-conc-resumo">
-      <div><span>Total sistema</span><strong id="deliveryConcTotalSistema">R$ 0,00</strong></div>
-      <div><span>Total conferido</span><strong id="deliveryConcTotalConferido">R$ 0,00</strong></div>
-      <div class="resultado-conc" id="deliveryConcResultado"><span>Diferença</span><strong id="deliveryConcDiferenca">R$ 0,00</strong></div>
-    </div>
-    <div class="conc-observacao">
-      <div class="conc-observacao-head"><div><label for="deliveryConcObs"><i class="bi bi-chat-left-text"></i> Observações / justificativa</label><p>Use este campo para explicar diferenças específicas do Delivery.</p></div></div>
-      <textarea id="deliveryConcObs" rows="4" maxlength="1000" placeholder="Ex.: taxa de plataforma, ajuste, diferença de relatório..." ></textarea>
-    </div>
-    <div class="conc-resumo"><button class="btn-salvar-conc" id="salvarConciliacaoDelivery"><i class="bi bi-check2-circle"></i> Salvar conciliação Delivery</button></div>
   </section>
+  <div class="fechamento-separador"><span></span><strong>HISTÓRICO DE CONCILIAÇÕES DELIVERY</strong><span></span></div>
+
+  <section class="painel-historico-caixas" id="historico-conciliacoes-delivery">
+    <div class="painel-topo historico-caixas-topo">
+      <div>
+        <div class="eyebrow"><i class="bi bi-bicycle"></i> Auditoria financeira Delivery</div>
+        <h3>Histórico de conciliações — Caixa Delivery</h3>
+        <p>Consulte as conferências já realizadas do Delivery por plataforma, com valores do sistema, valores conferidos e diferenças.</p>
+      </div>
+    </div>
+    <div class="historico-caixas-resumo" id="historicoConcDeliveryResumo">
+      <div class="historico-status-card"><span>Conciliações</span><strong id="concDeliveryHistQtd">0</strong><small>registradas</small></div>
+      <div><span>Conciliados</span><strong id="concDeliveryHistQtdOk">0</strong></div>
+      <div><span>Divergentes</span><strong id="concDeliveryHistQtdDiv">0</strong></div>
+      <div><span>Total sistema</span><strong id="concDeliveryHistTotalSistema">R$ 0,00</strong></div>
+      <div><span>Total conferido</span><strong id="concDeliveryHistTotalConferido">R$ 0,00</strong></div>
+    </div>
+    <div class="tabela-wrap">
+      <table class="tabela-fechamento tabela-historico-caixas">
+        <thead><tr><th>Caixa</th><th>Data da conciliação</th><th>iFood</th><th>99Food</th><th>Anota aí</th><th>Balcão</th><th>Total sistema</th><th>Total conferido</th><th>Diferença</th><th>Status</th><th>Ação</th></tr></thead>
+        <tbody id="tbodyHistoricoConciliacoesDelivery"><tr><td colspan="11" class="carregando"><i class="bi bi-arrow-repeat"></i> Carregando conciliações Delivery...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
   <div class="rodape-info"><i class="bi bi-shield-check"></i> Dados consolidados diretamente do Firestore</div>
 </main>
 </div>
-<script type="module" src="js/fechamento.js"></script>
+<script type="module" src="js/fechamento.js?v=15"></script>
 <script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("fechamento");</script>
 <script src="js/sidebar-menu.js"></script>
 </body>

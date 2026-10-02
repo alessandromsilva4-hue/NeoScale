@@ -1,3 +1,30 @@
 
 /* Complementos dos módulos Comandas e Ficha Técnica */
 .operacional-page{padding:28px;min-width:0}.page-head{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:22px}.page-head h1{margin:0 0 5px;font-size:27px}.page-head p{margin:0;color:#71808a}.head-actions{display:flex;gap:8px}.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px}.stat-card,.panel{background:#fff;border:1px solid #e5ece9;border-radius:14px;box-shadow:0 8px 25px rgba(18,35,45,.05)}.stat-card{padding:18px}.stat-card span{display:block;color:#71808a;font-size:13px}.stat-card strong{display:block;font-size:24px;margin-top:7px}.panel{padding:18px}.toolbar{display:flex;gap:12px;justify-content:space-between;margin-bottom:16px}.search-box{display:flex;align-items:center;gap:8px;border:1px solid #d9e2df;border-radius:9px;padding:0 12px;flex:1;max-width:560px}.search-box input{border:0;outline:0;padding:11px;width:100%}.toolbar select,.form-grid input,.form-grid select{border:1px solid #d9e2df;border-radius:9px;padding:10px;background:#fff}.table-wrap{overflow:auto}table{width:100%;border-collapse:collapse}th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #edf1ef;font-size:13px}th{font-size:12px;color:#63716c;text-transform:uppercase}td small{display:block;color:#899590;font-size:10px}.badge{display:inline-flex;padding:5px 8px;border-radius:7px;font-size:11px;font-weight:700}.badge.aberta{background:#e7f8ef;color:#087a57}.badge.finalizada{background:#e8f0f7;color:#37617c}.badge.cancelada{background:#fdeaea;color:#b34b4b}.table-btn,.icon-btn{border:0;background:#f0f5f3;border-radius:8px;padding:8px;cursor:pointer;margin-right:5px}.table-btn.danger{color:#b34b4b}.empty{text-align:center;padding:35px!important;color:#7a8984}.btn-primary,.btn-secondary,.btn-danger{border:0;border-radius:9px;padding:10px 15px;font-weight:700;cursor:pointer}.btn-primary{background:#087a57;color:#fff}.btn-secondary{background:#eef4f1;color:#086c4f}.btn-danger{background:#b84b4b;color:#fff}.modal{position:fixed;inset:0;background:rgba(8,30,25,.38);display:grid;place-items:center;padding:20px;z-index:1000}.modal[hidden]{display:none}.modal-card{width:min(620px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:16px;padding:22px;box-shadow:0 20px 60px rgba(0,0,0,.18)}.modal-card.large{width:min(850px,100%)}.modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}.modal-head h2{margin:0}.detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.detail-grid>div{padding:12px;background:#f6f9f7;border-radius:9px}.detail-grid span{display:block;font-size:11px;color:#788680;margin-bottom:5px}.modal-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}.muted{color:#71808a}.form-grid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:12px}.form-grid label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:700;color:#42514b}.section-title{display:flex;align-items:center;justify-content:space-between;margin:22px 0 10px;font-weight:700}.small{padding:7px 10px}.insumo-row{display:grid;grid-template-columns:2fr 1fr 1fr 1fr 40px;gap:8px;margin-bottom:8px}.insumo-row input,.insumo-row select{border:1px solid #d9e2df;border-radius:8px;padding:9px;min-width:0}.cost-summary{display:flex;justify-content:flex-end;gap:25px;margin-top:16px;padding:14px;background:#f4f8f6;border-radius:10px}.cost-summary span{display:flex;gap:8px}.cost-summary strong{font-size:16px}@media(max-width:850px){.stats-grid{grid-template-columns:repeat(2,1fr)}.page-head{align-items:flex-start;flex-direction:column}.toolbar{flex-direction:column}.search-box{max-width:none}.form-grid{grid-template-columns:1fr}.insumo-row{grid-template-columns:1fr 1fr}.insumo-row .ins-nome{grid-column:1/-1}.cost-summary{flex-direction:column}.detail-grid{grid-template-columns:1fr}}
+.badge.transferida{background:#fff4d9;color:#8a6500}
+
+
+/* =========================================================
+   COMANDAS - GRADE PARA CAIXA
+========================================================= */
+.comandas-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(245px,1fr));gap:14px;align-items:stretch}
+.comanda-card{position:relative;background:#fff;border:1px solid #dfe9e5;border-radius:14px;padding:16px;min-height:205px;display:flex;flex-direction:column;gap:13px;cursor:pointer;transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;outline:none}
+.comanda-card:hover,.comanda-card:focus-visible{transform:translateY(-2px);border-color:#08a579;box-shadow:0 10px 24px rgba(8,122,87,.12)}
+.comanda-card.provisoria{background:linear-gradient(180deg,#f4fffb 0%,#fff 100%);border-color:#9adcc7}
+.comanda-card.pesagem{background:#fff}
+.comanda-card-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.comanda-eyebrow{display:block;font-size:10px;line-height:1.2;font-weight:800;letter-spacing:.06em;color:#087a57;margin-bottom:3px}
+.comanda-numero{display:block;font-size:24px;line-height:1.05;color:#13231e}
+.comanda-card-body{display:flex;flex-direction:column;gap:8px;flex:1}
+.comanda-produto{font-size:13px;font-weight:700;color:#34463f;min-height:18px}
+.comanda-info{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:#71807a}
+.comanda-card-bottom{display:flex;align-items:end;justify-content:space-between;gap:10px;border-top:1px solid #edf2ef;padding-top:11px}
+.comanda-total{font-size:18px;color:#087a57}
+.comanda-data{font-size:10px;color:#89958f;text-align:right}
+.comanda-card-actions{display:flex;align-items:center;gap:7px}
+.btn-open-comanda{flex:1;border:0;border-radius:9px;background:#087a57;color:#fff;padding:10px 12px;font-size:12px;font-weight:800;cursor:pointer}
+.btn-open-comanda:hover{background:#066b4d}
+.comanda-card .table-btn{margin:0;padding:9px 10px}
+.grid-empty{grid-column:1/-1;min-height:160px;display:grid;place-items:center}
+@media(max-width:850px){.comandas-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.comandas-grid{grid-template-columns:1fr}.comanda-card{min-height:185px}}

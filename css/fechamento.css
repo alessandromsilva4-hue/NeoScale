@@ -122,3 +122,37 @@
 .modal[hidden] {
     display: none !important;
 }
+
+/* Fechamento Geral — reformulação administrativa */
+.fechamento-header-acoes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.btn-secundario-fechamento{border:1px solid #dbe5e1;background:#fff;color:#334155;border-radius:10px;padding:10px 13px;font-size:12px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.18s}
+.btn-secundario-fechamento:hover{border-color:#00a879;color:#007d5d;background:#f5fffb}
+.fechamento-painel-topo{align-items:flex-start}
+.fechamento-legenda{display:flex;gap:14px;align-items:center;color:#64748b;font-size:10px;font-weight:700}
+.fechamento-legenda .dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px}.fechamento-legenda .divergente{background:#ef4444}
+.fechamento-filtros{display:grid;grid-template-columns:180px minmax(220px,1fr) 180px auto;gap:12px;padding:15px 24px;background:#fbfdfc;border-top:1px solid #edf5f2;border-bottom:1px solid #edf5f2;align-items:end}
+.filtro-campo label{display:block;color:#64748b;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}.filtro-campo select,.campo-busca{height:40px;width:100%;box-sizing:border-box;border:1px solid #dbe3ef;border-radius:9px;background:#fff;color:#334155;font:inherit;font-size:12px}.filtro-campo select{padding:0 10px}.campo-busca{display:flex;align-items:center;padding:0 11px;gap:8px}.campo-busca i{color:#94a3b8}.campo-busca input{border:0;outline:0;width:100%;height:100%;font:inherit;color:#334155}.btn-limpar-filtros{height:40px;border:1px solid #dbe3ef;background:#fff;color:#64748b;border-radius:9px;padding:0 13px;font-size:11px;font-weight:800;cursor:pointer;display:inline-flex;align-items:center;gap:6px}.btn-limpar-filtros:hover{border-color:#00a879;color:#007d5d}
+.fechamento-tabela-titulo{padding-top:16px}.linha-caixa-resumo{transition:background .15s}.linha-caixa-resumo:hover{background:#f7fcfa}.linha-divergente{box-shadow:inset 3px 0 #ef4444}.btn-ver-caixa{border:1px solid #d9e8e2;background:#fff;color:#007d5d;border-radius:8px;padding:6px 9px;font-size:10px;font-weight:800;cursor:pointer;white-space:nowrap}.btn-ver-caixa:hover{background:#effbf7;border-color:#00a879}.fechamento-separador{display:flex;align-items:center;gap:14px;margin:28px 0 12px;color:#94a3b8;font-size:9px;letter-spacing:.12em}.fechamento-separador span{height:1px;background:#e4ebe8;flex:1}.fechamento-separador strong{font-weight:900}
+.historico-status-card small{display:block;color:#94a3b8;font-size:10px;margin-top:3px}.historico-status-card strong{color:#15803d!important}
+@media(max-width:950px){.fechamento-filtros{grid-template-columns:1fr 1fr}.filtro-busca{grid-column:1/-1}.btn-limpar-filtros{width:max-content}}
+@media(max-width:650px){.fechamento-header-acoes{width:100%}.fechamento-header-acoes button{flex:1;justify-content:center}.fechamento-filtros{grid-template-columns:1fr;padding:14px 16px}.filtro-busca{grid-column:auto}.btn-limpar-filtros{width:100%;justify-content:center}.fechamento-legenda{flex-wrap:wrap}}
+@media print{.sidebar,.fechamento-header-acoes,.fechamento-filtros,.conciliacao-loja,.conciliacao-delivery,.painel-conciliacao,.btn-ver-caixa,.fechamento-separador{display:none!important}.content{margin:0!important;padding:10px!important}.painel-fechamento,.painel-historico-caixas{box-shadow:none!important;border:1px solid #ddd!important}.fechamento-header h2{font-size:22px}.fechamento-header p{font-size:10px}}
+
+
+/* V12 — rodapé de conferência Delivery */
+.delivery-conc-fechamento{margin-top:18px;border:1px solid #dfeae6;border-radius:14px;background:#f8fbfa;overflow:hidden}
+.delivery-conc-metricas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-bottom:1px solid #e4ece9}
+.delivery-conc-metrica{padding:18px 20px;min-height:82px;border-right:1px solid #e4ece9;display:flex;flex-direction:column;justify-content:center}
+.delivery-conc-metrica:last-child{border-right:0}
+.delivery-conc-metrica span{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.04em;color:#64748b}
+.delivery-conc-metrica strong{margin-top:5px;font-size:20px;line-height:1.1;color:#0f172a}
+.delivery-conc-metrica small{margin-top:5px;font-size:10px;color:#94a3b8}
+.delivery-conc-status{background:#fff}
+.delivery-conc-status strong{color:#d97706}
+.delivery-conc-status.conciliado strong{color:#15803d}
+.delivery-conc-acao{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:15px 20px;background:#fff}
+.delivery-conc-acao>div{display:flex;flex-direction:column;gap:3px}
+.delivery-conc-acao>div strong{font-size:12px;color:#334155}
+.delivery-conc-acao>div span{font-size:10px;color:#94a3b8}
+.delivery-conc-acao .btn-salvar-conc{margin-left:auto;min-width:190px;justify-content:center}
+@media(max-width:700px){.delivery-conc-metricas{grid-template-columns:1fr}.delivery-conc-metrica{border-right:0;border-bottom:1px solid #e4ece9}.delivery-conc-metrica:last-child{border-bottom:0}.delivery-conc-acao{align-items:stretch;flex-direction:column}.delivery-conc-acao .btn-salvar-conc{width:100%;margin-left:0}}
