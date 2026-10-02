@@ -25,6 +25,8 @@ const MENU = [
     ['cozinha.html','bi-display','Produção / KDS','cozinha'],
     ['estoque.html','bi-boxes','Estoque','estoque'],
     { href:'compras.html', icon:'bi-cart3', label:'Compras', key:'compras', children:[
+      ['compras.html','bi-grid-1x2','Visão geral','compras'],
+      ['produtos-compra.html','bi-box-seam','Produtos para compra','produtos-compra'],
       ['requisicoes.html','bi-clipboard-check','Requisições','requisicoes'],
       ['cotacoes.html','bi-chat-square-text','Cotações','cotacoes'],
       ['fornecedores.html','bi-building','Fornecedores','fornecedores'],
@@ -58,7 +60,8 @@ function areaComprasAtual(){
     'cotacoes': 'cotacoes',
     'fornecedores': 'fornecedores',
     'pedidos-compra': 'pedidos',
-    'acompanhamento': 'acompanhamento'
+    'acompanhamento': 'acompanhamento',
+    'produtos-compra': 'produtos-compra'
   };
   return mapa[paginaAtual()] || (paginaAtual() === 'compras' ? 'compras' : null);
 }

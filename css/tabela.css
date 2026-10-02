@@ -438,3 +438,20 @@
 .form-card select{width:100%;min-height:44px;padding:0 12px;border:1px solid #dbe2ea;border-radius:10px;background:#fff;font:inherit;color:#0f172a;outline:none}
 .form-card select:focus{border-color:#00a879;box-shadow:0 0 0 3px rgba(0,168,121,.1)}
 .form-card button:disabled{opacity:.65;cursor:wait}
+
+/* =========================================================
+   IMAGEM DO PRODUTO — CADASTRO
+========================================================= */
+.produto-imagem-campo{grid-column:1/-1}
+.imagem-produto-editor{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:12px;border:1px solid #dbe6e2;border-radius:12px;background:#fbfdfc}
+.imagem-produto-preview{width:88px;height:88px;border-radius:12px;border:1px dashed #b9cec6;background:#f2f8f5;display:flex;flex-direction:column;align-items:center;justify-content:center;overflow:hidden;color:#7b9189;flex:0 0 88px}
+.imagem-produto-preview i{font-size:28px;color:#00a879}
+.imagem-produto-preview span{font-size:9px;margin-top:4px}
+.imagem-produto-preview img{width:100%;height:100%;object-fit:cover}
+.imagem-produto-acoes{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-width:240px;flex:1}
+.imagem-produto-acoes input[type=file]{width:100%;max-width:360px;padding:8px;border:1px solid #dbe6e2;border-radius:9px;background:#fff;font:inherit}
+.imagem-produto-acoes small{color:#71827d;font-size:10px;line-height:1.4}
+.btn-remover-imagem{border:0;background:#fff1f2;color:#b42318;border:1px solid #fecdd3;border-radius:8px;padding:7px 10px;cursor:pointer;font-weight:700;font-size:11px}
+.produto-thumb{width:42px;height:42px;border-radius:8px;object-fit:cover;border:1px solid #dce8e4;background:#f3f8f6}
+.produto-thumb-vazia{width:42px;height:42px;border-radius:8px;background:#eef6f2;color:#00a879;display:flex;align-items:center;justify-content:center;font-size:18px}
+@media(max-width:650px){.imagem-produto-editor{align-items:flex-start}.imagem-produto-acoes{min-width:0}}

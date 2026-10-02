@@ -18,6 +18,9 @@ const nomeProduto = document.getElementById("nomeProduto");
 const precoProduto = document.getElementById("precoProduto");
 const categoriaProduto = document.getElementById("categoriaProduto");
 const tipoVendaProduto = document.getElementById("tipoVendaProduto");
+const imagemProduto = document.getElementById("imagemProduto");
+const imagemProdutoPreview = document.getElementById("imagemProdutoPreview");
+const btnRemoverImagemProduto = document.getElementById("btnRemoverImagemProduto");
 const labelPreco = document.getElementById("labelPrecoProduto");
 const botaoSalvar = document.getElementById("btnSalvarProduto");
 const botaoCancelar = document.getElementById("btnCancelarEdicao");
@@ -25,6 +28,7 @@ const tituloFormulario = document.getElementById("tituloFormularioProduto");
 const tabela = document.getElementById("listaProdutos");
 
 let produtoEditandoId = null;
+let imagemProdutoAtual = "";
 
 function atualizarRotulo() {
   const peso = tipoVendaProduto.value === "peso";
@@ -49,12 +53,73 @@ function formatarPreco(valor, peso) {
   return `R$ ${preco.toFixed(2).replace(".", ",")}${peso ? "/kg" : ""}`;
 }
 
+function renderizarPreviewImagem(src) {
+  imagemProdutoAtual = src || "";
+  if (!imagemProdutoPreview) return;
+  if (src) {
+    imagemProdutoPreview.innerHTML = `<img src="${src}" alt="Prévia do produto">`;
+    if (btnRemoverImagemProduto) btnRemoverImagemProduto.hidden = false;
+  } else {
+    imagemProdutoPreview.innerHTML = '<i class="bi bi-image"></i><span>Sem imagem</span>';
+    if (btnRemoverImagemProduto) btnRemoverImagemProduto.hidden = true;
+  }
+}
+
+function lerImagemComoDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("Não foi possível ler a imagem."));
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const limite = 700;
+        const escala = Math.min(1, limite / Math.max(img.width, img.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(img.width * escala));
+        canvas.height = Math.max(1, Math.round(img.height * escala));
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/webp", 0.82));
+      };
+      img.onerror = () => reject(new Error("Arquivo de imagem inválido."));
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+imagemProduto?.addEventListener("change", async () => {
+  const file = imagemProduto.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    alert("Selecione um arquivo de imagem.");
+    imagemProduto.value = "";
+    return;
+  }
+  try {
+    const dataUrl = await lerImagemComoDataUrl(file);
+    renderizarPreviewImagem(dataUrl);
+  } catch (error) {
+    console.error(error);
+    alert("Não foi possível carregar a imagem do produto.");
+    imagemProduto.value = "";
+  }
+});
+
+btnRemoverImagemProduto?.addEventListener("click", () => {
+  imagemProdutoAtual = "";
+  if (imagemProduto) imagemProduto.value = "";
+  renderizarPreviewImagem("");
+});
+
 function limparFormulario() {
   produtoEditandoId = null;
   nomeProduto.value = "";
   precoProduto.value = "";
   categoriaProduto.value = "";
   tipoVendaProduto.value = "unidade";
+  if (imagemProduto) imagemProduto.value = "";
+  renderizarPreviewImagem("");
   atualizarRotulo();
 
   tituloFormulario.textContent = "Novo Produto";
@@ -73,6 +138,8 @@ function preencherFormulario(id, produto) {
     ? Number(produto.precoKg ?? 0)
     : Number(produto.precoUnit ?? produto.preco ?? 0);
 
+  if (imagemProduto) imagemProduto.value = "";
+  renderizarPreviewImagem(produto.imagem || produto.image || produto.foto || produto.imageUrl || produto.urlImagem || "");
   atualizarRotulo();
   tituloFormulario.textContent = "Editar Produto";
   botaoSalvar.innerHTML = '<i class="bi bi-check-circle"></i> Salvar Alterações';
@@ -108,6 +175,7 @@ async function salvarProduto() {
       categoria,
       ativo: true,
       tipoVenda: tipo,
+      imagem: imagemProdutoAtual || "",
       atualizadoEm: serverTimestamp()
     };
 
@@ -181,7 +249,7 @@ function editarProduto(id) {
 async function carregarProdutos() {
   if (!tabela) return;
 
-  tabela.innerHTML = '<tr><td colspan="6">Carregando...</td></tr>';
+  tabela.innerHTML = '<tr><td colspan="7">Carregando...</td></tr>';
 
   try {
     const consulta = await getDocs(collection(db, "produtos"));
@@ -193,7 +261,7 @@ async function carregarProdutos() {
     tabela.innerHTML = "";
 
     if (!produtos.length) {
-      tabela.innerHTML = '<tr><td colspan="6">Nenhum produto cadastrado.</td></tr>';
+      tabela.innerHTML = '<tr><td colspan="7">Nenhum produto cadastrado.</td></tr>';
       return;
     }
 
@@ -206,7 +274,13 @@ async function carregarProdutos() {
       const nome = escaparHTML(p.nome || "-");
 
       const linha = document.createElement("tr");
+      const imagem = p.imagem || p.image || p.foto || p.imageUrl || p.urlImagem || "";
+      const imagemHtml = imagem
+        ? `<img class="produto-thumb" src="${imagem}" alt="${nome}" loading="lazy">`
+        : `<div class="produto-thumb-vazia"><i class="bi bi-image"></i></div>`;
+
       linha.innerHTML = `
+        <td>${imagemHtml}</td>
         <td>${nome}</td>
         <td>${escaparHTML(p.categoria || "-")}</td>
         <td>${peso ? "Por peso" : "Por unidade"}</td>
@@ -228,7 +302,7 @@ async function carregarProdutos() {
     });
   } catch (error) {
     console.error("Erro ao carregar produtos:", error);
-    tabela.innerHTML = '<tr><td colspan="6">Erro ao carregar produtos.</td></tr>';
+    tabela.innerHTML = '<tr><td colspan="7">Erro ao carregar produtos.</td></tr>';
   }
 }
 

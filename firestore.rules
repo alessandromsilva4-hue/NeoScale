@@ -43,19 +43,6 @@ service cloud.firestore {
       allow update, delete: if isAdmin();
     }
 
-    // Contadores de comandas: cada sequência tem permissão própria.
-    // A sequência provisória é usada pelo garçom e não pode depender do caixa.
-    match /configuracoes/contadorComandasProvisorias {
-      allow read, create, update: if isWaiter() || isOperator();
-      allow delete: if isAdmin();
-    }
-
-    // Sequência das comandas criadas pela pesagem.
-    match /configuracoes/contadorComandas {
-      allow read, create, update: if isOperator();
-      allow delete: if isAdmin();
-    }
-
     match /configuracoes/controleAcesso {
       allow read: if isAdmin();
       allow create: if signedIn()
@@ -68,7 +55,25 @@ service cloud.firestore {
       allow read: if isOperator() || isWaiter();
       allow create: if isOperator() || isWaiter();
       allow update: if isCashier() || (isWaiter() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['itens','total','atualizadoEm','status','transferidaPara','transferidaParaId','transferidaEm','recebeuDe','recebeuItensEm']));
+      allow delete: if isAdmin() || (isCashier() && resource.data.status == 'CANCELADA');
+    }
+
+    match /cancelamentosComandas/{id} {
+      allow read, create: if isCashier();
+      allow update: if isCashier();
       allow delete: if isAdmin();
+    }
+
+    match /requisicoesCompra/{id} {
+      allow read: if isOperator() || isWaiter();
+      allow create, update: if isOperator();
+      allow delete: if isAdmin() || (isCashier() && resource.data.status == 'CANCELADA');
+    }
+
+    match /pedidosCompra/{id} {
+      allow read: if isOperator() || isWaiter();
+      allow create, update: if isOperator();
+      allow delete: if isAdmin() || (isCashier() && resource.data.status == 'CANCELADO');
     }
 
     match /historico/{id} {

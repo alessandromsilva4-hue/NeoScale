@@ -23,6 +23,7 @@ function atualizarStatus(){
     const ie=(el("ie")?.value||"").trim();
     const uf=(el("uf")?.value||"").trim();
     const status=el("fiscalStatus");
+    if(!status) return;
     if(cnpj.length===14 && ie && uf){status.textContent="Dados fiscais preenchidos";status.className="fiscal-status status-ok";}
     else {status.textContent="Configuração pendente";status.className="fiscal-status status-config";}
 }
@@ -40,13 +41,15 @@ async function salvar(){
 function statusLabel(s){return s==="AUTORIZADA"?"autorizada":s==="REJEITADA"?"rejeitada":s==="CANCELADA"?"cancelada":"pendente";}
 function render(){
     const lista=documentos.filter(d=>filtro==="todos" || statusLabel(d.status)===filtro);
-    el("listaDocumentos").innerHTML=lista.length?lista.map(d=>`<tr><td>${d.numero??"—"}</td><td>${d.serie??"—"}</td><td>#${d.vendaNumero??"—"}</td><td>${formatarData(d.criadoEm)}</td><td>${dinheiro(d.valor)}</td><td>${d.ambiente==="producao"?"Produção":"Homologação"}</td><td><span class="badge-status badge-${statusLabel(d.status)}">${d.status||"PENDENTE"}</span></td><td><button class="acao-fiscal" type="button" data-id="${d.id}" title="Ver detalhes"><i class="bi bi-eye"></i></button></td></tr>`).join(""):'<tr><td colspan="8" class="empty">Nenhum documento encontrado.</td></tr>';
+    const listaEl=el("listaDocumentos");
+    if(!listaEl) return;
+    listaEl.innerHTML=lista.length?lista.map(d=>`<tr><td>${d.numero??"—"}</td><td>${d.serie??"—"}</td><td>#${d.vendaNumero??"—"}</td><td>${formatarData(d.criadoEm)}</td><td>${dinheiro(d.valor)}</td><td>${d.ambiente==="producao"?"Produção":"Homologação"}</td><td><span class="badge-status badge-${statusLabel(d.status)}">${d.status||"PENDENTE"}</span></td><td><button class="acao-fiscal" type="button" data-id="${d.id}" title="Ver detalhes"><i class="bi bi-eye"></i></button></td></tr>`).join(""):'<tr><td colspan="8" class="empty">Nenhum documento encontrado.</td></tr>';
     document.querySelectorAll(".acao-fiscal").forEach(b=>b.addEventListener("click",()=>abrirDetalhe(b.dataset.id)));
 }
 function formatarData(v){if(!v)return "—";const d=v.toDate?v.toDate():new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleString("pt-BR");}
 async function carregarDocumentos(){
     try{const snap=await getDocs(query(collection(db,"documentosFiscais"),orderBy("criadoEm","desc"),limit(200)));documentos=snap.docs.map(d=>({id:d.id,...d.data()}));render();}
-    catch(e){console.warn("Histórico fiscal indisponível",e);el("listaDocumentos").innerHTML='<tr><td colspan="8" class="empty">Não foi possível carregar o histórico fiscal.</td></tr>';}
+    catch(e){console.warn("Histórico fiscal indisponível",e);if(!el("listaDocumentos")) return;el("listaDocumentos").innerHTML='<tr><td colspan="8" class="empty">Não foi possível carregar o histórico fiscal.</td></tr>';}
 }
 function abrirDetalhe(id){
     const d=documentos.find(x=>x.id===id);if(!d)return;

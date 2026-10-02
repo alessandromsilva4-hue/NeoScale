@@ -7,7 +7,7 @@ import {
 const $ = id => document.getElementById(id);
 const modal = $('modal');
 const body = $('modalBody');
-let state = { produtos: [], req: [], cot: [], forn: [], ped: [] };
+let state = { produtos: [], produtosCompra: [], req: [], cot: [], forn: [], ped: [] };
 let formType = '';
 let currentId = null;
 
@@ -27,12 +27,16 @@ function openModal(title, sub, type, id=null, html='') {
 }
 function closeModal(){ modal.hidden = true; body.innerHTML=''; formType=''; currentId=null; }
 function opts(arr, placeholder='Selecione') { return `<option value="">${placeholder}</option>` + arr.map(x => `<option value="${esc(x.id)}">${esc(x.nome || x.razaoSocial || x.empresa || x.nomeFantasia || '')}</option>`).join(''); }
-function productOptions(selected='') {
-  const produtos = [...state.produtos].filter(x => x && x.id && String(x.nome || '').trim()).sort((a,b) => String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
+function productOptions(selected='', selectedCollection='produtos') {
+  const venda = [...state.produtos].filter(x => x && x.id && String(x.nome || '').trim()).map(x => ({...x,_collection:'produtos',_value:`produtos:${x.id}`}));
+  const compra = [...state.produtosCompra].filter(x => x && x.id && String(x.nome || '').trim()).map(x => ({...x,_collection:'produtosCompra',_value:`produtosCompra:${x.id}`,tipoVenda:x.unidadeCompra||'unidade'}));
+  const produtos = [...venda, ...compra].sort((a,b) => String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
+  const selectedValue = selected ? `${selectedCollection}:${selected}` : '';
   return `<option value="">Selecione o produto</option>` + produtos.map(x => {
     const inativo = x.ativo === false;
-    const label = `${x.nome}${inativo ? ' (inativo)' : ''}`;
-    return `<option value="${esc(x.id)}" ${x.id===selected?'selected':''}>${esc(label)}</option>`;
+    const origem = x._collection === 'produtosCompra' ? ' · Compra' : ' · Venda';
+    const label = `${x.nome}${origem}${inativo ? ' (inativo)' : ''}`;
+    return `<option value="${esc(x._value)}" ${x._value===selectedValue?'selected':''}>${esc(label)}</option>`;
   }).join('');
 }
 
@@ -41,18 +45,23 @@ function itemEditor(items=[], cls='item-row') {
   return `<div class="items-editor"><table><thead><tr><th style="width:34%">Produto</th><th>Quantidade</th><th>Unidade</th><th>Observação</th><th></th></tr></thead><tbody id="editorItens">${rows.map(i => itemRow(i, cls)).join('')}</tbody></table></div><button type="button" class="btn-secondary small" id="addItem" style="margin-top:8px"><i class="bi bi-plus"></i> Adicionar item</button>`;
 }
 function itemRow(i={}, cls='item-row') {
-  const tipo = i.tipoVenda || 'unidade';
-  return `<tr class="${cls}" data-received="${num(i.recebido)}"><td><select class="i-prod">${productOptions(i.produtoId || '')}</select></td><td><input class="i-qtd" type="number" min="0.001" step="any" value="${num(i.quantidade)||1}"></td><td class="i-un">${tipo==='peso'?'kg':'un.'}</td><td><input class="i-obs" value="${esc(i.observacao||'')}" placeholder="Opcional"></td><td><button type="button" class="action-btn remove-row" title="Remover"><i class="bi bi-trash3"></i></button></td></tr>`;
+  const tipo = i.tipoVenda || i.unidadeCompra || 'unidade';
+  const collectionName = i.produtoColecao || 'produtos';
+  const unidade = collectionName === 'produtosCompra' ? (i.unidadeCompra || tipo) : tipo;
+  return `<tr class="${cls}" data-received="${num(i.recebido)}"><td><select class="i-prod">${productOptions(i.produtoId || '', collectionName)}</select></td><td><input class="i-qtd" type="number" min="0.001" step="any" value="${num(i.quantidade)||1}"></td><td class="i-un">${unidade==='peso'?'kg':esc(unidade||'un.')}</td><td><input class="i-obs" value="${esc(i.observacao||'')}" placeholder="Opcional"></td><td><button type="button" class="action-btn remove-row" title="Remover"><i class="bi bi-trash3"></i></button></td></tr>`;
 }
-function addItemRow(i={}) { $('editorItens').insertAdjacentHTML('beforeend', itemRow(i)); const tr=$('editorItens').lastElementChild; if(i.produtoId) tr.querySelector('.i-prod').value=i.produtoId; updateUnit(tr); }
+function addItemRow(i={}) { $('editorItens').insertAdjacentHTML('beforeend', itemRow(i)); const tr=$('editorItens').lastElementChild; if(i.produtoId) tr.querySelector('.i-prod').value=`${i.produtoColecao||'produtos'}:${i.produtoId}`; updateUnit(tr); }
+function parseProductValue(value){ const [colecao,id]=String(value||'').split(':'); return {colecao:colecao==='produtosCompra'?'produtosCompra':'produtos',id:id||''}; }
+function findProduct(colecao,id){ return (colecao==='produtosCompra'?state.produtosCompra:state.produtos).find(x=>x.id===id); }
+function unidadeProduto(p,colecao){ return colecao==='produtosCompra' ? (p?.unidadeCompra||'un.') : (p?.tipoVenda==='peso'?'kg':'un.'); }
 function collectItems() {
   return [...document.querySelectorAll('#editorItens .item-row')].map(tr => {
-    const pid=tr.querySelector('.i-prod').value, p=state.produtos.find(x=>x.id===pid), q=num(tr.querySelector('.i-qtd').value);
+    const parsed=parseProductValue(tr.querySelector('.i-prod').value), p=findProduct(parsed.colecao,parsed.id), q=num(tr.querySelector('.i-qtd').value);
     if(!p || q<=0) throw new Error('Preencha todos os itens com produto e quantidade válida.');
-    return { produtoId:pid, produtoNome:p.nome, tipoVenda:p.tipoVenda||'unidade', quantidade:q, observacao:tr.querySelector('.i-obs')?.value.trim()||'', recebido:num(tr.dataset.received) };
+    return { produtoId:parsed.id, produtoColecao:parsed.colecao, produtoNome:p.nome, tipoVenda:p.tipoVenda||'unidade', unidadeCompra:p.unidadeCompra||'', quantidade:q, observacao:tr.querySelector('.i-obs')?.value.trim()||'', recebido:num(tr.dataset.received) };
   });
 }
-function updateUnit(tr){ const p=state.produtos.find(x=>x.id===tr.querySelector('.i-prod')?.value); if(tr.querySelector('.i-un')) tr.querySelector('.i-un').textContent=p?.tipoVenda==='peso'?'kg':'un.'; }
+function updateUnit(tr){ const parsed=parseProductValue(tr.querySelector('.i-prod')?.value), p=findProduct(parsed.colecao,parsed.id); if(tr.querySelector('.i-un')) tr.querySelector('.i-un').textContent=unidadeProduto(p,parsed.colecao); }
 
 function reqForm(r={}) {
   openModal(r.id?'Editar requisição':'Nova requisição','Solicite os produtos necessários antes de iniciar a cotação.','req',r.id,
@@ -110,14 +119,14 @@ function receiveForm(p) {
   const itens=(p.itens||[]).filter(i=>num(i.quantidade)-num(i.recebido)>0);
   if(!itens.length){ alert('Este pedido não possui itens pendentes de recebimento.'); return; }
   openModal(`Receber ${p.numero||''}`,'Informe quanto chegou. O estoque será atualizado somente após confirmar o recebimento.','receive',p.id,
-  `<div class="receive-summary"><div><strong>${esc(p.fornecedorNome||'Fornecedor')}</strong><span>Pedido ${esc(p.numero||'-')}</span></div><div><strong>${money(p.total)}</strong><span>Total do pedido</span></div></div><div class="items-editor"><table><thead><tr><th>Produto</th><th>Pedido</th><th>Já recebido</th><th>Receber agora</th><th>Unidade</th></tr></thead><tbody id="receiveItens">${itens.map(i=>`<tr class="receive-row" data-prod="${esc(i.produtoId)}" data-name="${esc(i.produtoNome)}" data-unit="${esc(i.tipoVenda||'unidade')}"><td>${esc(i.produtoNome)}</td><td>${num(i.quantidade)}</td><td>${num(i.recebido)}</td><td><input class="r-qtd" type="number" min="0" max="${num(i.quantidade)-num(i.recebido)}" step="any" value="${num(i.quantidade)-num(i.recebido)}"></td><td>${i.tipoVenda==='peso'?'kg':'un.'}</td></tr>`).join('')}</tbody></table></div><div class="receive-note"><i class="bi bi-info-circle"></i> O estoque só será alterado quando você confirmar o recebimento.</div>`);
+  `<div class="receive-summary"><div><strong>${esc(p.fornecedorNome||'Fornecedor')}</strong><span>Pedido ${esc(p.numero||'-')}</span></div><div><strong>${money(p.total)}</strong><span>Total do pedido</span></div></div><div class="items-editor"><table><thead><tr><th>Produto</th><th>Pedido</th><th>Já recebido</th><th>Receber agora</th><th>Unidade</th></tr></thead><tbody id="receiveItens">${itens.map(i=>`<tr class="receive-row" data-prod="${esc(i.produtoId)}" data-collection="${esc(i.produtoColecao||'produtos')}" data-name="${esc(i.produtoNome)}" data-unit="${esc(i.produtoColecao==='produtosCompra'?(i.unidadeCompra||'un'): (i.tipoVenda||'unidade'))}"><td>${esc(i.produtoNome)}</td><td>${num(i.quantidade)}</td><td>${num(i.recebido)}</td><td><input class="r-qtd" type="number" min="0" max="${num(i.quantidade)-num(i.recebido)}" step="any" value="${num(i.quantidade)-num(i.recebido)}"></td><td>${i.produtoColecao==='produtosCompra'?esc(i.unidadeCompra||'un.'):i.tipoVenda==='peso'?'kg':'un.'}</td></tr>`).join('')}</tbody></table></div><div class="receive-note"><i class="bi bi-info-circle"></i> O estoque só será alterado quando você confirmar o recebimento.</div>`);
 }
 
 function renderReq(){
   if(!$('listaReq')) return;
   const t=($('buscaReq')?.value||'').toLowerCase(), f=$('filtroReq')?.value||'';
   const rows=state.req.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.solicitante,...(x.itens||[]).map(i=>i.produtoNome)].join(' ').toLowerCase().includes(t)));
-  $('listaReq').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.solicitante||'-')}</td><td>${(x.itens||[]).length}</td><td>${priority(x.prioridade||'NORMAL')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</td><td><button class="action-btn" data-action="req-view" data-id="${x.id}" title="Ver requisição"><i class="bi bi-eye"></i></button> <button class="action-btn" data-action="req-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="req-send-cot" data-id="${x.id}" title="Enviar para cotação"><i class="bi bi-send"></i></button> <button class="action-btn" data-action="req-cot" data-id="${x.id}" title="Abrir cotação"><i class="bi bi-chat-square-text"></i></button> ${x.status==='ABERTA'?`<button class="action-btn danger" data-action="req-delete" data-id="${x.id}" title="Excluir requisição"><i class="bi bi-trash3"></i></button>`:x.status==='EM_COTACAO'?`<button class="action-btn danger" data-action="req-cancel" data-id="${x.id}" title="Cancelar requisição"><i class="bi bi-x-circle"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Nenhuma requisição encontrada.</td></tr>';
+  $('listaReq').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.solicitante||'-')}</td><td>${(x.itens||[]).length}</td><td>${priority(x.prioridade||'NORMAL')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</td><td><button class="action-btn" data-action="req-view" data-id="${x.id}" title="Ver requisição"><i class="bi bi-eye"></i></button> <button class="action-btn" data-action="req-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="req-send-cot" data-id="${x.id}" title="Enviar para cotação"><i class="bi bi-send"></i></button> <button class="action-btn" data-action="req-cot" data-id="${x.id}" title="Abrir cotação"><i class="bi bi-chat-square-text"></i></button> ${x.status==='ABERTA'?`<button class="action-btn danger" data-action="req-delete" data-id="${x.id}" title="Excluir requisição"><i class="bi bi-trash3"></i></button>`:x.status==='EM_COTACAO'?`<button class="action-btn danger" data-action="req-cancel" data-id="${x.id}" title="Cancelar requisição"><i class="bi bi-x-circle"></i></button>`:x.status==='CANCELADA'?`<button class="action-btn danger" data-action="req-delete-cancelada" data-id="${x.id}" title="Apagar cancelada"><i class="bi bi-trash3"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Nenhuma requisição encontrada.</td></tr>';
 }
 function telefoneWhatsApp(v){ return String(v||'').replace(/\D/g,''); }
 function fornecedorContatoCotacao(c){ return state.forn.find(f=>f.id===c?.fornecedorId) || {}; }
@@ -163,7 +172,7 @@ function renderForn(){
 function renderPed(){
   if(!$('listaPed')) return;
   const t=($('buscaPed')?.value||'').toLowerCase(), f=$('filtroPed')?.value||''; const rows=state.ped.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.fornecedorNome,x.documento].join(' ').toLowerCase().includes(t)));
-  $('listaPed').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.fornecedorNome||'-')}</td><td>${esc(x.origem||'-')}</td><td>${money(x.total)}</td><td>${dateBR(x.dataPrevista)}</td><td>${status(x.status||'APROVADO')}</td><td><button class="action-btn" data-action="ped-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="ped-next" data-id="${x.id}" title="Avançar etapa"><i class="bi bi-arrow-right"></i></button> ${x.status!=='ENTREGUE'&&x.status!=='CANCELADO'?`<button class="action-btn" data-action="ped-receber" data-id="${x.id}" title="Receber mercadoria"><i class="bi bi-box-seam"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum pedido encontrado.</td></tr>';
+  $('listaPed').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.fornecedorNome||'-')}</td><td>${esc(x.origem||'-')}</td><td>${money(x.total)}</td><td>${dateBR(x.dataPrevista)}</td><td>${status(x.status||'APROVADO')}</td><td><button class="action-btn" data-action="ped-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="ped-next" data-id="${x.id}" title="Avançar etapa"><i class="bi bi-arrow-right"></i></button> ${x.status!=='ENTREGUE'&&x.status!=='CANCELADO'?`<button class="action-btn" data-action="ped-receber" data-id="${x.id}" title="Receber mercadoria"><i class="bi bi-box-seam"></i></button><button class="action-btn danger" data-action="ped-cancel" data-id="${x.id}" title="Cancelar pedido"><i class="bi bi-x-circle"></i></button>`:''}${x.status==='CANCELADO'?`<button class="action-btn danger" data-action="ped-delete-cancelado" data-id="${x.id}" title="Apagar cancelado"><i class="bi bi-trash3"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum pedido encontrado.</td></tr>';
 }
 function renderTracking(){
   if(!$('trackingGrid')) return;
@@ -178,7 +187,7 @@ function renderStats(){
   const fornAtivos=state.forn.filter(x=>x.ativo!==false);
   setText('statReq',reqPend.length); setText('statCot',cotOpen.length); setText('statPed',pedAtivos.length);
   setText('statEnt',state.ped.filter(x=>['APROVADO','ENVIADO','EM_TRANSITO','RECEBIMENTO_PARCIAL'].includes(x.status)).length);
-  setText('statForn',fornAtivos.length); setText('statValor',money(pedAtivos.reduce((s,x)=>s+num(x.total),0)));
+  setText('statForn',fornAtivos.length); setText('statProdutosCompra',state.produtosCompra.filter(x=>x.ativo!==false).length); setText('statValor',money(pedAtivos.reduce((s,x)=>s+num(x.total),0)));
   setText('statReqUrg',reqPend.filter(x=>['ALTA','URGENTE'].includes(x.prioridade)).length);
   setText('statReqCot',state.req.filter(x=>x.status==='EM_COTACAO').length); setText('statReqDone',state.req.filter(x=>x.status==='ATENDIDA').length);
   setText('statCotOpen',state.cot.filter(x=>x.status==='ABERTA').length); setText('statCotAnalise',state.cot.filter(x=>x.status==='EM_ANALISE').length); setText('statCotAprov',state.cot.filter(x=>x.status==='APROVADA').length);
@@ -194,6 +203,7 @@ async function load(){
   // permissão/índice em uma coleção não derruba toda a interface de Compras.
   const consultas = [
     ['produtos', () => getDocs(collection(db,'produtos'))],
+    ['produtosCompra', () => getDocs(collection(db,'produtosCompra'))],
     ['requisicoesCompra', () => getDocs(query(collection(db,'requisicoesCompra'),orderBy('criadoEm','desc'),limit(200)))],
     ['cotacoesCompra', () => getDocs(query(collection(db,'cotacoesCompra'),orderBy('criadoEm','desc'),limit(200)))],
     ['fornecedores', () => getDocs(query(collection(db,'fornecedores'),orderBy('razaoSocial'),limit(200)))],
@@ -205,6 +215,7 @@ async function load(){
   }));
   const docs = Object.fromEntries(resultados.map(([nome,snap]) => [nome, snap?.docs || []]));
   state.produtos=docs.produtos.map(d=>({id:d.id,...d.data()})).filter(x=>x && String(x.nome||'').trim());
+  state.produtosCompra=docs.produtosCompra.map(d=>({id:d.id,...d.data()})).filter(x=>x && String(x.nome||'').trim());
   state.req=docs.requisicoesCompra.map(d=>({id:d.id,...d.data()}));
   state.cot=docs.cotacoesCompra.map(d=>({id:d.id,...d.data()}));
   state.forn=docs.fornecedores.map(d=>({id:d.id,...d.data()}));
@@ -252,14 +263,15 @@ async function receivePurchase(id){
   await runTransaction(db,async transaction=>{
     const reads=[];
     for(const row of rows){
-      const qty=num(row.querySelector('.r-qtd').value); const item=(p.itens||[]).find(i=>i.produtoId===row.dataset.prod); const pending=Math.max(0,num(item?.quantidade)-num(item?.recebido));
+      const qty=num(row.querySelector('.r-qtd').value); const item=(p.itens||[]).find(i=>i.produtoId===row.dataset.prod && (i.produtoColecao||'produtos')===row.dataset.collection); const pending=Math.max(0,num(item?.quantidade)-num(item?.recebido));
       if(qty<0 || qty>pending) throw new Error(`Quantidade recebida inválida para ${row.dataset.name}.`);
-      reads.push({row,item,qty,pending,ref:doc(db,'produtos',row.dataset.prod)});
+      const colecao=row.dataset.collection==='produtosCompra'?'produtosCompra':'produtos';
+      reads.push({row,item,qty,pending,colecao,ref:doc(db,colecao,row.dataset.prod)});
     }
     const snaps=[]; for(const r of reads) snaps.push(await transaction.get(r.ref));
     let allDelivered=true;
     const updated=(p.itens||[]).map(i=>{
-      const r=reads.find(x=>x.row.dataset.prod===i.produtoId); const recebidoAgora=r? r.qty:0; const recebido=num(i.recebido)+recebidoAgora;
+      const r=reads.find(x=>x.row.dataset.prod===i.produtoId && x.row.dataset.collection===(i.produtoColecao||'produtos')); const recebidoAgora=r? r.qty:0; const recebido=num(i.recebido)+recebidoAgora;
       if(recebido<num(i.quantidade)) allDelivered=false; return {...i,recebido};
     });
     for(let idx=0;idx<reads.length;idx++){
@@ -292,6 +304,7 @@ function navegarArea(area, params=''){
     requisicoes:'requisicoes.html',
     cotacoes:'cotacoes.html',
     fornecedores:'fornecedores.html',
+    'produtos-compra':'produtos-compra.html',
     pedidos:'pedidos-compra.html',
     acompanhamento:'acompanhamento.html',
     overview:'compras.html'
@@ -308,7 +321,7 @@ document.querySelectorAll('[data-quick]').forEach(b=>b.onclick=()=>quick(b.datas
 const btnNovaAcao=$('btnNovaAcao');
 if(btnNovaAcao) btnNovaAcao.onclick=()=>{
   const a=areaAtual();
-  a==='requisicoes'?reqForm():a==='cotacoes'?cotForm():a==='fornecedores'?fornecedorForm():a==='pedidos'?pedForm():reqForm();
+  a==='requisicoes'?reqForm():a==='cotacoes'?cotForm():a==='fornecedores'?fornecedorForm():a==='pedidos'?pedForm():a==='produtos-compra'?(location.href='produtos-compra.html'):reqForm();
 };
 $('btnNovaReq')?.addEventListener('click',()=>reqForm());
 $('btnNovaCot')?.addEventListener('click',()=>cotForm());
@@ -387,6 +400,43 @@ async function excluirOuCancelarReq(r, modo){
     alert(`Não foi possível ${acao} a requisição. Verifique as permissões do Firebase.`);
   }
 }
+async function cancelarPedido(p){
+  if(!p) return;
+  const motivo=prompt(`Informe o motivo do cancelamento do pedido ${p.numero||p.id.slice(0,8)}:`);
+  if(motivo===null) return;
+  if(!motivo.trim()){ alert('Informe o motivo do cancelamento.'); return; }
+  if(!confirm(`Cancelar o pedido ${p.numero||p.id.slice(0,8)}?`)) return;
+  try{
+    await updateDoc(doc(db,'pedidosCompra',p.id),{status:'CANCELADO',motivoCancelamento:motivo.trim(),canceladoEm:serverTimestamp(),atualizadoEm:serverTimestamp()});
+    p.status='CANCELADO'; p.motivoCancelamento=motivo.trim();
+    renderPed(); renderTracking(); renderStats();
+    alert('Pedido cancelado com sucesso.');
+  }catch(e){ console.error(e); alert('Não foi possível cancelar o pedido. Verifique as permissões do Firebase.'); }
+}
+async function apagarPedidoCancelado(p){
+  if(!p || p.status!=='CANCELADO') return;
+  if(!confirm(`Apagar definitivamente o pedido cancelado ${p.numero||p.id.slice(0,8)}?\n\nMotivo: ${p.motivoCancelamento||'Não informado'}`)) return;
+  try{
+    await deleteDoc(doc(db,'pedidosCompra',p.id));
+    state.ped=state.ped.filter(x=>x.id!==p.id); renderAll();
+  }catch(e){ console.error(e); alert('Não foi possível apagar o pedido cancelado. Verifique as permissões do Firebase.'); }
+}
+async function apagarCanceladosCompras(){
+  const reqs=state.req.filter(x=>x.status==='CANCELADA');
+  const peds=state.ped.filter(x=>x.status==='CANCELADO');
+  const total=reqs.length+peds.length;
+  if(!total){ alert('Não há requisições ou pedidos cancelados para apagar.'); return; }
+  if(!confirm(`Apagar definitivamente ${total} registro(s) cancelado(s) de Compras?\n\nRequisições: ${reqs.length}\nPedidos: ${peds.length}`)) return;
+  try{
+    for(const r of reqs) await deleteDoc(doc(db,'requisicoesCompra',r.id));
+    for(const p of peds) await deleteDoc(doc(db,'pedidosCompra',p.id));
+    state.req=state.req.filter(x=>x.status!=='CANCELADA');
+    state.ped=state.ped.filter(x=>x.status!=='CANCELADO');
+    renderAll();
+    alert('Cancelados apagados com sucesso.');
+  }catch(e){ console.error(e); alert('Parte dos cancelados pode não ter sido apagada. Verifique as permissões do Firebase.'); await load(); }
+}
+
 async function enviarReqCotacao(r){
   if(!r) return;
   if(r.status==='EM_COTACAO'){ location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(r.id)}`; return; }
@@ -406,6 +456,7 @@ $('listaReq')?.addEventListener('click',e=>{
   if(b.dataset.action==='req-cot')location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(x.id)}`;
   if(b.dataset.action==='req-delete')excluirOuCancelarReq(x,'delete');
   if(b.dataset.action==='req-cancel')excluirOuCancelarReq(x,'cancel');
+  if(b.dataset.action==='req-delete-cancelada')excluirOuCancelarReq(x,'delete');
 });
 $('listaCot')?.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
@@ -425,6 +476,8 @@ $('listaPed')?.addEventListener('click',e=>{
   if(b.dataset.action==='ped-edit')pedForm(x);
   if(b.dataset.action==='ped-next')advance(x.id);
   if(b.dataset.action==='ped-receber')receiveForm(x);
+  if(b.dataset.action==='ped-cancel')cancelarPedido(x);
+  if(b.dataset.action==='ped-delete-cancelado')apagarPedidoCancelado(x);
 });
 $('trackingGrid')?.addEventListener('click',e=>{
   const b=e.target.closest('[data-action]');if(!b)return;
@@ -439,7 +492,7 @@ $('trackingGrid')?.addEventListener('click',e=>{
 // botões continuem funcionando mesmo quando o carregamento dos dados demora.
 window.NeoScaleCompras = {
   reqForm, cotForm, fornecedorForm, pedForm, receiveForm,
-  closeModal, load, save, advance, approveCot, receivePurchase,
+  closeModal, load, save, advance, approveCot, receivePurchase, cancelarPedido, apagarPedidoCancelado, apagarCanceladosCompras,
   envioCotacaoForm, registrarEnvioCotacao,
   get __state(){ return state; },
   get __currentId(){ return currentId; },

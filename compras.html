@@ -127,6 +127,11 @@
         <span class="stat-content"><small>Fornecedores ativos</small><strong id="statForn">0</strong><em>empresas cadastradas</em></span>
         <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
       </button>
+      <button type="button" class="stat-card compras-stat" data-stat-tab="produtos-compra" title="Abrir produtos cadastrados para compra">
+        <span class="stat-icon icon-green"><i class="bi bi-box-seam"></i></span>
+        <span class="stat-content"><small>Produtos para compra</small><strong id="statProdutosCompra">0</strong><em>itens fora do Frente de Loja</em></span>
+        <i class="bi bi-chevron-right stat-arrow" aria-hidden="true"></i>
+      </button>
       <button type="button" class="stat-card compras-stat" data-stat-tab="pedidos" title="Abrir pedidos de compra ativos">
         <span class="stat-icon icon-dark"><i class="bi bi-currency-dollar"></i></span>
         <span class="stat-content"><small>Compras em andamento</small><strong id="statValor">R$ 0,00</strong><em>valor dos pedidos ativos</em></span>
@@ -137,7 +142,7 @@
 
 
     <section class="tab-panel active" data-panel="requisicoes">
-      <div class="panel-head"><div><span class="section-kicker">1 · Solicitação</span><h3>Requisições de compra</h3><p>O que o restaurante precisa comprar antes de consultar o mercado.</p></div><button class="btn-primary" id="btnNovaReq"><i class="bi bi-plus"></i> Nova requisição</button></div>
+      <div class="panel-head"><div><span class="section-kicker">1 · Solicitação</span><h3>Requisições de compra</h3><p>O que o restaurante precisa comprar antes de consultar o mercado.</p></div><div class="panel-actions"><button class="btn-secondary danger-outline" id="btnApagarCancelados" type="button"><i class="bi bi-trash3"></i> Apagar cancelados</button><button class="btn-primary" id="btnNovaReq"><i class="bi bi-plus"></i> Nova requisição</button></div></div>
       <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaReq" placeholder="Pesquisar número, solicitante ou item..."></div><select id="filtroReq"><option value="">Todos os status</option><option value="ABERTA">Aberta</option><option value="EM_COTACAO">Em cotação</option><option value="ATENDIDA">Atendida</option><option value="CANCELADA">Cancelada</option></select></div>
       <div class="table-wrap"><table><thead><tr><th>Nº</th><th>Data</th><th>Solicitante</th><th>Itens</th><th>Prioridade</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaReq"></tbody></table></div>
     </section>
@@ -156,7 +161,7 @@
     </section>
 
     <section class="tab-panel" data-panel="pedidos">
-      <div class="panel-head"><div><span class="section-kicker">3 · Pedido</span><h3>Pedidos de compra</h3><p>Formalize a compra e mantenha a previsão de entrega registrada.</p></div><button class="btn-primary" id="btnNovoPedido"><i class="bi bi-plus"></i> Novo pedido</button></div>
+      <div class="panel-head"><div><span class="section-kicker">3 · Pedido</span><h3>Pedidos de compra</h3><p>Formalize a compra e mantenha a previsão de entrega registrada.</p></div><div class="panel-actions"><button class="btn-secondary danger-outline" id="btnApagarCanceladosPed" type="button"><i class="bi bi-trash3"></i> Apagar cancelados</button><button class="btn-primary" id="btnNovoPedido"><i class="bi bi-plus"></i> Novo pedido</button></div></div>
       <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaPed" placeholder="Pesquisar pedido, fornecedor ou documento..."></div><select id="filtroPed"><option value="">Todos os status</option><option value="APROVADO">Aprovado</option><option value="ENVIADO">Enviado</option><option value="EM_TRANSITO">Em trânsito</option><option value="RECEBIMENTO_PARCIAL">Recebimento parcial</option><option value="ENTREGUE">Entregue</option><option value="CANCELADO">Cancelado</option></select></div>
       <div class="table-wrap"><table><thead><tr><th>Nº</th><th>Data</th><th>Fornecedor</th><th>Origem</th><th>Total</th><th>Entrega</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaPed"></tbody></table></div>
     </section>

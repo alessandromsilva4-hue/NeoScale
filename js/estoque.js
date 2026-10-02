@@ -94,18 +94,30 @@ function renderizar() {
 async function carregar() {
   tabela.innerHTML = '<tr><td colspan="7" class="empty-estoque">Carregando estoque...</td></tr>';
   try {
-    const snap = await getDocs(collection(db,'produtos'));
+    const [snapVenda, snapCompra] = await Promise.all([
+      getDocs(collection(db,'produtos')),
+      getDocs(collection(db,'produtosCompra'))
+    ]);
     produtos = [];
-    snap.forEach(d => {
+    snapVenda.forEach(d => {
       const p = d.data();
       if (p.ativo === false) return;
       produtos.push({
-        id:d.id,
-        nome:p.nome || '',
-        categoria:p.categoria || '',
+        id:d.id, colecao:'produtos',
+        nome:p.nome || '', categoria:p.categoria || '',
         tipoVenda:p.tipoVenda === 'peso' ? 'peso' : 'unidade',
-        estoqueAtual:numero(p.estoqueAtual),
-        estoqueMinimo:numero(p.estoqueMinimo)
+        unidadeCompra:p.tipoVenda === 'peso' ? 'kg' : 'un.',
+        estoqueAtual:numero(p.estoqueAtual), estoqueMinimo:numero(p.estoqueMinimo)
+      });
+    });
+    snapCompra.forEach(d => {
+      const p = d.data();
+      if (p.ativo === false) return;
+      produtos.push({
+        id:d.id, colecao:'produtosCompra',
+        nome:p.nome || '', categoria:p.categoria || 'Compras',
+        tipoVenda:p.unidadeCompra || 'un.', unidadeCompra:p.unidadeCompra || 'un.',
+        estoqueAtual:numero(p.estoqueAtual), estoqueMinimo:numero(p.estoqueMinimo)
       });
     });
     produtos.sort((a,b)=>a.nome.localeCompare(b.nome,'pt-BR'));
@@ -123,7 +135,7 @@ async function salvarMovimento() {
 
   const tipo = tipoMovimento.value;
   const produtoId = produtoSelecionado.id;
-  const produtoRef = doc(db,'produtos',produtoId);
+  const produtoRef = doc(db,produtoSelecionado.colecao || 'produtos',produtoId);
   const novoSaldoEsperado = produtoSelecionado.estoqueAtual + (tipo === 'entrada' ? quantidade : -quantidade);
   if (novoSaldoEsperado < 0) { alert('A saída não pode deixar o estoque negativo.'); return; }
 
@@ -140,6 +152,7 @@ async function salvarMovimento() {
       const movimentoRef = doc(collection(db,'estoqueMovimentos'));
       transaction.set(movimentoRef, {
         produtoId,
+        produtoColecao: produtoSelecionado.colecao || 'produtos',
         produtoNome: dados.nome || produtoSelecionado.nome,
         tipo,
         quantidade,

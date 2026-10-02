@@ -1,9 +1,9 @@
-import { buscarComanda, finalizarComanda } from "./comandas.js";
+import { buscarComanda, finalizarComanda, criarComandaProvisoria } from "./comandas.js";
 import { registrarCupomFiscal } from "./fiscal.js";
 import { caixaAberto, registrarMovimento } from "./caixa.js";
 import { db } from "./firebase.js";
 import {
-  collection, getDocs, addDoc, serverTimestamp
+  collection, getDocs, addDoc, updateDoc, doc, serverTimestamp, query, where
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const $ = id => document.getElementById(id);
@@ -35,6 +35,13 @@ function resetPagamento(){
   pagamento=null; recebido.value=""; $("troco").textContent=moeda(0); trocoBox.classList.remove("show");
   document.querySelectorAll(".pay-btn").forEach(b=>b.classList.remove("selected"));
   finalizar.disabled=true;
+  sincronizarBotaoFinalizarRodape();
+}
+
+function sincronizarBotaoFinalizarRodape(){
+  const btn=$("btnFinalizarRodape");
+  if(!btn) return;
+  btn.disabled=finalizar.disabled;
 }
 
 function totalProdutos(){ return itensProdutos.reduce((s,i)=>s+(Number(i.preco||0)*Number(i.quantidade||0)),0); }
@@ -44,17 +51,23 @@ function renderItens(){
   const tbody=$("itensVenda");
   if(!tbody) return;
   let html="";
-  if(comandaAtual){
+  const itensComanda=Array.isArray(comandaAtual?.itens)?comandaAtual.itens:[];
+  itensComanda.forEach((item)=>{
+    const tipo=item.tipo||"UNIDADE";
+    const quantidade=Number(item.quantidade||1);
+    const totalItem=Number(item.total ?? (Number(item.preco||0)*quantidade));
+    const ehPeso=tipo==="PESO";
     html+=`<tr>
-      <td>${comandaAtual.produto||"Buffet por quilo"}</td><td>1</td>
-      <td class="weight-value">${peso(comandaAtual.peso)}</td>
-      <td class="price-value">${moeda(comandaAtual.precoKg)}/kg</td>
-      <td class="weight-value">${moeda(comandaAtual.total)}</td>
+      <td><strong>${item.nome||item.produto||"Produto"}</strong><br><small>${ehPeso?"Pesagem":"Produto"}</small></td>
+      <td>${quantidade}</td>
+      <td class="weight-value">${ehPeso?peso(item.peso):"—"}</td>
+      <td class="price-value">${ehPeso?`${moeda(item.precoKg)}/kg`:`${moeda(item.preco)}/un`}</td>
+      <td class="weight-value">${moeda(totalItem)}</td>
     </tr>`;
-  }
+  });
   itensProdutos.forEach((item,index)=>{
-    html+=`<tr>
-      <td><strong>${item.nome}</strong><br><small>Produto</small></td>
+    html+=`<tr class="pending-line">
+      <td><strong>${item.nome}</strong><br><small>Pendente</small></td>
       <td><span class="qty-control"><button type="button" data-minus="${index}">−</button>${item.quantidade}<button type="button" data-plus="${index}">+</button></span></td>
       <td>—</td><td class="price-value">${moeda(item.preco)}/un</td>
       <td class="weight-value">${moeda(item.preco*item.quantidade)} <button class="product-line-remove" type="button" data-remove="${index}" title="Remover"><i class="bi bi-x-circle"></i></button></td>
@@ -64,7 +77,7 @@ function renderItens(){
   tbody.innerHTML=html;
   tbody.querySelectorAll("[data-minus]").forEach(b=>b.onclick=()=>alterarQuantidade(Number(b.dataset.minus),-1));
   tbody.querySelectorAll("[data-plus]").forEach(b=>b.onclick=()=>alterarQuantidade(Number(b.dataset.plus),1));
-  tbody.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{itensProdutos.splice(Number(b.dataset.remove),1);atualizarResumo();});
+  tbody.querySelectorAll("[data-remove]").forEach(b=>b.onclick=()=>{itensProdutos.splice(Number(b.dataset.remove),1);atualizarResumo();renderItensSemLoop();});
   atualizarResumo();
 }
 
@@ -72,10 +85,12 @@ function atualizarResumo(){
   const total=totalVenda();
   $("subtotal").textContent=moeda(total);
   $("totalGrande").textContent=moeda(total);
-  $("kpiItens").textContent=String((comandaAtual?1:0)+itensProdutos.reduce((s,i)=>s+i.quantidade,0));
+  const itensPersistidos=(Array.isArray(comandaAtual?.itens)?comandaAtual.itens:[]).reduce((s,i)=>s+Number(i.quantidade||1),0);
+  $("kpiItens").textContent=String(itensPersistidos+itensProdutos.reduce((s,i)=>s+i.quantidade,0));
   $("kpiValor").textContent=moeda(total);
   if(pagamento==="Dinheiro") calcularTroco();
   else finalizar.disabled=!(total>0 && pagamento);
+  sincronizarBotaoFinalizarRodape();
   atualizarResumoEntrega();
 }
 
@@ -104,17 +119,19 @@ function limparVenda(){
 }
 
 function mostrarComanda(c){
+  const itemPeso=(Array.isArray(c.itens)?c.itens:[]).find(i=>i.tipo==="PESO");
   $("numeroComanda").textContent=c.numero||"—";
-  $("produtoComanda").textContent=c.produto||"Buffet por quilo";
-  $("pesoComanda").textContent=peso(c.peso);
-  $("precoComanda").textContent=`${moeda(c.precoKg)}/kg`;
+  $("produtoComanda").textContent=c.tipo==="PROVISORIA"?"Comanda provisória":(itemPeso?.nome||c.produto||"Buffet por quilo");
+  $("pesoComanda").textContent=itemPeso?peso(itemPeso.peso):"—";
+  $("precoComanda").textContent=itemPeso?`${moeda(itemPeso.precoKg)}/kg`:"—";
   $("totalComanda").textContent=moeda(c.total);
   $("statusComanda").textContent=c.status||"ABERTA";
   $("kpiComanda").textContent=c.numero||"—";
-  $("horaVenda").textContent="Comanda carregada";
+  $("horaVenda").textContent=c.tipo==="PROVISORIA"?"Comanda provisória carregada":"Comanda carregada";
   ticket.classList.add("show"); empty.style.display="none";
   renderItens();
 }
+
 
 async function atualizarCaixa(){
   try{
@@ -133,11 +150,48 @@ async function buscar(){
     const c=await buscarComanda(codigo);
     if(!c){ avisar("Comanda não encontrada. Confira o código ou número."); return; }
     if(c.status==="FINALIZADA"){ avisar(`A comanda ${c.numero} já foi finalizada.`); return; }
-    comandaAtual=c; mostrarComanda(c); resetPagamento();
+    comandaAtual=c; itensProdutos=[]; mostrarComanda(c); resetPagamento();
     avisar(`Comanda ${c.numero} carregada. Você pode adicionar produtos à mesma venda.`,`ok`);
   }catch(e){console.error(e);avisar("Erro ao consultar a comanda. Verifique a conexão com o Firebase.");}
 }
 
+
+async function criarComandaNoPDV(){
+  try{
+    const caixa=await caixaAberto();
+    if(!caixa){ avisar("Abra o caixa antes de criar uma comanda.","err"); return; }
+    const c=await criarComandaProvisoria();
+    comandaAtual=c;
+    itensProdutos=[];
+    mostrarComanda(c);
+    resetPagamento();
+    avisar(`Comanda provisória #${c.numero} criada. Adicione os produtos e finalize quando estiver pronto.`,"ok");
+    $("buscaProdutoPDV")?.focus();
+  }catch(e){ console.error(e); avisar(e?.message||"Não foi possível criar a comanda.","err"); }
+}
+
+async function abrirComandaNoPDV(){
+  const modal=$("modalAbrirComanda");
+  const lista=$("listaComandasPDV");
+  if(!modal||!lista)return;
+  lista.innerHTML='<div class="command-loading"><i class="bi bi-arrow-repeat"></i> Carregando comandas...</div>';
+  modal.classList.add("show");
+  try{
+    const snap=await getDocs(query(collection(db,"comandas"),where("status","==","ABERTA")));
+    const rows=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>Number(a.numero||0)-Number(b.numero||0));
+    if(!rows.length){ lista.innerHTML='<div class="command-empty"><i class="bi bi-receipt"></i><strong>Nenhuma comanda aberta</strong><span>Crie uma comanda provisória ou faça uma pesagem.</span></div>'; return; }
+    lista.innerHTML=rows.map(c=>{
+      const qtd=(Array.isArray(c.itens)?c.itens:[]).reduce((s,i)=>s+Number(i.quantidade||1),0);
+      const tipo=c.tipo==="PROVISORIA"?"PROVISÓRIA":"PESAGEM";
+      return `<button type="button" class="command-option" data-command-id="${c.id}"><span class="command-option-main"><strong>#${c.numero}</strong><small>${tipo} · ${qtd} item(ns)</small></span><span class="command-option-total">${moeda(c.total)}</span><i class="bi bi-chevron-right"></i></button>`;
+    }).join("");
+    lista.querySelectorAll("[data-command-id]").forEach(btn=>btn.onclick=()=>{
+      const c=rows.find(x=>x.id===btn.dataset.commandId);
+      if(!c)return;
+      comandaAtual=c; itensProdutos=[]; modal.classList.remove("show"); mostrarComanda(c); resetPagamento(); avisar(`Comanda #${c.numero} aberta no caixa.`,"ok");
+    });
+  }catch(e){ console.error(e); lista.innerHTML='<div class="command-empty"><strong>Não foi possível carregar as comandas.</strong><span>Verifique a conexão com o Firebase.</span></div>'; }
+}
 
 function configurarAbas(){
   const tabs=document.querySelectorAll(".pdv-tab");
@@ -145,11 +199,14 @@ function configurarAbas(){
   tabs.forEach(tab=>tab.addEventListener("click",()=>{
     tabs.forEach(t=>t.classList.remove("active")); tab.classList.add("active");
     modoVenda=tab.dataset.tab;
-    comanda?.classList.toggle("pdv-tab-panel-hidden",modoVenda!=="comanda");
-    produtosPainel?.classList.toggle("pdv-tab-panel-hidden",modoVenda!=="produtos");
-    entregaPainel?.classList.toggle("pdv-tab-panel-hidden",modoVenda!=="entrega");
+    const entregaAtiva=modoVenda==="entrega";
+    // Na Frente de Loja, comanda e produtos ficam visíveis juntos para agilizar o atendimento.
+    // A aba apenas muda o foco. Entrega é o único modo que troca o conteúdo principal.
+    comanda?.classList.toggle("pdv-tab-panel-hidden",entregaAtiva);
+    produtosPainel?.classList.toggle("pdv-tab-panel-hidden",entregaAtiva);
+    entregaPainel?.classList.toggle("pdv-tab-panel-hidden",!entregaAtiva);
     if(modoVenda==="produtos") $("buscaProdutoPDV")?.focus();
-    else if(modoVenda==="entrega"){atualizarResumoEntrega();$("deliveryCliente")?.focus();}
+    else if(entregaAtiva){atualizarResumoEntrega();$("deliveryCliente")?.focus();}
     else input.focus();
   }));
 }
@@ -174,11 +231,18 @@ function renderProdutos(){
   const busca=($("buscaProdutoPDV")?.value||"").trim().toLowerCase();
   const lista=produtos.filter(p=>(categoriaAtual==="Todos"||p.categoria===categoriaAtual)&&(!busca||String(p.nome||"").toLowerCase().includes(busca)));
   if(!lista.length){el.innerHTML='<div class="products-empty">Nenhum produto encontrado.</div>';return;}
-  el.innerHTML=lista.map(p=>`<button type="button" class="product-card" data-product="${p.id}">
-    <strong>${p.nome||"Produto"}</strong>
-    <span>${moeda(precoProduto(p))}</span>
-    <small>${unidadeProduto(p)==="kg"?"por kg":"por unidade"}${p.categoria?" · "+p.categoria:""}</small>
-  </button>`).join("");
+  el.innerHTML=lista.map(p=>{
+    const imagem=p.imagem||p.image||p.foto||p.imageUrl||p.urlImagem||"";
+    const visual=imagem
+      ? `<div class="product-image"><img src="${imagem}" alt="${p.nome||"Produto"}" loading="lazy"></div>`
+      : `<div class="product-image"><i class="bi bi-basket2"></i></div>`;
+    return `<button type="button" class="product-card" data-product="${p.id}">
+      ${visual}
+      <strong>${p.nome||"Produto"}</strong>
+      <span>${moeda(precoProduto(p))}</span>
+      <small>${unidadeProduto(p)==="kg"?"por kg":"por unidade"}${p.categoria?" · "+p.categoria:""}</small>
+    </button>`;
+  }).join("");
   el.querySelectorAll("[data-product]").forEach(b=>b.onclick=()=>adicionarProduto(b.dataset.product));
 }
 
@@ -279,7 +343,7 @@ async function criarPedidoEntrega(){
 function calcularTroco(){
   if(pagamento!=="Dinheiro")return;
   const valor=Number(recebido.value||0), total=totalVenda(), troco=valor-total;
-  $("troco").textContent=moeda(Math.max(0,troco)); finalizar.disabled=!(total>0&&valor>=total);
+  $("troco").textContent=moeda(Math.max(0,troco)); finalizar.disabled=!(total>0&&valor>=total); sincronizarBotaoFinalizarRodape();
 }
 
 document.querySelectorAll(".pay-btn").forEach(btn=>btn.addEventListener("click",()=>{
@@ -288,6 +352,7 @@ document.querySelectorAll(".pay-btn").forEach(btn=>btn.addEventListener("click",
   document.querySelectorAll(".pay-btn").forEach(b=>b.classList.remove("selected"));btn.classList.add("selected");
   trocoBox.classList.toggle("show",pagamento==="Dinheiro");
   if(pagamento!=="Dinheiro")finalizar.disabled=false; else calcularTroco();
+  sincronizarBotaoFinalizarRodape();
 }));
 recebido.addEventListener("input",calcularTroco);
 
@@ -322,7 +387,7 @@ finalizar.addEventListener("click",async()=>{
   if(totalVenda()<=0||!pagamento)return;
   if(!caixaAtual){await atualizarCaixa();if(!caixaAtual){avisar("Nenhum caixa está aberto. Abra o caixa antes de vender.");return;}}
   if(pagamento==="Dinheiro"&&Number(recebido.value||0)<totalVenda()){avisar("O valor recebido é menor que o total.");return;}
-  finalizar.disabled=true;finalizar.innerHTML='<i class="bi bi-arrow-repeat"></i> FINALIZANDO...';
+  finalizar.disabled=true;sincronizarBotaoFinalizarRodape();finalizar.innerHTML='<i class="bi bi-arrow-repeat"></i> FINALIZANDO...';
   try{
     const totalFinal = totalVenda();
     const recebidoValor = pagamento === "Dinheiro" ? Number(recebido.value || 0) : 0;
@@ -361,17 +426,69 @@ finalizar.addEventListener("click",async()=>{
     };
     $("fiscalVendaTotal").textContent=moeda(totalFinal);
     $("modalFiscalVenda").hidden=false;
-  }catch(e){console.error(e);finalizar.disabled=false;finalizar.innerHTML='<i class="bi bi-check-circle"></i> FINALIZAR VENDA';avisar(e.message||"Não foi possível finalizar a venda.");}
+  }catch(e){console.error(e);finalizar.disabled=false;sincronizarBotaoFinalizarRodape();finalizar.innerHTML='<i class="bi bi-check-circle"></i> FINALIZAR VENDA';avisar(e.message||"Não foi possível finalizar a venda.");}
+});
+
+$("btnFinalizarRodape")?.addEventListener("click",()=>{
+  if(finalizar.disabled){
+    const resumo=document.querySelector(".summary");
+    document.querySelector(".summary")?.scrollIntoView({behavior:"smooth",block:"center"});
+    if(totalVenda()<=0) avisar("Adicione um produto ou carregue uma comanda antes de finalizar.","err");
+    else if(!pagamento) avisar("Selecione a forma de pagamento para finalizar a compra.","err");
+    else if(pagamento==="Dinheiro") avisar("Informe o valor recebido para finalizar a compra.","err");
+    return;
+  }
+  finalizar.click();
 });
 
 $("buscaProdutoPDV")?.addEventListener("input",renderProdutos);
 btnBuscar.addEventListener("click",buscar);
+$("btnCriarComandaPDV")?.addEventListener("click",criarComandaNoPDV);
+$("btnAbrirComandaPDV")?.addEventListener("click",abrirComandaNoPDV);
+$("fecharModalAbrirComanda")?.addEventListener("click",()=>$("modalAbrirComanda")?.classList.remove("show"));
 input.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();buscar();}});
 $("btnLimpar").addEventListener("click",limparVenda);
+$("btnLimparTopo")?.addEventListener("click",limparVenda);
 const modal=$("modalCancel");
-$("btnCancelar").addEventListener("click",()=>{if(comandaAtual||itensProdutos.length)modal.classList.add("show");});
-$("fecharModal").addEventListener("click",()=>modal.classList.remove("show"));
-$("confirmarCancelar").addEventListener("click",()=>{modal.classList.remove("show");limparVenda();avisar("Venda limpa do atendimento.","ok");});
+$("btnCancelar")?.addEventListener("click",()=>{
+  if(comandaAtual||itensProdutos.length) modal.classList.add("show");
+});
+$("fecharModal")?.addEventListener("click",()=>modal.classList.remove("show"));
+$("confirmarCancelar")?.addEventListener("click",async()=>{
+  const btn=$("confirmarCancelar");
+  if(!comandaAtual){
+    modal.classList.remove("show");
+    limparVenda();
+    avisar("Venda limpa do atendimento.","ok");
+    return;
+  }
+  const motivo=prompt(`Informe o motivo do cancelamento da comanda #${comandaAtual.numero||""}:`,"");
+  if(motivo===null) return;
+  const texto=motivo.trim();
+  if(!texto){ avisar("Informe o motivo do cancelamento."); return; }
+  try{
+    btn.disabled=true;
+    btn.textContent="Cancelando...";
+    const caixa=await caixaAberto();
+    await updateDoc(doc(db,"comandas",comandaAtual.id),{
+      status:"CANCELADA",
+      canceladaEm:serverTimestamp(),
+      cancelamentoMotivo:texto,
+      canceladaPor:caixa?.operador||"Operador",
+      caixaId:caixa?.id||comandaAtual.caixaId||null,
+      ocultarAposFechamento:false
+    });
+    modal.classList.remove("show");
+    limparVenda();
+    avisar(`Comanda #${comandaAtual.numero||""} cancelada com sucesso.` ,"ok");
+  }catch(e){
+    console.error(e);
+    avisar(e?.message||"Não foi possível cancelar a comanda.");
+  }finally{
+    btn.disabled=false;
+    btn.textContent="Cancelar venda";
+  }
+});
 window.addEventListener("keydown",e=>{
   if(e.key==="F2"){e.preventDefault();input.focus();input.select();}
   if(e.key==="F6"){e.preventDefault();document.querySelector(".pay-btn")?.focus();}

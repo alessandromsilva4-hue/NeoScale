@@ -125,6 +125,23 @@ placeholder="Ex: Buffet Almoço"
 <input id="precoProduto" type="number" step="0.01" min="0" placeholder="22.00">
 </div>
 
+<div class="produto-imagem-campo">
+<label for="imagemProduto">Imagem do produto</label>
+<div class="imagem-produto-editor">
+<div class="imagem-produto-preview" id="imagemProdutoPreview">
+<i class="bi bi-image"></i>
+<span>Sem imagem</span>
+</div>
+<div class="imagem-produto-acoes">
+<input id="imagemProduto" type="file" accept="image/*">
+<small>JPG, PNG ou WebP. A imagem será reduzida automaticamente para uso no PDV.</small>
+<button type="button" id="btnRemoverImagemProduto" class="btn-remover-imagem" hidden>
+<i class="bi bi-trash"></i> Remover imagem
+</button>
+</div>
+</div>
+</div>
+
 
 
 
@@ -201,6 +218,12 @@ Produtos cadastrados
 <thead>
 
 <tr>
+
+<th>
+
+Imagem
+
+</th>
 
 <th>
 

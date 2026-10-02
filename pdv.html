@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/sidebar.css">
-<link rel="stylesheet" href="css/pdv.css">
+<link rel="stylesheet" href="css/pdv.css?v=20261001-1">
     <link rel="stylesheet" href="css/tema-verde.css">
 </head>
 <body>
@@ -33,7 +33,11 @@
   </div>
 
   <section class="scanner-card" id="painelComandaPDV">
-    <div class="scanner-head"><strong><i class="bi bi-upc-scan"></i> Ler comanda</strong><span>O leitor pode enviar o código automaticamente</span></div>
+    <div class="scanner-head"><strong><i class="bi bi-upc-scan"></i> Comandas</strong><span>Abra uma comanda existente ou crie uma nova provisória</span></div>
+    <div class="scanner-actions">
+      <button id="btnCriarComandaPDV" type="button" class="scanner-action scanner-action-primary"><i class="bi bi-plus-circle"></i> Criar comanda</button>
+      <button id="btnAbrirComandaPDV" type="button" class="scanner-action"><i class="bi bi-folder2-open"></i> Abrir comanda</button>
+    </div>
     <div class="scanner-row">
       <div class="scanner-input-wrap"><i class="bi bi-upc"></i><input id="codigoComanda" class="scanner-input" autocomplete="off" autofocus placeholder="Passe o código de barras ou digite o nº da comanda"></div>
       <button id="btnBuscar" class="scanner-btn"><i class="bi bi-search"></i> Buscar</button>
@@ -128,12 +132,12 @@
           <thead><tr><th>Produto</th><th>Quantidade</th><th>Peso</th><th>Preço/kg</th><th>Total</th></tr></thead>
           <tbody id="itensVenda"><tr><td id="produtoComanda">—</td><td>1</td><td id="pesoComanda" class="weight-value">—</td><td id="precoComanda" class="price-value">—</td><td id="totalComanda" class="weight-value">—</td></tr></tbody>
         </table>
-        <div class="ticket-footer"><button id="btnLimpar" class="btn-outline"><i class="bi bi-arrow-counterclockwise"></i> Nova venda</button><button id="btnCancelar" class="btn-danger"><i class="bi bi-x-circle"></i> Cancelar</button></div>
+        <div class="ticket-footer"><div class="ticket-footer-left"><button id="btnLimpar" class="btn-outline" type="button"><i class="bi bi-arrow-counterclockwise"></i> Nova venda</button><button id="btnCancelar" class="btn-danger" type="button"><i class="bi bi-x-circle"></i> Cancelar</button></div><button id="btnFinalizarRodape" class="btn-finalizar-compra" type="button"><i class="bi bi-check-circle"></i> Finalizar compra</button></div>
       </div>
     </section>
 
     <aside class="panel">
-      <div class="panel-head"><h3><i class="bi bi-calculator"></i> Resumo e pagamento</h3><small>Recebimento</small></div>
+      <div class="panel-head"><h3><i class="bi bi-calculator"></i> Resumo e pagamento</h3><button id="btnLimparTopo" class="summary-clear-btn" type="button"><i class="bi bi-trash3"></i> Limpar venda</button></div>
       <div class="summary">
         <div class="summary-row"><span>Subtotal</span><strong id="subtotal">R$ 0,00</strong></div>
         <div class="summary-row"><span>Desconto</span><strong>R$ 0,00</strong></div>
@@ -152,9 +156,15 @@
   </div>
 </main>
 </div>
-<div id="modalCancel" class="modal"><div class="modal-card"><h3>Cancelar venda?</h3><p>A comanda continuará disponível para ser consultada e finalizada depois.</p><div class="modal-actions"><button id="fecharModal" class="btn-outline">Voltar</button><button id="confirmarCancelar" class="btn-danger">Cancelar venda</button></div></div></div>
+<div id="modalCancel" class="modal"><div class="modal-card"><h3>Cancelar venda?</h3><p>A comanda será marcada como CANCELADA e ficará registrada no relatório do caixa. Informe o motivo do cancelamento.</p><div class="modal-actions"><button id="fecharModal" class="btn-outline">Voltar</button><button id="confirmarCancelar" class="btn-danger">Cancelar venda</button></div></div></div>
+<div id="modalAbrirComanda" class="modal">
+  <div class="modal-card command-modal-card">
+    <div class="command-modal-head"><div><span class="command-modal-kicker">COMANDAS ABERTAS</span><h3>Abrir comanda</h3><p>Selecione a comanda que deseja atender no caixa.</p></div><button id="fecharModalAbrirComanda" type="button" class="modal-close"><i class="bi bi-x-lg"></i></button></div>
+    <div id="listaComandasPDV" class="command-list"></div>
+  </div>
+</div>
 <div id="modalFiscalVenda" class="modal fiscal-venda-modal" hidden><div class="modal-card fiscal-venda-card"><div class="fiscal-venda-icon"><i class="bi bi-receipt"></i></div><h3>Cliente deseja cupom fiscal?</h3><p>Emita a NFC-e para esta venda. Se o cliente não quiser, a venda será concluída normalmente.</p><div class="fiscal-venda-resumo"><span>Total da venda</span><strong id="fiscalVendaTotal">R$ 0,00</strong></div><div class="modal-actions fiscal-venda-actions"><button id="naoCupomFiscal" class="btn-outline" type="button">Não, finalizar</button><button id="simCupomFiscal" class="btn-primary" type="button"><i class="bi bi-receipt"></i> Sim, emitir cupom</button></div></div></div>
-<script type="module" src="js/pdv.js"></script>
+<script type="module" src="js/pdv.js?v=20261001-1"></script>
 <script type="module">import { protegerPagina } from "./js/sessao.js"; protegerPagina("pdv");</script>
 <script src="js/sidebar-menu.js"></script>
 </body>

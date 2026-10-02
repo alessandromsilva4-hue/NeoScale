@@ -10,52 +10,26 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const CONTADOR = "configuracoes/contadorComandas";
+const CONTADOR_PROVISORIA = "configuracoes/contadorComandasProvisorias";
 const MOV = "movimentosCaixa";
 
 export async function proximaComanda() {
-    // Sequência EXCLUSIVA das comandas geradas pela pesagem: 0001, 0002...
     return runTransaction(db, async (transaction) => {
         const ref = doc(db, "configuracoes", "contadorComandas");
         const snap = await transaction.get(ref);
         const atual = Number(snap.exists() ? snap.data().valor || 0 : 0);
         const proximo = atual + 1;
         if (proximo > 9999) {
-            throw new Error("A sequência de comandas de pesagem atingiu o limite de 9999.");
+            throw new Error("A sequência de comandas atingiu o limite de 9999.");
         }
         transaction.set(ref, { valor: proximo, atualizadoEm: serverTimestamp() }, { merge: true });
         return String(proximo).padStart(4, "0");
     });
 }
 
-export async function proximaComandaProvisoria() {
-    // Sequência EXCLUSIVA das comandas provisórias: cinco dígitos.
-    // Começa em 10001 para ficar visualmente separada da sequência da pesagem.
-    return runTransaction(db, async (transaction) => {
-        const ref = doc(db, "configuracoes", "contadorComandasProvisorias");
-        const snap = await transaction.get(ref);
-        const atual = Number(snap.exists() ? snap.data().valor || 10000 : 10000);
-        const proximo = atual + 1;
-        if (proximo > 99999) {
-            throw new Error("A sequência de comandas provisórias atingiu o limite de 99999.");
-        }
-        transaction.set(ref, { valor: proximo, atualizadoEm: serverTimestamp() }, { merge: true });
-        return String(proximo).padStart(5, "0");
-    });
-}
-
 export async function criarComanda({ peso, precoKg, total, produto = "Buffet por quilo" }) {
-    let numero = await proximaComanda();
-    // Números de comandas de balcão podem estar ocupados. A pesagem usa o próximo número livre.
-    for (let tentativa = 0; tentativa < 100; tentativa++) {
-        const ocupada = await getDocs(query(
-            collection(db, "comandas"),
-            where("numero", "==", numero),
-            where("status", "==", "ABERTA")
-        ));
-        if (ocupada.empty) break;
-        numero = await proximaComanda();
-    }
-    const codigoBarras = `2${numero}${Date.now().toString().slice(-9)}`;
+    const numero = await proximaComanda();
+    const codigoBarras = `2${numero}000`; // número interno único e estável para leitura no PDV
 
     const itemPeso = {
         tipo: "PESO",
@@ -100,11 +74,21 @@ export async function criarComanda({ peso, precoKg, total, produto = "Buffet por
 }
 
 
+export async function proximaComandaProvisoria() {
+    return runTransaction(db, async (transaction) => {
+        const ref = doc(db, "configuracoes", "contadorComandasProvisorias");
+        const snap = await transaction.get(ref);
+        const atual = Number(snap.exists() ? snap.data().valor || 10000 : 10000);
+        const proximo = atual + 1;
+        if (proximo > 99999) throw new Error("A sequência de comandas provisórias atingiu o limite de 99999.");
+        transaction.set(ref, { valor: proximo, atualizadoEm: serverTimestamp() }, { merge: true });
+        return String(proximo).padStart(5, "0");
+    });
+}
+
 export async function criarComandaProvisoria() {
-    // Comanda provisória usa uma sequência independente de 5 dígitos.
-    // A sequência da pesagem continua sendo 0001, 0002...
     const numero = await proximaComandaProvisoria();
-    const codigoBarras = `2${numero}${Date.now().toString().slice(-9)}`;
+    const codigoBarras = `2${numero}000`;
 
     const ref = await addDoc(collection(db, "comandas"), {
         numero,
@@ -210,15 +194,8 @@ export async function buscarComanda(codigo) {
     }
 
     if (resultado.empty) return null;
-    const docs = resultado.docs.map(d => ({ id: d.id, ...d.data() }));
-    const aberta = docs.find(c => c.status === "ABERTA");
-    if (aberta) return aberta;
-    docs.sort((a, b) => {
-        const ta = a.criadoEm?.toMillis?.() || 0;
-        const tb = b.criadoEm?.toMillis?.() || 0;
-        return tb - ta;
-    });
-    return docs[0];
+    const item = resultado.docs[0];
+    return { id: item.id, ...item.data() };
 }
 
 export async function finalizarComanda(id, pagamento) {

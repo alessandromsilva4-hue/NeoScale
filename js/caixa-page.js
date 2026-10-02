@@ -1,12 +1,36 @@
-import { auth, db } from './firebase.js';
-import { collection, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { auth } from './firebase.js';
 import { onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js';
 import { caixaAberto,abrirCaixa,fecharCaixa,listarMovimentos,calcularCaixa,registrarMovimento } from './caixa.js';
 const $=id=>document.getElementById(id), br=v=>Number(v||0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); let atual=null; let tipoMov='SANGRIA'; let movimentosAtuais=[];
 function formaNormalizada(v){ const x=String(v||'').trim().toLowerCase(); if(x==='dinheiro')return'Dinheiro'; if(x==='pix')return'PIX'; if(x==='débito'||x==='debito')return'Débito'; if(x==='crédito'||x==='credito')return'Crédito'; return'Outros'; }
 function resumoPagamentos(movs){ const r={Dinheiro:0,PIX:0,'Débito':0,'Crédito':0,Outros:0}; movs.filter(m=>m.tipo==='VENDA').forEach(m=>{r[formaNormalizada(m.forma)]+=Number(m.valor||0);}); return r; }
 function resumoDinheiro(c,movs){ const r=resumoPagamentos(movs); const supr=movs.filter(m=>m.tipo==='SUPRIMENTO').reduce((a,m)=>a+Number(m.valor||0),0); const sang=movs.filter(m=>m.tipo==='SANGRIA').reduce((a,m)=>a+Number(m.valor||0),0); return Number(c?.valorInicial||0)+r.Dinheiro+supr-sang; }
-function renderPagamentos(movs){ const r=resumoPagamentos(movs); $('totalDinheiro').textContent=br(r.Dinheiro); $('totalPix').textContent=br(r.PIX); $('totalDebito').textContent=br(r['Débito']); $('totalCredito').textContent=br(r['Crédito']); $('totalOutros').textContent=br(r.Outros); $('conferenciaPagamento').innerHTML=`<div class="conferencia-item"><span>Dinheiro esperado no caixa</span><strong>${br(resumoDinheiro(atual,movs))}</strong></div><div class="conferencia-item"><span>Recebido em PIX</span><strong>${br(r.PIX)}</strong></div><div class="conferencia-item"><span>Recebido em cartões</span><strong>${br(r['Débito']+r['Crédito'])}</strong></div>`; }
+function renderPagamentos(movs){
+ const r=resumoPagamentos(movs);
+ $('totalDinheiro').textContent=br(r.Dinheiro); $('totalPix').textContent=br(r.PIX); $('totalDebito').textContent=br(r['Débito']); $('totalCredito').textContent=br(r['Crédito']); $('totalOutros').textContent=br(r.Outros);
+ const old={}; document.querySelectorAll('#conferenciaPagamento input[data-forma]').forEach(i=>{old[i.dataset.forma]=i.value;});
+ const ap=atual?.valoresApurados||{};
+ const valor=(k)=>old[k]!==undefined?old[k]:(ap[k]!==undefined?ap[k]:'');
+ const esperado={DINHEIRO:resumoDinheiro(atual,movs),PIX:r.PIX,DEBITO:r['Débito'],CREDITO:r['Crédito'],OUTROS:r.Outros};
+ const labels={DINHEIRO:'Dinheiro contado',PIX:'PIX recebido',DEBITO:'Débito recebido',CREDITO:'Crédito recebido',OUTROS:'Outros recebidos'};
+ $('conferenciaPagamento').innerHTML=Object.entries(esperado).map(([k,v])=>`<div class="conferencia-item conferencia-editavel"><div><span>${labels[k]}</span><small>Esperado no sistema: ${br(v)}</small></div><label class="apuracao-input"><span>R$</span><input data-forma="${k}" type="number" min="0" step="0.01" inputmode="decimal" placeholder="0,00" value="${valor(k)}" aria-label="${labels[k]}"></label><strong class="conferencia-diferenca" data-diff="${k}">Diferença: ${br(Number(valor(k)||0)-Number(v||0))}</strong></div>`).join('');
+ document.querySelectorAll('#conferenciaPagamento input[data-forma]').forEach(input=>input.addEventListener('input',()=>atualizarApuracao()));
+ atualizarApuracao();
+}
+function obterApuracoes(){
+ const get=k=>{const el=document.querySelector(`#conferenciaPagamento input[data-forma="${k}"]`); return el&&el.value!==''?Number(el.value):null;};
+ return {DINHEIRO:get('DINHEIRO'),PIX:get('PIX'),DEBITO:get('DEBITO'),CREDITO:get('CREDITO'),OUTROS:get('OUTROS')};
+}
+function atualizarApuracao(){
+ if(!atual)return;
+ const m=movimentosAtuais||[], r=resumoPagamentos(m), esperado={DINHEIRO:resumoDinheiro(atual,m),PIX:r.PIX,DEBITO:r['Débito'],CREDITO:r['Crédito'],OUTROS:r.Outros};
+ const a=obterApuracoes();
+ const cash=document.getElementById('valorContado'); if(cash && a.DINHEIRO!==null && cash.value!==String(a.DINHEIRO)) cash.value=a.DINHEIRO;
+ Object.entries(esperado).forEach(([k,v])=>{const el=document.querySelector(`[data-diff="${k}"]`);if(el){const val=a[k]===null?0:a[k];el.textContent=`Diferença: ${br(val-v)}`;}});
+ const cont=a.DINHEIRO===null?0:a.DINHEIRO, dif=cont-esperado.DINHEIRO;
+ if($('fechDiferenca'))$('fechDiferenca').textContent=br(dif); if($('fechDiferenca2'))$('fechDiferenca2').textContent=br(dif); if($('fechContado'))$('fechContado').textContent=br(cont); if($('diferenca'))$('diferenca').textContent=br(dif);
+}
+
 function msg(t,ok=false){$('msg').innerHTML=`<div class="alert ${ok?'ok':'err'}">${t}</div>`}
 function clearMsg(){ $('msg').innerHTML=''; }
 function setStatus(aberto){
@@ -37,7 +61,8 @@ async function render(){
  }catch(e){ console.error(e); msg('Não foi possível acessar o Caixa no Firebase. Se você já entrou no sistema, verifique as regras do Firestore para permitir acesso aos usuários autenticados.'); }
 }
 $('btnAbrir').onclick=async()=>{clearMsg(); try{const op=$('operador').value.trim()||'Operador'; await abrirCaixa($('valorInicial').value,op); msg('Caixa aberto com sucesso. O PDV já poderá registrar as vendas neste caixa.',true); await render();}catch(e){console.error(e);msg(e.message||'Não foi possível abrir o caixa.')}};
-async function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroEsperado){
+function imprimirRelatorioVendas(caixa,movs,calculo,apurados,dinheiroEsperado,popupExistente=null){
+ const valorContado=Number(apurados?.DINHEIRO||0);
  // RELATORIO DO CAIXA NORMAL: somente movimentos do caixa normal.
  // Delivery usa colecoes separadas (caixasDelivery/movimentosCaixaDelivery) e nunca entra aqui.
  const ehDelivery = m => {
@@ -46,12 +71,6 @@ async function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroE
  };
  const movimentosNormais = movs.filter(m => !ehDelivery(m));
  const vendas=movimentosNormais.filter(m=>m.tipo==='VENDA');
- let comandasCanceladas=[];
- try{
-   const snap=await getDocs(query(collection(db,'comandas'),where('caixaId','==',caixa.id)));
-   comandasCanceladas=snap.docs.map(d=>({id:d.id,...d.data()})).filter(c=>c.status==='CANCELADA');
- }catch(e){ console.warn('Não foi possível carregar as comandas canceladas para o relatório:',e); }
-
 
  const sangrias=movimentosNormais.filter(m=>m.tipo==='SANGRIA');
  const suprimentos=movimentosNormais.filter(m=>m.tipo==='SUPRIMENTO');
@@ -81,18 +100,19 @@ async function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroE
  const linhaApurada=(label,system,apurado)=>{const dif=Number(apurado||0)-Number(system||0);return `<div class="row three"><span>${esc(label)}</span><span>${money(apurado)}</span><span class="dif ${Math.abs(dif)<0.005?'ok':''}">${money(dif)}</span></div>`;};
  const linhasForma=Object.entries(porForma).map(([k,v])=>`<div class="row"><span>${esc(k)}</span><span>${money(v)}</span></div>`).join('');
  const linhasApuradas=Object.entries(porForma).map(([k,v])=>{
-   const ap=k==='DINHEIRO'?Number(valorContado||0):Number(v||0);
+   const mapa={DINHEIRO:'DINHEIRO',PIX:'PIX',DEBITO:'DÉBITO',CREDITO:'CRÉDITO',OUTROS:'OUTROS'};
+   const chave=mapa[k]||k;
+   const ap=apurados?.[chave]!==undefined && apurados?.[chave]!==null ? Number(apurados[chave]) : Number(v||0);
    return linhaApurada(k,v,ap);
  }).join('');
  const movimentos=[...sangrias,...suprimentos,...despesas];
  const linhasMov=movimentos.length?movimentos.map(m=>`<div class="row"><span>${esc(m.tipo)} ${m.descricao?'- '+esc(m.descricao):''}</span><span>${money(m.valor)}</span></div>`).join(''):'<div class="muted">NENHUMA MOVIMENTAÇÃO</div>';
  const produtos=vendas.map(v=>({descricao:v.descricao||'Venda',qtd:1,valor:Number(v.valor||0)}));
  const linhasProdutos=produtos.length?produtos.map(v=>`<div class="row"><span>${esc(v.descricao)} <b>x${v.qtd}</b></span><span>${money(v.valor)}</span></div>`).join(''):'<div class="muted">NENHUM PRODUTO REGISTRADO</div>';
- const linhasCanceladas=comandasCanceladas.length?comandasCanceladas.map(c=>`<div class="cancelada"><div><b>COMANDA #${esc(c.numero||'-')}</b> — ${money(c.total)}</div><div>MOTIVO: ${esc(c.cancelamentoMotivo||'Não informado')}</div><div>OPERADOR: ${esc(c.canceladaPor||'Operador')}</div><div>HORÁRIO: ${esc(dataHora(c.canceladaEm))}</div></div>`).join(''):'<div class="muted">NENHUMA COMANDA CANCELADA</div>';
- const popup=window.open('','_blank','width=520,height=900');
+ const popup=popupExistente || window.open('','_blank','width=520,height=900');
  if(!popup){msg('Caixa fechado, mas o navegador bloqueou o relatório. Permita pop-ups para visualizar o relatório.',false);return;}
  popup.document.write(`<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NeoScale — Fechamento de Caixa</title><style>
- *{box-sizing:border-box}body{margin:0;background:#e9e9e9;color:#000;font-family:"Courier New",Courier,monospace;font-size:13px;font-weight:600}.sheet{width:80mm;min-height:100vh;margin:16px auto;background:#fff;padding:12px 10px 28px;box-shadow:0 2px 10px #0002}.center{text-align:center}.brand{font-size:20px;font-weight:900;letter-spacing:.4px}.title{font-size:14px;font-weight:900;margin-top:3px}.sub{font-size:11px;font-weight:700}.sep{border-top:1px dashed #000;margin:9px 0}.sep2{border-top:2px solid #000;margin:10px 0}.section{font-weight:900;font-size:13px;margin:7px 0 4px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;line-height:1.32;margin:1px 0}.row span:last-child{text-align:right;white-space:nowrap}.cancelada{border:1px solid #000;padding:6px;margin:5px 0;line-height:1.35}.three{grid-template-columns:minmax(0,1fr) 74px 74px}.three span:nth-child(2),.three span:nth-child(3){text-align:right}.muted{font-size:11px;color:#000;font-weight:700}.total{font-size:14px;font-weight:900}.signature{margin-top:34px;padding-top:18px;text-align:center;min-height:135px}.signature-line{border-top:1.5px solid #000;margin:0 5px;padding-top:7px;font-weight:900}.signature .name{margin-top:10px}.signature .date{margin-top:9px}.actions{position:fixed;right:20px;top:20px;display:flex;gap:8px}.actions button{border:0;border-radius:8px;padding:9px 12px;background:#008f70;color:#fff;font-weight:800;cursor:pointer}.actions .close{background:#222}@media(max-width:700px){.sheet{margin:0;width:80mm;box-shadow:none}.actions{position:sticky;top:0;justify-content:center;background:#fff;padding:8px;margin:0 -10px 8px}.actions button{font-family:Arial,sans-serif}}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:80mm;padding:0 8px 28px}.actions{display:none!important}}
+ *{box-sizing:border-box}body{margin:0;background:#e9e9e9;color:#000;font-family:"Courier New",Courier,monospace;font-size:13px;font-weight:600}.sheet{width:80mm;min-height:100vh;margin:16px auto;background:#fff;padding:12px 10px 28px;box-shadow:0 2px 10px #0002}.center{text-align:center}.brand{font-size:20px;font-weight:900;letter-spacing:.4px}.title{font-size:14px;font-weight:900;margin-top:3px}.sub{font-size:11px;font-weight:700}.sep{border-top:1px dashed #000;margin:9px 0}.sep2{border-top:2px solid #000;margin:10px 0}.section{font-weight:900;font-size:13px;margin:7px 0 4px}.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:7px;line-height:1.32;margin:1px 0}.row span:last-child{text-align:right;white-space:nowrap}.three{grid-template-columns:minmax(0,1fr) 74px 74px}.three span:nth-child(2),.three span:nth-child(3){text-align:right}.muted{font-size:11px;color:#000;font-weight:700}.total{font-size:14px;font-weight:900}.signature{margin-top:34px;padding-top:18px;text-align:center;min-height:135px}.signature-line{border-top:1.5px solid #000;margin:0 5px;padding-top:7px;font-weight:900}.signature .name{margin-top:10px}.signature .date{margin-top:9px}.actions{position:fixed;right:20px;top:20px;display:flex;gap:8px}.actions button{border:0;border-radius:8px;padding:9px 12px;background:#008f70;color:#fff;font-weight:800;cursor:pointer}.actions .close{background:#222}@media(max-width:700px){.sheet{margin:0;width:80mm;box-shadow:none}.actions{position:sticky;top:0;justify-content:center;background:#fff;padding:8px;margin:0 -10px 8px}.actions button{font-family:Arial,sans-serif}}@media print{body{background:#fff}.sheet{margin:0;box-shadow:none;width:80mm;padding:0 8px 28px}.actions{display:none!important}}
  </style></head><body><div class="sheet"><div class="actions no-print"><button onclick="window.print()">IMPRIMIR</button><button class="close" onclick="window.close()">FECHAR</button></div>
  <div class="center"><div class="brand">NEOSCALE</div><div class="title">RELATÓRIO DE FECHAMENTO DE CAIXA</div><div class="sub">GERADO: ${esc(dataHora(fechamento))}</div></div>
  <div class="sep"></div>
@@ -102,16 +122,40 @@ async function imprimirRelatorioVendas(caixa,movs,calculo,valorContado,dinheiroE
  <div class="sep"></div><div class="section">RELATÓRIO REAL DO CAIXA</div><div class="muted">Valor calculado pelo sistema</div><div class="sep"></div>
  <div class="row"><b>FORMA DE PAGAMENTO</b><b>VALOR TOTAL</b></div>${linhasForma}<div class="sep"></div><div class="row total"><span>TOTAL</span><span>${money(totalVendas)}</span></div>
  <div class="sep"></div><div class="section">RELATÓRIO APURADO DO CAIXA</div><div class="muted">Valor informado pelo operador</div><div class="sep"></div>
- <div class="row three"><b>FORMA</b><b>APURADO</b><b>DIF.</b></div>${linhasApuradas}<div class="sep"></div><div class="row total"><span>TOTAL APURADO</span><span>${money(totalVendas-porForma.DINHEIRO+Number(valorContado||0))}</span></div>
+ <div class="row three"><b>FORMA</b><b>APURADO</b><b>DIF.</b></div>${linhasApuradas}<div class="sep"></div><div class="row total"><span>TOTAL APURADO</span><span>${money(Object.values(apurados||{}).reduce((a,v)=>a+Number(v||0),0))}</span></div>
  <div class="sep"></div><div class="section">CONFERÊNCIA</div><div class="row"><span>Valor esperado</span><span>${money(dinheiroEsperado)}</span></div><div class="row"><span>Valor contado</span><span>${money(valorContado)}</span></div><div class="row total"><span>DIFERENÇA</span><span>${money(diferencaDinheiro)}</span></div>
  <div class="sep"></div><div class="section">MOVIMENTAÇÕES</div>${linhasMov}
  <div class="sep"></div><div class="section">VENDAS DO CAIXA</div><div class="row"><span>Quantidade de vendas</span><span>${vendas.length}</span></div>${linhasProdutos}
- <div class="sep"></div><div class="section">COMANDAS CANCELADAS</div>${linhasCanceladas}<div class="sep2"></div><div class="row total"><span>TOTAL DO CAIXA</span><span>${money(totalVendas)}</span></div>
+ <div class="sep2"></div><div class="row total"><span>TOTAL DO CAIXA</span><span>${money(totalVendas)}</span></div>
  <div class="signature"><div class="signature-line">ASSINATURA DO OPERADOR</div><div class="name">Nome: ${esc(caixa.operador||'OPERADOR')}</div><div class="date">Data: ____/____/________</div></div>
  </div></body></html>`);
  popup.document.close();
+ setTimeout(()=>{try{popup.focus();popup.print();}catch(e){}},350);
 }
-async function fecharAtual(){if(!atual)return;clearMsg();try{const m=await listarMovimentos(atual.id),c=calcularCaixa(atual,m),cont=Number($('valorContado').value||0),dinheiro=resumoDinheiro(atual,m),dif=cont-dinheiro;if(cont<0){msg('Informe um valor contado válido.');return;}if(!confirm(`Conferência do caixa\n\nDinheiro esperado: ${br(dinheiro)}\nDinheiro contado: ${br(cont)}\nDiferença: ${br(dif)}\n\nConfirma o fechamento?`))return;await fecharCaixa(atual.id,cont);await imprimirRelatorioVendas(atual,m,c,cont,dinheiro);msg(`Caixa fechado com sucesso. Diferença em dinheiro: ${br(dif)}. Relatório de vendas aberto para impressão.`,true);await render();}catch(e){console.error(e);msg(e.message||'Não foi possível fechar o caixa.');}}
+async function fecharAtual(){
+ if(!atual)return; clearMsg();
+ try{
+  const m=await listarMovimentos(atual.id), c=calcularCaixa(atual,m), r=resumoPagamentos(m), dinheiro=resumoDinheiro(atual,m), a=obterApuracoes();
+  if(Object.values(a).some(v=>v===null || Number.isNaN(v) || v<0)){msg('Preencha os valores recebidos de Dinheiro, PIX, Débito, Crédito e Outros para fechar o caixa.');return;}
+  const difDinheiro=Number(a.DINHEIRO)-dinheiro;
+  const difPix=Number(a.PIX)-r.PIX, difDebito=Number(a.DEBITO)-r['Débito'], difCredito=Number(a.CREDITO)-r['Crédito'], difOutros=Number(a.OUTROS)-r.Outros;
+  const totalSistema=r.Dinheiro+r.PIX+r['Débito']+r['Crédito']+r.Outros;
+  const totalApurado=Number(a.DINHEIRO)+Number(a.PIX)+Number(a.DEBITO)+Number(a.CREDITO)+Number(a.OUTROS);
+  const difTotal=totalApurado-totalSistema;
+  if(!confirm(`Conferência do caixa\n\nDinheiro: esperado ${br(dinheiro)} | contado ${br(a.DINHEIRO)}\nPIX: esperado ${br(r.PIX)} | informado ${br(a.PIX)}\nDébito: esperado ${br(r['Débito'])} | informado ${br(a.DEBITO)}\nCrédito: esperado ${br(r['Crédito'])} | informado ${br(a.CREDITO)}\nOutros: esperado ${br(r.Outros)} | informado ${br(a.OUTROS)}\n\nDiferença total: ${br(difTotal)}\n\nConfirma o fechamento?`))return;
+  // Abrir a janela dentro do clique do operador evita bloqueio de pop-up após o await.
+  const popupRelatorio=window.open('','_blank','width=520,height=900');
+  if(!popupRelatorio){msg('O navegador bloqueou o relatório. Permita pop-ups para este site e tente novamente.',false);return;}
+  popupRelatorio.document.write('<html><head><title>NeoScale - Gerando fechamento...</title></head><body style="font-family:Arial;padding:30px;text-align:center">Gerando relatório de fechamento...</body></html>');
+  popupRelatorio.document.close();
+  try{
+    await fecharCaixa(atual.id,Number(a.DINHEIRO),{valorEsperadoDinheiro:dinheiro,diferenca:difDinheiro,valoresApurados:a,diferencasPorForma:{DINHEIRO:difDinheiro,PIX:difPix,DEBITO:difDebito,CREDITO:difCredito,OUTROS:difOutros},totalSistema,totalApurado,diferencaTotal:difTotal});
+    imprimirRelatorioVendas(atual,m,c,a,dinheiro,popupRelatorio);
+  }catch(e){try{popupRelatorio.close();}catch{} throw e;}
+  msg(`Caixa fechado com sucesso. Diferença total: ${br(difTotal)}. Relatório de vendas aberto para impressão.`,true); await render();
+ }catch(e){console.error(e);msg(e.message||'Não foi possível fechar o caixa.');}
+}
+const campoContado=$('valorContado'); if(campoContado){campoContado.addEventListener('input',()=>{ if(!atual)return; const input=document.querySelector('#conferenciaPagamento input[data-forma="DINHEIRO"]'); if(input && input.value!==campoContado.value) input.value=campoContado.value; atualizarApuracao();});}
 $('btnFechar').onclick=fecharAtual;const btnFecharPainel=$('btnFecharPainel');if(btnFecharPainel)btnFecharPainel.onclick=fecharAtual;
 onAuthStateChanged(auth,user=>{
  if(!user){window.location.href='index.html';return;}
