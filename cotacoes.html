@@ -73,6 +73,7 @@
 .compras-page .modal-footer #modalSalvar:hover { background:#00785b !important; border-color:#00785b !important; transform:translateY(-1px); }
 .compras-page .modal-footer #modalCancelar:focus-visible,
 .compras-page .modal-footer #modalSalvar:focus-visible { outline:3px solid rgba(0,139,104,.18) !important; outline-offset:2px; }
+.winner-row{background:#effaf4!important;box-shadow:inset 4px 0 #008b68}.send-channel-grid{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}.send-channel-grid button{min-width:170px}.send-note{margin-top:12px;padding:12px;border:1px solid #dceee8;background:#f6fbf9;border-radius:10px}
 </style>
 
 
@@ -99,7 +100,7 @@
   <div class="module-stat"><div class="stat-icon"><i class="bi bi-check-circle"></i></div><div><div class="stat-label">Aprovadas</div><div class="stat-value" id="statCotAprov">0</div><div class="stat-note">prontas para pedido</div></div></div>
   <div class="module-stat"><div class="stat-icon"><i class="bi bi-building"></i></div><div><div class="stat-label">Fornecedores</div><div class="stat-value" id="statCotForn">0</div><div class="stat-note">com propostas</div></div></div>
 </div>
-      <div class="panel-head"><div><span class="section-kicker">2 · Comparação</span><h3>Cotações</h3><p>Compare preço, frete, prazo e condição antes de escolher o fornecedor.</p></div><button class="btn-primary" id="btnNovaCot"><i class="bi bi-plus"></i> Nova cotação</button></div>
+      <div class="panel-head"><div><span class="section-kicker">2 · Comparação</span><h3>Cotações</h3><p>Compare os preços dos produtos e escolha a melhor proposta.</p></div><button class="btn-primary" id="btnNovaCot"><i class="bi bi-plus"></i> Nova cotação</button></div>
       <div class="info-strip"><i class="bi bi-lightbulb"></i><span>Uma requisição pode receber cotações de diferentes fornecedores. A aprovação registra qual proposta seguirá para o pedido.</span></div>
       <div class="toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaCot" placeholder="Pesquisar cotação ou fornecedor..."></div><select id="filtroCot"><option value="">Todos os status</option><option value="ABERTA">Aberta</option><option value="EM_ANALISE">Em análise</option><option value="APROVADA">Aprovada</option><option value="RECUSADA">Recusada</option></select></div>
       <div class="module-table"><div class="table-wrap"><table><thead><tr><th>Nº</th><th>Requisição</th><th>Fornecedor</th><th>Valor</th><th>Frete</th><th>Prazo</th><th>Status</th><th>Ações</th></tr></thead><tbody id="listaCot"></tbody></table></div>

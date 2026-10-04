@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>NeoScale | Contas a pagar</title>
+<link rel="icon" href="img/favicon.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/tema-verde.css">
+<link rel="stylesheet" href="css/contas-pagar-modern.css"></head>
+<body>
+<div class="layout">
+  <aside class="sidebar" data-sidebar></aside>
+  <main class="content contas-page">
+    <header class="finance-header">
+      <div class="finance-title">
+        <div class="finance-icon"><i class="bi bi-wallet2"></i></div>
+        <div>
+          <div class="page-kicker">FINANCEIRO <span>• CONTAS A PAGAR</span></div>
+          <h1>Contas a pagar</h1>
+          <p>Controle NF-e, boletos/DDA e pagamentos da loja em um só lugar.</p>
+        </div>
+      </div>
+      <div class="top-actions">
+        <button class="btn btn-outline action-soft" id="sincronizarNfe"><i class="bi bi-arrow-repeat"></i> Sincronizar NF-e</button>
+        <button class="btn btn-outline action-soft" id="importarDda"><i class="bi bi-cloud-arrow-up"></i> Importar DDA</button>
+        <button class="btn action-primary" id="novaConta"><i class="bi bi-plus-lg"></i> Registrar conta</button>
+      </div>
+    </header>
+
+    <section class="finance-kpis" aria-label="Resumo financeiro">
+      <article class="finance-kpi kpi-open"><div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div><div><span>Total em aberto</span><strong id="aberto">R$ 0,00</strong><small>Contas pendentes</small></div></article>
+      <article class="finance-kpi kpi-due"><div class="kpi-icon"><i class="bi bi-calendar-event"></i></div><div><span>Vencendo</span><strong id="vencendo">R$ 0,00</strong><small>Próximos vencimentos</small></div></article>
+      <article class="finance-kpi kpi-late"><div class="kpi-icon"><i class="bi bi-exclamation-circle"></i></div><div><span>Vencidas</span><strong id="vencidas">R$ 0,00</strong><small>Exigem atenção</small></div></article>
+      <article class="finance-kpi kpi-dda"><div class="kpi-icon"><i class="bi bi-receipt"></i></div><div><span>Boletos DDA</span><strong id="ddaTotal">R$ 0,00</strong><small>Recebidos pelo banco</small></div></article>
+      <article class="finance-kpi kpi-paid"><div class="kpi-icon"><i class="bi bi-check2-circle"></i></div><div><span>Pago</span><strong id="pago">R$ 0,00</strong><small>Pagamentos registrados</small></div></article>
+    </section>
+
+    <section class="finance-workspace">
+      <nav class="tabs" aria-label="Financeiro">
+        <button class="tab active" data-view="contas"><i class="bi bi-list-check"></i><span>Contas a pagar</span></button>
+        <button class="tab" data-view="nfe"><i class="bi bi-file-earmark-text"></i><span>NF-e recebidas</span></button>
+        <button class="tab" data-view="dda"><i class="bi bi-upc-scan"></i><span>Boletos / DDA</span></button>
+      </nav>
+
+      <section id="view-contas" class="view active">
+        <div class="panel">
+          <div class="panel-head">
+            <div><h2>Contas registradas</h2><p>Acompanhe vencimentos e marque os pagamentos realizados.</p></div>
+            <div class="panel-head-badge"><i class="bi bi-shield-check"></i> Financeiro</div>
+          </div>
+          <div class="toolbar finance-toolbar">
+            <div class="search-box"><i class="bi bi-search"></i><input id="busca" placeholder="Buscar fornecedor, NF ou boleto"></div>
+            <select id="filtroStatus"><option value="TODOS">Todos os status</option><option value="PENDENTE">Pendentes</option><option value="PAGO">Pagos</option><option value="VENCIDO">Vencidos</option></select>
+          </div>
+          <div class="table-wrap" id="lista"></div>
+        </div>
+      </section>
+
+      <section id="view-nfe" class="view">
+        <div class="panel">
+          <div class="panel-head"><div><h2>NF-e recebidas</h2><p>Documentos destinados ao CNPJ da loja.</p></div><div class="panel-head-badge blue"><i class="bi bi-cloud-check"></i> SEFAZ</div></div>
+          <div class="notice"><i class="bi bi-info-circle"></i><div><strong>Integração fiscal</strong><span>O NeoScale consulta os documentos destinados ao CNPJ por NFeDistribuicaoDFe quando o certificado A1 e a integração SEFAZ estão configurados.</span></div></div>
+          <div class="toolbar finance-toolbar"><div class="search-box"><i class="bi bi-search"></i><input id="buscaNfe" placeholder="Buscar fornecedor, CNPJ, NF ou chave"></div><select id="statusNfe"><option value="TODOS">Todos os status</option><option value="NOVA">Novas</option><option value="IMPORTADA">Importadas</option><option value="CANCELADA">Canceladas</option></select></div>
+          <div class="table-wrap" id="listaNfe"></div>
+        </div>
+      </section>
+
+      <section id="view-dda" class="view">
+        <div class="panel">
+          <div class="panel-head"><div><h2>Boletos e DDA</h2><p>Centralize os boletos apresentados pela instituição financeira.</p></div><div class="panel-head-badge purple"><i class="bi bi-bank"></i> Bancário</div></div>
+          <div class="notice bank"><i class="bi bi-bank"></i><div><strong>DDA bancário</strong><span>O NeoScale aceita importação de arquivo DDA/CSV e fica preparado para integração por API/webhook do banco.</span></div></div>
+          <div class="toolbar finance-toolbar dda-toolbar"><button class="btn action-primary" id="selecionarDda"><i class="bi bi-file-earmark-arrow-up"></i> Importar arquivo DDA/CSV</button><input type="file" id="arquivoDda" accept=".csv,.txt,.json" hidden><button class="btn btn-outline" id="novoBoleto"><i class="bi bi-plus-lg"></i> Cadastrar boleto</button><div class="search-box"><i class="bi bi-search"></i><input id="buscaDda" placeholder="Buscar fornecedor, documento ou código"></div></div>
+          <div class="table-wrap" id="listaDda"></div>
+        </div>
+      </section>
+    </section>
+  </main>
+</div>
+
+<div class="modal hidden" id="modalConta"><div class="modal-box"><div class="modal-head"><div><span class="modal-kicker">FINANCEIRO</span><h3 id="tituloModal">Registrar conta a pagar</h3><p>A conta pode vir de NF-e, DDA ou cadastro manual.</p></div></div><div class="grid"><label>Fornecedor<input id="fornecedorNome" placeholder="Nome do fornecedor"></label><label>Tipo<select id="tipo"><option>NOTA FISCAL</option><option>BOLETO</option><option>NOTA + BOLETO</option></select></label><label>Nº NF<input id="numeroNF"></label><label>Chave NF-e<input id="chaveNF" maxlength="44"></label><label class="full">Linha digitável / código do boleto<input id="codigoBoleto"></label><label>Emissão<input id="emissao" type="date"></label><label>Vencimento<input id="vencimento" type="date"></label><label>Valor<input id="valor" type="number" min="0.01" step="0.01"></label><label>Parcelas<input id="parcelas" type="number" min="1" value="1"></label><label class="full">Observação<textarea id="obs" rows="3"></textarea></label></div><div class="modal-actions"><button class="btn btn-outline" id="fecharModal">Cancelar</button><button class="btn action-primary" id="salvarConta"><i class="bi bi-check-lg"></i> Salvar conta</button></div></div></div>
+<div class="modal hidden" id="modalFiscal"><div class="modal-box"><div class="modal-head"><div><span class="modal-kicker">INTEGRAÇÃO FISCAL</span><h3>Configuração NF-e</h3><p>Informe o CNPJ e, para sincronizar com a SEFAZ, use certificado digital A1.</p></div><button class="modal-close" type="button"><i class="bi bi-x-lg"></i></button></div><div class="grid"><label>CNPJ<input id="cnpjFiscal" maxlength="18" placeholder="00.000.000/0000-00"></label><label>UF<select id="ufFiscal"><option>GO</option><option>SP</option><option>MG</option><option>DF</option><option>RJ</option><option>PR</option><option>SC</option><option>RS</option><option>BA</option><option>PE</option><option>CE</option><option>ES</option><option>MT</option><option>MS</option></select></label><label>Certificado A1 (.pfx/.p12)<input id="certFiscal" type="file" accept=".pfx,.p12"></label><label>Senha do certificado<input id="senhaFiscal" type="password" autocomplete="off"></label></div><div class="modal-actions"><button class="btn btn-outline" id="fecharFiscal">Fechar</button><button class="btn action-primary" id="salvarFiscal">Salvar CNPJ</button></div></div></div>
+<div class="modal hidden" id="modalDda"><div class="modal-box"><div class="modal-head"><div><span class="modal-kicker">CONTAS A PAGAR</span><h3>Cadastrar boleto / DDA</h3><p>Registre manualmente enquanto a integração bancária não estiver conectada.</p></div><button class="modal-close" type="button"><i class="bi bi-x-lg"></i></button></div><div class="grid"><label>Fornecedor<input id="ddaFornecedor"></label><label>CNPJ<input id="ddaCnpj"></label><label>Banco<input id="ddaBanco"></label><label>Nosso número<input id="ddaNossoNumero"></label><label class="full">Linha digitável / código de barras<input id="ddaCodigo"></label><label>Emissão<input id="ddaEmissao" type="date"></label><label>Vencimento<input id="ddaVencimento" type="date"></label><label>Valor<input id="ddaValor" type="number" min="0.01" step="0.01"></label><label>Documento<input id="ddaDocumento"></label></div><div class="modal-actions"><button class="btn btn-outline" id="fecharDda">Cancelar</button><button class="btn action-primary" id="salvarDda">Salvar boleto</button></div></div></div>
+<script src="js/sidebar-menu.js"></script><script type="module" src="js/contas-pagar.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('contas-pagar');</script>
+</body></html>

@@ -7,7 +7,7 @@ import {
 const $ = id => document.getElementById(id);
 const modal = $('modal');
 const body = $('modalBody');
-let state = { produtos: [], produtosCompra: [], req: [], cot: [], forn: [], ped: [] };
+let state = { produtos: [], produtosCompra: [], req: [], cot: [], forn: [], ped: [], propostas: [] };
 let formType = '';
 let currentId = null;
 
@@ -27,9 +27,9 @@ function openModal(title, sub, type, id=null, html='') {
 }
 function closeModal(){ modal.hidden = true; body.innerHTML=''; formType=''; currentId=null; }
 function opts(arr, placeholder='Selecione') { return `<option value="">${placeholder}</option>` + arr.map(x => `<option value="${esc(x.id)}">${esc(x.nome || x.razaoSocial || x.empresa || x.nomeFantasia || '')}</option>`).join(''); }
-function productOptions(selected='', selectedCollection='produtos') {
-  const venda = [...state.produtos].filter(x => x && x.id && String(x.nome || '').trim()).map(x => ({...x,_collection:'produtos',_value:`produtos:${x.id}`}));
-  const compra = [...state.produtosCompra].filter(x => x && x.id && String(x.nome || '').trim()).map(x => ({...x,_collection:'produtosCompra',_value:`produtosCompra:${x.id}`,tipoVenda:x.unidadeCompra||'unidade'}));
+function productOptions(selected='', selectedCollection='produtos', source='todos') {
+  const venda = source === 'compra' ? [] : [...state.produtos].filter(x => x && x.id && String(x.nome || '').trim()).map(x => ({...x,_collection:'produtos',_value:`produtos:${x.id}`}));
+  const compra = source === 'venda' ? [] : [...state.produtosCompra].filter(x => x && x.id && String(x.nome || '').trim()).map(x => ({...x,_collection:'produtosCompra',_value:`produtosCompra:${x.id}`,tipoVenda:x.unidadeCompra||'unidade'}));
   const produtos = [...venda, ...compra].sort((a,b) => String(a.nome||'').localeCompare(String(b.nome||''), 'pt-BR'));
   const selectedValue = selected ? `${selectedCollection}:${selected}` : '';
   return `<option value="">Selecione o produto</option>` + produtos.map(x => {
@@ -40,17 +40,17 @@ function productOptions(selected='', selectedCollection='produtos') {
   }).join('');
 }
 
-function itemEditor(items=[], cls='item-row') {
+function itemEditor(items=[], cls='item-row', source='todos') {
   const rows = items.length ? items : [{}];
-  return `<div class="items-editor"><table><thead><tr><th style="width:34%">Produto</th><th>Quantidade</th><th>Unidade</th><th>Observação</th><th></th></tr></thead><tbody id="editorItens">${rows.map(i => itemRow(i, cls)).join('')}</tbody></table></div><button type="button" class="btn-secondary small" id="addItem" style="margin-top:8px"><i class="bi bi-plus"></i> Adicionar item</button>`;
+  return `<div class="items-editor"><table><thead><tr><th style="width:34%">Produto</th><th>Quantidade</th><th>Unidade</th><th>Observação</th><th></th></tr></thead><tbody id="editorItens">${rows.map(i => itemRow(i, cls, source)).join('')}</tbody></table></div><button type="button" class="btn-secondary small" id="addItem" style="margin-top:8px"><i class="bi bi-plus"></i> Adicionar item</button>`;
 }
-function itemRow(i={}, cls='item-row') {
+function itemRow(i={}, cls='item-row', source='todos') {
   const tipo = i.tipoVenda || i.unidadeCompra || 'unidade';
   const collectionName = i.produtoColecao || 'produtos';
   const unidade = collectionName === 'produtosCompra' ? (i.unidadeCompra || tipo) : tipo;
-  return `<tr class="${cls}" data-received="${num(i.recebido)}"><td><select class="i-prod">${productOptions(i.produtoId || '', collectionName)}</select></td><td><input class="i-qtd" type="number" min="0.001" step="any" value="${num(i.quantidade)||1}"></td><td class="i-un">${unidade==='peso'?'kg':esc(unidade||'un.')}</td><td><input class="i-obs" value="${esc(i.observacao||'')}" placeholder="Opcional"></td><td><button type="button" class="action-btn remove-row" title="Remover"><i class="bi bi-trash3"></i></button></td></tr>`;
+  return `<tr class="${cls}" data-received="${num(i.recebido)}"><td><select class="i-prod">${productOptions(i.produtoId || '', collectionName, source)}</select></td><td><input class="i-qtd" type="number" min="0.001" step="any" value="${num(i.quantidade)||1}"></td><td class="i-un">${unidade==='peso'?'kg':esc(unidade||'un.')}</td><td><input class="i-obs" value="${esc(i.observacao||'')}" placeholder="Opcional"></td><td><button type="button" class="action-btn remove-row" title="Remover"><i class="bi bi-trash3"></i></button></td></tr>`;
 }
-function addItemRow(i={}) { $('editorItens').insertAdjacentHTML('beforeend', itemRow(i)); const tr=$('editorItens').lastElementChild; if(i.produtoId) tr.querySelector('.i-prod').value=`${i.produtoColecao||'produtos'}:${i.produtoId}`; updateUnit(tr); }
+function addItemRow(i={}) { const source = formType === 'req' ? 'compra' : 'todos'; $('editorItens').insertAdjacentHTML('beforeend', itemRow(i, 'item-row', source)); const tr=$('editorItens').lastElementChild; if(i.produtoId) tr.querySelector('.i-prod').value=`${i.produtoColecao||'produtos'}:${i.produtoId}`; updateUnit(tr); }
 function parseProductValue(value){ const [colecao,id]=String(value||'').split(':'); return {colecao:colecao==='produtosCompra'?'produtosCompra':'produtos',id:id||''}; }
 function findProduct(colecao,id){ return (colecao==='produtosCompra'?state.produtosCompra:state.produtos).find(x=>x.id===id); }
 function unidadeProduto(p,colecao){ return colecao==='produtosCompra' ? (p?.unidadeCompra||'un.') : (p?.tipoVenda==='peso'?'kg':'un.'); }
@@ -65,13 +65,13 @@ function updateUnit(tr){ const parsed=parseProductValue(tr.querySelector('.i-pro
 
 function reqForm(r={}) {
   openModal(r.id?'Editar requisição':'Nova requisição','Solicite os produtos necessários antes de iniciar a cotação.','req',r.id,
-  `<div class="form-grid"><div><label>Solicitante *</label><input class="form-control" name="solicitante" required value="${esc(r.solicitante||'')}"></div><div><label>Prioridade</label><select class="form-control" name="prioridade"><option>BAIXA</option><option>NORMAL</option><option>ALTA</option><option>URGENTE</option></select></div><div><label>Data necessária</label><input class="form-control" type="date" name="dataNecessaria" value="${esc(r.dataNecessaria||'')}"></div><div><label>Centro de custo / setor</label><input class="form-control" name="centroCusto" placeholder="Ex.: Cozinha" value="${esc(r.centroCusto||'')}"></div><div class="full"><label>Justificativa</label><textarea class="form-control" name="justificativa" placeholder="Por que esta compra é necessária?">${esc(r.justificativa||'')}</textarea></div><div class="full"><label>Itens solicitados *</label>${itemEditor(r.itens||[])}</div></div>`);
+  `<div class="form-grid"><div><label>Solicitante *</label><input class="form-control" name="solicitante" required value="${esc(r.solicitante||'')}"></div><div><label>Prioridade</label><select class="form-control" name="prioridade"><option>BAIXA</option><option>NORMAL</option><option>ALTA</option><option>URGENTE</option></select></div><div><label>Data necessária</label><input class="form-control" type="date" name="dataNecessaria" value="${esc(r.dataNecessaria||'')}"></div><div><label>Centro de custo / setor</label><input class="form-control" name="centroCusto" placeholder="Ex.: Cozinha" value="${esc(r.centroCusto||'')}"></div><div class="full"><label>Justificativa</label><textarea class="form-control" name="justificativa" placeholder="Por que esta compra é necessária?">${esc(r.justificativa||'')}</textarea></div><div class="full"><label>Itens solicitados *</label>${itemEditor(r.itens||[], 'item-row', 'compra')}</div></div>`);
   if(r.prioridade) body.querySelector('[name=prioridade]').value=r.prioridade;
 }
 function fornecedorForm(f={}) {
   openModal(f.id?'Editar fornecedor':'Novo fornecedor','Digite o CNPJ e o NeoScale preencherá automaticamente os dados cadastrais disponíveis.','fornecedor',f.id,
   `<div class="cnpj-lookup-box"><div class="form-grid"><div class="full"><label>CNPJ</label><div class="input-with-action"><input class="form-control" name="documento" id="fornecedorCnpj" inputmode="numeric" maxlength="18" placeholder="00.000.000/0000-00" value="${esc(f.documento||'')}"><span id="cnpjStatus" class="cnpj-status">Digite o CNPJ para consultar</span></div></div></div></div>
-  <div class="form-grid"><div><label>Razão social *</label><input class="form-control" name="razaoSocial" required value="${esc(f.razaoSocial||f.nome||'')}"></div><div><label>Nome fantasia</label><input class="form-control" name="nomeFantasia" value="${esc(f.nomeFantasia||'')}"></div><div><label>Situação cadastral</label><input class="form-control" name="situacaoCadastral" value="${esc(f.situacaoCadastral||'')}" readonly></div><div><label>Data de abertura</label><input class="form-control" name="dataAbertura" value="${esc(f.dataAbertura||'')}" readonly></div><div><label>Contato comercial</label><input class="form-control" name="contato" value="${esc(f.contato||'')}"></div><div><label>Telefone</label><input class="form-control" name="telefone" value="${esc(f.telefone||'')}"></div><div><label>E-mail</label><input class="form-control" name="email" type="email" value="${esc(f.email||'')}"></div><div><label>CEP</label><input class="form-control" name="cep" value="${esc(f.cep||'')}"></div><div><label>Endereço</label><input class="form-control" name="endereco" value="${esc(f.endereco||'')}"></div><div><label>Número</label><input class="form-control" name="numeroEndereco" value="${esc(f.numeroEndereco||'')}"></div><div><label>Complemento</label><input class="form-control" name="complemento" value="${esc(f.complemento||'')}"></div><div><label>Bairro</label><input class="form-control" name="bairro" value="${esc(f.bairro||'')}"></div><div><label>Cidade</label><input class="form-control" name="cidade" value="${esc(f.cidade||'')}"></div><div><label>UF</label><input class="form-control" name="uf" maxlength="2" value="${esc(f.uf||'')}"></div><div><label>Natureza jurídica</label><input class="form-control" name="naturezaJuridica" value="${esc(f.naturezaJuridica||'')}" readonly></div><div><label>Porte</label><input class="form-control" name="porte" value="${esc(f.porte||'')}" readonly></div><div><label>Capital social</label><input class="form-control" name="capitalSocial" value="${esc(f.capitalSocial||'')}" readonly></div><div><label>CNAE principal</label><input class="form-control" name="cnaePrincipal" value="${esc(f.cnaePrincipal||'')}" readonly></div><div><label>Condição de pagamento</label><input class="form-control" name="condicaoPagamento" placeholder="Ex.: 28 dias" value="${esc(f.condicaoPagamento||'')}"></div><div><label>Prazo médio de entrega</label><input class="form-control" name="prazoEntrega" placeholder="Ex.: 3 dias" value="${esc(f.prazoEntrega||'')}"></div><div class="full"><label>Observações</label><textarea class="form-control" name="observacoes">${esc(f.observacoes||'')}</textarea></div></div>`);
+  <div class="form-grid"><div><label>Razão social *</label><input class="form-control" name="razaoSocial" required value="${esc(f.razaoSocial||f.nome||'')}"></div><div><label>Nome fantasia</label><input class="form-control" name="nomeFantasia" value="${esc(f.nomeFantasia||'')}"></div><div><label>Situação cadastral</label><input class="form-control" name="situacaoCadastral" value="${esc(f.situacaoCadastral||'')}" readonly></div><div><label>Data de abertura</label><input class="form-control" name="dataAbertura" value="${esc(f.dataAbertura||'')}" readonly></div><div><label>Contato comercial</label><input class="form-control" name="contato" value="${esc(f.contato||'')}"></div><div><label>Telefone</label><input class="form-control" name="telefone" value="${esc(f.telefone||'')}"></div><div><label>E-mail</label><input class="form-control" name="email" type="email" value="${esc(f.email||'')}"></div><div><label>CEP</label><input class="form-control" name="cep" value="${esc(f.cep||'')}"></div><div><label>Endereço</label><input class="form-control" name="endereco" value="${esc(f.endereco||'')}"></div><div><label>Número</label><input class="form-control" name="numeroEndereco" value="${esc(f.numeroEndereco||'')}"></div><div><label>Complemento</label><input class="form-control" name="complemento" value="${esc(f.complemento||'')}"></div><div><label>Bairro</label><input class="form-control" name="bairro" value="${esc(f.bairro||'')}"></div><div><label>Cidade</label><input class="form-control" name="cidade" value="${esc(f.cidade||'')}"></div><div><label>UF</label><input class="form-control" name="uf" maxlength="2" value="${esc(f.uf||'')}"></div><div><label>Natureza jurídica</label><input class="form-control" name="naturezaJuridica" value="${esc(f.naturezaJuridica||'')}" readonly></div><div><label>Porte</label><input class="form-control" name="porte" value="${esc(f.porte||'')}" readonly></div><div><label>Capital social</label><input class="form-control" name="capitalSocial" value="${esc(f.capitalSocial||'')}" readonly></div><div><label>CNAE principal</label><input class="form-control" name="cnaePrincipal" value="${esc(f.cnaePrincipal||'')}" readonly></div><div><label>Condição de pagamento</label><input class="form-control" name="condicaoPagamento" placeholder="Ex.: 28 dias" value="${esc(f.condicaoPagamento||'')}"></div><div><label>Valor mínimo de compra</label><input class="form-control" name="valorMinimoCompra" type="number" min="0" step="0.01" placeholder="R$ 0,00" value="${num(f.valorMinimoCompra)||''}"></div><div><label>Prazo médio de entrega</label><input class="form-control" name="prazoEntrega" placeholder="Ex.: 3 dias" value="${esc(f.prazoEntrega||'')}"></div><div class="full"><label>Observações</label><textarea class="form-control" name="observacoes">${esc(f.observacoes||'')}</textarea></div></div>`);
   const cnpj=$('fornecedorCnpj');
   if(cnpj){ cnpj.addEventListener('input',()=>{ cnpj.value=formatCnpj(cnpj.value); scheduleCnpjLookup(); }); cnpj.addEventListener('blur',()=>lookupCnpj(true)); }
   if((f.documento||'').replace(/\D/g,'').length===14) setTimeout(()=>lookupCnpj(true),100);
@@ -176,7 +176,7 @@ function renderReq(){
   if(!$('listaReq')) return;
   const t=($('buscaReq')?.value||'').toLowerCase(), f=$('filtroReq')?.value||'';
   const rows=state.req.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.solicitante,...(x.itens||[]).map(i=>i.produtoNome)].join(' ').toLowerCase().includes(t)));
-  $('listaReq').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.solicitante||'-')}</td><td>${(x.itens||[]).length}</td><td>${priority(x.prioridade||'NORMAL')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</td><td><button class="action-btn" data-action="req-view" data-id="${x.id}" title="Ver requisição"><i class="bi bi-eye"></i></button> <button class="action-btn" data-action="req-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn" data-action="req-send-cot" data-id="${x.id}" title="Enviar para cotação"><i class="bi bi-send"></i></button> <button class="action-btn" data-action="req-cot" data-id="${x.id}" title="Abrir cotação"><i class="bi bi-chat-square-text"></i></button> ${x.status==='ABERTA'?`<button class="action-btn danger" data-action="req-delete" data-id="${x.id}" title="Excluir requisição"><i class="bi bi-trash3"></i></button>`:x.status==='EM_COTACAO'?`<button class="action-btn danger" data-action="req-cancel" data-id="${x.id}" title="Cancelar requisição"><i class="bi bi-x-circle"></i></button>`:x.status==='CANCELADA'?`<button class="action-btn danger" data-action="req-delete-cancelada" data-id="${x.id}" title="Apagar cancelada"><i class="bi bi-trash3"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Nenhuma requisição encontrada.</td></tr>';
+  $('listaReq').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${dateBR(x.criadoEm)}</td><td>${esc(x.solicitante||'-')}</td><td>${(x.itens||[]).length}</td><td>${priority(x.prioridade||'NORMAL')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',APROVADA:'Aprovada',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</td><td><button class="action-btn" data-action="req-view" data-id="${x.id}" title="Ver requisição"><i class="bi bi-eye"></i></button> <button class="action-btn" data-action="req-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> ${x.status==='ABERTA'?`<button class="action-btn" data-action="req-approve" data-id="${x.id}" title="Finalizar e aprovar requisição"><i class="bi bi-check2-circle"></i></button>`:''} <button class="action-btn" data-action="req-send-cot" data-id="${x.id}" title="Enviar para cotação"><i class="bi bi-send"></i></button> <button class="action-btn" data-action="req-cot" data-id="${x.id}" title="Abrir cotação"><i class="bi bi-chat-square-text"></i></button> ${x.status==='ABERTA'?`<button class="action-btn danger" data-action="req-delete" data-id="${x.id}" title="Excluir requisição"><i class="bi bi-trash3"></i></button>`:x.status==='EM_COTACAO'?`<button class="action-btn danger" data-action="req-cancel" data-id="${x.id}" title="Cancelar requisição"><i class="bi bi-x-circle"></i></button>`:x.status==='CANCELADA'?`<button class="action-btn danger" data-action="req-delete-cancelada" data-id="${x.id}" title="Apagar cancelada"><i class="bi bi-trash3"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="7" class="empty">Nenhuma requisição encontrada.</td></tr>';
 }
 function telefoneWhatsApp(v){ return String(v||'').replace(/\D/g,''); }
 function fornecedorContatoCotacao(c){ return state.forn.find(f=>f.id===c?.fornecedorId) || {}; }
@@ -186,19 +186,31 @@ function montarMensagemCotacao(c){
   const itens=(req?.itens||[]).map(i=>`• ${i.produtoNome||i.nome||'Item'} — ${num(i.quantidade)} ${i.tipoVenda==='peso'?'kg':'un.'}`).join('\\n');
   return `Olá${forn.contato?`, ${forn.contato}`:''}!\\n\\nSegue a cotação ${c.numero||''} do NeoScale para a requisição ${c.reqNumero||req?.numero||'-'}.\\n\\n${itens?`Itens:\\n${itens}\\n\\n`:''}Valor dos produtos: ${money(c.valor)}\\nFrete: ${money(c.frete)}\\nPrazo de entrega: ${c.prazoEntrega||'-'}\\nCondição de pagamento: ${c.condicaoPagamento||'-'}${c.validade?`\\nValidade da proposta: ${dateBR(c.validade)}`:''}\\n\\nPor favor, confirme os valores e condições desta proposta.`;
 }
+function tokenSeguro(){ const a=new Uint8Array(18); crypto.getRandomValues(a); return [...a].map(x=>x.toString(16).padStart(2,'0')).join(''); }
+function propostasDaCotacao(c){ return state.propostas.filter(p=>p.cotacaoId===c?.id); }
 function envioCotacaoForm(c){
   if(!c)return;
-  const forn=fornecedorContatoCotacao(c);
-  const tel=telefoneWhatsApp(forn.telefone||forn.celular||'');
-  const email=forn.email||'';
-  const msg=montarMensagemCotacao(c);
-  openModal(`Enviar ${c.numero||'cotação'}`,'Escolha como deseja enviar esta cotação ao fornecedor.','envio-cotacao',c.id,
-    `<div class="send-choice-grid">
-      <button type="button" class="send-channel send-whatsapp" data-send-channel="whatsapp"><i class="bi bi-whatsapp"></i><span><strong>WhatsApp</strong><small>${tel?esc(forn.telefone):'Telefone não cadastrado'}</small></span></button>
-      <button type="button" class="send-channel send-email" data-send-channel="email"><i class="bi bi-envelope"></i><span><strong>E-mail</strong><small>${email?esc(email):'E-mail não cadastrado'}</small></span></button>
-    </div>
-    <div class="send-preview"><div class="send-preview-head"><strong>Mensagem</strong><button type="button" class="btn-secondary small" id="copiarMensagem"><i class="bi bi-copy"></i> Copiar</button></div><textarea id="mensagemCotacao" class="send-message">${esc(msg)}</textarea></div>
-    <div class="send-note"><i class="bi bi-info-circle"></i> O NeoScale abrirá o WhatsApp ou o seu aplicativo de e-mail com a mensagem preenchida. Depois do envio, o registro ficará salvo na cotação.</div>`);
+  openModal(`Enviar ${c.numero||'cotação'}`,'Selecione o fornecedor. Ele receberá um link exclusivo para preencher os preços.','envio-cotacao',c.id,
+    `<div class="form-grid"><div class="full"><label>Fornecedor *</label><select class="form-control" id="cotFornecedorEnvio" required>${opts(state.forn.filter(f=>f.ativo!==false),'Selecione o fornecedor')}</select></div></div><div class="send-note"><i class="bi bi-link-45deg"></i> O fornecedor informa somente o preço unitário de cada produto. Depois você compara todas as propostas.</div><div class="send-channel-grid"><button type="button" class="btn-primary" data-canal-envio="whatsapp"><i class="bi bi-whatsapp"></i> Enviar WhatsApp</button><button type="button" class="btn-secondary" data-canal-envio="email"><i class="bi bi-envelope"></i> Enviar e-mail</button></div>`);
+}
+async function criarEEnviarProposta(cotacaoId, fornecedorId, canal){
+  const c=state.cot.find(x=>x.id===cotacaoId), f=state.forn.find(x=>x.id===fornecedorId), req=state.req.find(x=>x.id===c?.reqId);
+  if(!c||!f||!req) throw new Error('Cotação, fornecedor ou requisição não encontrado.');
+  let proposta=state.propostas.find(p=>p.cotacaoId===cotacaoId&&p.fornecedorId===fornecedorId&&p.status!=='RECUSADA');
+  if(!proposta){
+    const ref=doc(collection(db,'cotacoesFornecedores'));
+    proposta={id:ref.id,token:tokenSeguro(),cotacaoId,reqId:req.id,reqNumero:req.numero||'',cotacaoNumero:c.numero||'',fornecedorId,fornecedorNome:f.razaoSocial||f.nome||'',itens:(req.itens||[]).map(i=>({produtoId:i.produtoId,produtoNome:i.produtoNome,quantidade:num(i.quantidade),unidade:i.unidadeCompra||(i.tipoVenda==='peso'?'kg':'un.'),precoUnitario:0,subtotal:0})),valorProdutos:0,frete:0,totalFinal:0,prazoEntrega:'',condicaoPagamento:'',observacoes:'',status:'ENVIADA',criadoEm:serverTimestamp(),atualizadoEm:serverTimestamp()};
+    await setDoc(ref,proposta);
+  }
+  const url=new URL('cotacao-fornecedor.html',location.href); url.searchParams.set('token',proposta.token);
+  const itens=(req.itens||[]).map(i=>`• ${i.produtoNome} — ${num(i.quantidade)} ${i.unidadeCompra||(i.tipoVenda==='peso'?'kg':'un.')}`).join('\n');
+  const msg=`Olá${f.contato?`, ${f.contato}`:''}!\n\nO NeoScale solicita a cotação ${c.numero||''}.\n\nItens:\n${itens}\n\nInforme os preços pelo link abaixo:\n${url.href}\n\nValor mínimo de compra cadastrado: ${money(f.valorMinimoCompra)}.`;
+  const tel=telefoneWhatsApp(f.telefone||f.celular||'');
+  if(canal==='whatsapp'){ if(!tel) throw new Error('Cadastre o telefone/WhatsApp do fornecedor.'); window.open(`https://wa.me/55${tel}?text=${encodeURIComponent(msg)}`,'_blank','noopener'); }
+  else { if(!f.email) throw new Error('Cadastre o e-mail do fornecedor.'); window.location.href=`mailto:${encodeURIComponent(f.email)}?subject=${encodeURIComponent(`Cotação ${c.numero||''} - NeoScale`)}&body=${encodeURIComponent(msg)}`; }
+  await updateDoc(doc(db,'cotacoesFornecedores',proposta.id),{ultimoEnvio:{canal,em:serverTimestamp()},atualizadoEm:serverTimestamp()});
+  await updateDoc(doc(db,'cotacoesCompra',c.id),{status:'EM_ANALISE',atualizadoEm:serverTimestamp()});
+  closeModal(); await load(); alert(`Solicitação enviada para ${f.razaoSocial||f.nome}.`);
 }
 async function registrarEnvioCotacao(id,canal){
   const c=state.cot.find(x=>x.id===id); if(!c)return;
@@ -211,13 +223,28 @@ async function registrarEnvioCotacao(id,canal){
 function renderCot(){
   if(!$('listaCot')) return;
   const t=($('buscaCot')?.value||'').toLowerCase(), f=$('filtroCot')?.value||'';
-  const rows=state.cot.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.reqNumero,x.fornecedorNome].join(' ').toLowerCase().includes(t)));
-  $('listaCot').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${esc(x.reqNumero||'-')}</td><td>${esc(x.fornecedorNome||'-')}</td><td><strong>${money(x.valor)}</strong></td><td>${money(x.frete)}</td><td>${esc(x.prazoEntrega||'-')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_ANALISE:'Em análise',APROVADA:'Aprovada',RECUSADA:'Recusada'})}</td><td><button class="action-btn" data-action="cot-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button> <button class="action-btn send-cot-action" data-action="cot-enviar" data-id="${x.id}" title="Enviar por WhatsApp ou e-mail"><i class="bi bi-send"></i></button> ${x.status!=='APROVADA'&&x.status!=='RECUSADA'?`<button class="action-btn" data-action="cot-aprovar" data-id="${x.id}" title="Aprovar"><i class="bi bi-check2"></i></button>`:''} ${x.status==='APROVADA'?`<button class="action-btn" data-action="cot-ped" data-id="${x.id}" title="Criar pedido"><i class="bi bi-cart-plus"></i></button>`:''}</td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhuma cotação encontrada.</td></tr>';
+  const rows=state.cot.filter(x=>(!f||x.status===f)&&(!t||[x.numero,x.reqNumero].join(' ').toLowerCase().includes(t)));
+  $('listaCot').innerHTML=rows.length?rows.map(x=>{const ps=propostasDaCotacao(x); const winner=ps.filter(p=>p.status==='RESPONDIDA').sort((a,b)=>num(a.totalFinal)-num(b.totalFinal))[0]; const forn=winner?.fornecedorNome||x.fornecedorNome||'-'; return `<tr><td><strong>${esc(x.numero||x.id.slice(0,8))}</strong></td><td>${esc(x.reqNumero||'-')}</td><td>${esc(forn)}</td><td><strong>${winner?money(winner.valorProdutos||winner.totalFinal):money(x.valor||0)}</strong></td><td>${money(winner?.frete||x.frete||0)}</td><td>${esc(winner?.prazoEntrega||x.prazoEntrega||'-')}</td><td>${status(x.status||'ABERTA',{ABERTA:'Aberta',EM_ANALISE:'Em análise',APROVADA:'Aprovada',RECUSADA:'Recusada'})}</td><td><button class="action-btn send-cot-action" data-action="cot-enviar" data-id="${x.id}" title="Enviar para fornecedor"><i class="bi bi-send"></i></button> <button class="action-btn" data-action="cot-comparar" data-id="${x.id}" title="Comparar propostas"><i class="bi bi-bar-chart"></i></button> ${x.status!=='APROVADA'&&winner?`<button class="action-btn" data-action="cot-aprovar-vencedora" data-id="${winner.id}" title="Aprovar menor preço"><i class="bi bi-trophy"></i></button>`:''} ${x.status==='APROVADA'?`<button class="action-btn" data-action="cot-ped" data-id="${x.id}" title="Criar pedido"><i class="bi bi-cart-plus"></i></button>`:''}</td></tr>`}).join(''):'<tr><td colspan="8" class="empty">Nenhuma cotação encontrada.</td></tr>';
+}
+function compararCotacao(c){
+  const ps=propostasDaCotacao(c); if(!ps.length){alert('Nenhum fornecedor foi convidado para esta cotação ainda.');return;}
+  const rows=ps.map(p=>{const f=state.forn.find(x=>x.id===p.fornecedorId)||{}; const min=num(f.valorMinimoCompra), total=num(p.totalFinal), abaixo=min>0&&total<min; return {p,f,total,abaixo};}).sort((a,b)=>a.total-b.total);
+  const valid=rows.filter(x=>x.p.status==='RESPONDIDA'&&!x.abaixo), vencedor=valid[0];
+  openModal(`Comparação ${c.numero||''}`,'O menor valor total entre propostas válidas vence. O valor mínimo de compra do fornecedor é respeitado.','comparar-cotacao',c.id,`<div class="module-table"><div class="table-wrap"><table><thead><tr><th>Fornecedor</th><th>Produtos</th><th>Total</th><th>Mínimo compra</th><th>Status</th><th></th></tr></thead><tbody>${rows.map(x=>`<tr class="${vencedor&&x.p.id===vencedor.p.id?'winner-row':''}"><td><strong>${esc(x.p.fornecedorNome||x.f.razaoSocial||'-')}</strong></td><td>${money(x.p.valorProdutos)}</td><td><strong>${money(x.total)}</strong></td><td>${x.f.valorMinimoCompra?money(x.f.valorMinimoCompra):'-'} ${x.abaixo?'<span class="status-pill status-RECUSADA">Abaixo do mínimo</span>':''}</td><td>${status(x.p.status,{ENVIADA:'Enviada',RESPONDIDA:'Respondida',RECUSADA:'Recusada',APROVADA:'Vencedora'})}</td><td>${x.p.status==='RESPONDIDA'&&!x.abaixo?`<button type="button" class="btn-primary small" data-approve-proposta="${x.p.id}">Escolher</button>`:''}</td></tr>`).join('')}</tbody></table></div></div><div class="send-note"><i class="bi bi-trophy"></i> ${vencedor?`Menor proposta válida: <strong>${esc(vencedor.p.fornecedorNome)}</strong> — ${money(vencedor.total)}.`:'Ainda não há proposta respondida válida.'}</div>`);
+}
+async function aprovarProposta(id){
+  const p=state.propostas.find(x=>x.id===id); if(!p)return; const c=state.cot.find(x=>x.id===p.cotacaoId); if(!c)return;
+  if(!confirm(`Escolher ${p.fornecedorNome} como vencedor desta cotação?`))return;
+  await updateDoc(doc(db,'cotacoesFornecedores',id),{status:'APROVADA',aprovadaEm:serverTimestamp(),atualizadoEm:serverTimestamp()});
+  for(const o of state.propostas.filter(x=>x.cotacaoId===c.id&&x.id!==id&&x.status==='RESPONDIDA')) await updateDoc(doc(db,'cotacoesFornecedores',o.id),{status:'RECUSADA',atualizadoEm:serverTimestamp()});
+  await updateDoc(doc(db,'cotacoesCompra',c.id),{status:'APROVADA',fornecedorId:p.fornecedorId,fornecedorNome:p.fornecedorNome,valor:num(p.valorProdutos),frete:num(p.frete),valorTotal:num(p.totalFinal),propostaId:id,atualizadoEm:serverTimestamp()});
+  if(c.reqId) await updateDoc(doc(db,'requisicoesCompra',c.reqId),{status:'ATENDIDA',atualizadoEm:serverTimestamp()});
+  closeModal(); await load(); alert(`Cotação aprovada. ${p.fornecedorNome} venceu pela menor proposta válida.`);
 }
 function renderForn(){
   if(!$('listaForn')) return;
   const t=($('buscaForn')?.value||'').toLowerCase(); const rows=state.forn.filter(x=>[x.razaoSocial,x.nomeFantasia,x.documento,x.contato,x.telefone].join(' ').toLowerCase().includes(t));
-  $('listaForn').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.razaoSocial||x.nome)}</strong><div class="muted">${esc(x.nomeFantasia||'')}</div></td><td>${esc(x.documento||'-')}</td><td>${esc(x.contato||'-')}</td><td>${esc(x.telefone||'-')}</td><td>${esc(x.condicaoPagamento||'-')}</td><td>${esc(x.prazoEntrega||'-')}</td><td>${status(x.ativo===false?'INATIVO':'ATIVO',{ATIVO:'Ativo',INATIVO:'Inativo'})}</td><td><button class="action-btn" data-action="forn-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button></td></tr>`).join(''):'<tr><td colspan="8" class="empty">Nenhum fornecedor cadastrado.</td></tr>';
+  $('listaForn').innerHTML=rows.length?rows.map(x=>`<tr><td><strong>${esc(x.razaoSocial||x.nome)}</strong><div class="muted">${esc(x.nomeFantasia||'')}</div></td><td>${esc(x.documento||'-')}</td><td>${esc(x.contato||'-')}</td><td>${esc(x.telefone||'-')}</td><td>${esc(x.condicaoPagamento||'-')}</td><td>${x.valorMinimoCompra?money(x.valorMinimoCompra):'-'}</td><td>${esc(x.prazoEntrega||'-')}</td><td>${status(x.ativo===false?'INATIVO':'ATIVO',{ATIVO:'Ativo',INATIVO:'Inativo'})}</td><td><button class="action-btn" data-action="forn-edit" data-id="${x.id}" title="Editar"><i class="bi bi-pencil"></i></button></td></tr>`).join(''):'<tr><td colspan="9" class="empty">Nenhum fornecedor cadastrado.</td></tr>';
 }
 function renderPed(){
   if(!$('listaPed')) return;
@@ -256,6 +283,7 @@ async function load(){
     ['produtosCompra', () => getDocs(collection(db,'produtosCompra'))],
     ['requisicoesCompra', () => getDocs(query(collection(db,'requisicoesCompra'),orderBy('criadoEm','desc'),limit(200)))],
     ['cotacoesCompra', () => getDocs(query(collection(db,'cotacoesCompra'),orderBy('criadoEm','desc'),limit(200)))],
+    ['cotacoesFornecedores', () => getDocs(query(collection(db,'cotacoesFornecedores'),orderBy('criadoEm','desc'),limit(500)))],
     ['fornecedores', () => getDocs(query(collection(db,'fornecedores'),orderBy('razaoSocial'),limit(200)))],
     ['pedidosCompra', () => getDocs(query(collection(db,'pedidosCompra'),orderBy('criadoEm','desc'),limit(200)))]
   ];
@@ -268,6 +296,7 @@ async function load(){
   state.produtosCompra=docs.produtosCompra.map(d=>({id:d.id,...d.data()})).filter(x=>x && String(x.nome||'').trim());
   state.req=docs.requisicoesCompra.map(d=>({id:d.id,...d.data()}));
   state.cot=docs.cotacoesCompra.map(d=>({id:d.id,...d.data()}));
+  state.propostas=docs.cotacoesFornecedores.map(d=>({id:d.id,...d.data()}));
   state.forn=docs.fornecedores.map(d=>({id:d.id,...d.data()}));
   state.ped=docs.pedidosCompra.map(d=>({id:d.id,...d.data()}));
   renderAll();
@@ -282,7 +311,7 @@ async function save(){
       const itens=collectItems(); const ref=currentId?doc(db,'requisicoesCompra',currentId):doc(collection(db,'requisicoesCompra')); const old=currentId?state.req.find(x=>x.id===currentId):null;
       await setDoc(ref,{...data,itens,numero:old?.numero||`RC-${Date.now().toString().slice(-6)}`,status:old?.status||'ABERTA',criadoEm:old?.criadoEm||serverTimestamp(),atualizadoEm:serverTimestamp()},{merge:true});
     } else if(formType==='fornecedor'){
-      const ref=currentId?doc(db,'fornecedores',currentId):doc(collection(db,'fornecedores')); await setDoc(ref,{...data,razaoSocial:data.razaoSocial,nome:data.razaoSocial,ativo:true,criadoEm:currentId?(state.forn.find(x=>x.id===currentId)?.criadoEm||serverTimestamp()):serverTimestamp(),atualizadoEm:serverTimestamp()},{merge:true});
+      const ref=currentId?doc(db,'fornecedores',currentId):doc(collection(db,'fornecedores')); await setDoc(ref,{...data,valorMinimoCompra:num(data.valorMinimoCompra),razaoSocial:data.razaoSocial,nome:data.razaoSocial,ativo:true,criadoEm:currentId?(state.forn.find(x=>x.id===currentId)?.criadoEm||serverTimestamp()):serverTimestamp(),atualizadoEm:serverTimestamp()},{merge:true});
     } else if(formType==='cot'){
       const req=state.req.find(x=>x.id===data.reqId), forn=state.forn.find(x=>x.id===data.fornecedorId), old=currentId?state.cot.find(x=>x.id===currentId):null; const ref=currentId?doc(db,'cotacoesCompra',currentId):doc(collection(db,'cotacoesCompra'));
       await setDoc(ref,{...data,valor:num(data.valor),frete:num(data.frete),numero:old?.numero||`COT-${Date.now().toString().slice(-6)}`,reqNumero:req?.numero||'',fornecedorNome:forn?.razaoSocial||forn?.nome||'',status:old?.status||'ABERTA',criadoEm:old?.criadoEm||serverTimestamp(),atualizadoEm:serverTimestamp()},{merge:true});
@@ -386,6 +415,8 @@ $('modal')?.addEventListener('click',e=>{if(e.target===modal)closeModal()});
 document.addEventListener('keydown',e=>{if(e.key==='Escape' && $('modal') && !modal.hidden)closeModal()});
 
 $('modalBody')?.addEventListener('click',e=>{
+  const send=e.target.closest('[data-canal-envio]'); if(send){ const fid=$('cotFornecedorEnvio')?.value; if(!fid){alert('Selecione o fornecedor.');return;} criarEEnviarProposta(currentId,fid,send.dataset.canalEnvio).catch(err=>alert(err.message||'Não foi possível enviar a cotação.')); return; }
+  const approve=e.target.closest('[data-approve-proposta]'); if(approve){ aprovarProposta(approve.dataset.approveProposta); return; }
   const channel=e.target.closest('[data-send-channel]');
   if(channel){
     const c=state.cot.find(x=>x.id===currentId); const forn=fornecedorContatoCotacao(c); const msg=$('mensagemCotacao')?.value||montarMensagemCotacao(c||{});
@@ -426,7 +457,7 @@ function reqView(r){
   if(!r) return;
   const itens=(r.itens||[]).map(i=>`<tr><td>${esc(i.produtoNome||i.nome||'-')}</td><td>${num(i.quantidade)}</td><td>${i.tipoVenda==='peso'?'kg':'un.'}</td><td>${esc(i.observacao||'-')}</td></tr>`).join('');
   openModal(`Requisição ${r.numero||r.id.slice(0,8)}`, 'Detalhamento completo da solicitação de compra.', 'view-req', r.id,
-    `<div class="req-view-grid"><div><span>Solicitante</span><strong>${esc(r.solicitante||'-')}</strong></div><div><span>Prioridade</span><strong>${esc(r.prioridade||'NORMAL')}</strong></div><div><span>Data necessária</span><strong>${dateBR(r.dataNecessaria)}</strong></div><div><span>Status</span><strong>${status(r.status||'ABERTA',{ABERTA:'Aberta',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</strong></div><div class="full"><span>Centro de custo / setor</span><strong>${esc(r.centroCusto||'-')}</strong></div><div class="full"><span>Justificativa</span><strong>${esc(r.justificativa||'-')}</strong></div></div><div class="items-editor"><table><thead><tr><th>Produto</th><th>Quantidade</th><th>Unidade</th><th>Observação</th></tr></thead><tbody>${itens||'<tr><td colspan="4" class="empty">Nenhum item informado.</td></tr>'}</tbody></table></div>`);
+    `<div class="req-view-grid"><div><span>Solicitante</span><strong>${esc(r.solicitante||'-')}</strong></div><div><span>Prioridade</span><strong>${esc(r.prioridade||'NORMAL')}</strong></div><div><span>Data necessária</span><strong>${dateBR(r.dataNecessaria)}</strong></div><div><span>Status</span><strong>${status(r.status||'ABERTA',{ABERTA:'Aberta',APROVADA:'Aprovada',EM_COTACAO:'Em cotação',ATENDIDA:'Atendida',CANCELADA:'Cancelada'})}</strong></div><div class="full"><span>Centro de custo / setor</span><strong>${esc(r.centroCusto||'-')}</strong></div><div class="full"><span>Justificativa</span><strong>${esc(r.justificativa||'-')}</strong></div></div><div class="items-editor"><table><thead><tr><th>Produto</th><th>Quantidade</th><th>Unidade</th><th>Observação</th></tr></thead><tbody>${itens||'<tr><td colspan="4" class="empty">Nenhum item informado.</td></tr>'}</tbody></table></div>`);
 }
 async function excluirOuCancelarReq(r, modo){
   if(!r) return;
@@ -487,14 +518,46 @@ async function apagarCanceladosCompras(){
   }catch(e){ console.error(e); alert('Parte dos cancelados pode não ter sido apagada. Verifique as permissões do Firebase.'); await load(); }
 }
 
+async function aprovarReq(r){
+  if(!r) return;
+  if(r.status!=='ABERTA') return;
+  if(!(r.itens||[]).length){ alert('A requisição precisa ter pelo menos um produto para ser aprovada.'); return; }
+  if(!confirm(`Finalizar e aprovar a requisição ${r.numero||r.id.slice(0,8)}?\n\nDepois da aprovação ela será enviada automaticamente para a aba Cotações.`)) return;
+  try{
+    await updateDoc(doc(db,'requisicoesCompra',r.id),{status:'APROVADA',aprovadaEm:serverTimestamp(),atualizadoEm:serverTimestamp()});
+    const existente=state.cot.find(c=>c.reqId===r.id && c.status!=='RECUSADA');
+    if(!existente){
+      const ref=doc(collection(db,'cotacoesCompra'));
+      await setDoc(ref,{
+        numero:`COT-${Date.now().toString().slice(-6)}`,
+        reqId:r.id,
+        reqNumero:r.numero||'',
+        itens:r.itens||[],
+        valor:0,
+        frete:0,
+        status:'ABERTA',
+        criadoEm:serverTimestamp(),
+        atualizadoEm:serverTimestamp()
+      });
+    }
+    r.status='APROVADA';
+    await load();
+    alert('Requisição aprovada. Ela já está disponível em Cotações para receber as propostas dos fornecedores.');
+  }catch(e){ console.error(e); alert('Não foi possível aprovar a requisição. Verifique as permissões do Firebase.'); }
+}
+
 async function enviarReqCotacao(r){
   if(!r) return;
-  if(r.status==='EM_COTACAO'){ location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(r.id)}`; return; }
   try{
-    await updateDoc(doc(db,'requisicoesCompra',r.id),{status:'EM_COTACAO',atualizadoEm:serverTimestamp()});
+    const existente=state.cot.find(c=>c.reqId===r.id && c.status!=='RECUSADA');
+    if(!existente){
+      const ref=doc(collection(db,'cotacoesCompra'));
+      await setDoc(ref,{numero:`COT-${Date.now().toString().slice(-6)}`,reqId:r.id,reqNumero:r.numero||'',itens:r.itens||[],valor:0,frete:0,status:'ABERTA',criadoEm:serverTimestamp(),atualizadoEm:serverTimestamp()});
+    }
+    if(r.status!=='EM_COTACAO') await updateDoc(doc(db,'requisicoesCompra',r.id),{status:'EM_COTACAO',atualizadoEm:serverTimestamp()});
     r.status='EM_COTACAO';
-    renderReq();
-    location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(r.id)}`;
+    await load();
+    location.href=`cotacoes.html`;
   }catch(e){ console.error(e); alert('Não foi possível enviar a requisição para cotação. Verifique as permissões do Firebase.'); }
 }
 $('listaReq')?.addEventListener('click',e=>{
@@ -502,6 +565,7 @@ $('listaReq')?.addEventListener('click',e=>{
   const x=state.req.find(x=>x.id===b.dataset.id); if(!x)return;
   if(b.dataset.action==='req-view')reqView(x);
   if(b.dataset.action==='req-edit')reqForm(x);
+  if(b.dataset.action==='req-approve')aprovarReq(x);
   if(b.dataset.action==='req-send-cot')enviarReqCotacao(x);
   if(b.dataset.action==='req-cot')location.href=`cotacoes.html?novo=1&reqId=${encodeURIComponent(x.id)}`;
   if(b.dataset.action==='req-delete')excluirOuCancelarReq(x,'delete');
@@ -513,6 +577,8 @@ $('listaCot')?.addEventListener('click',e=>{
   const x=state.cot.find(x=>x.id===b.dataset.id);
   if(b.dataset.action==='cot-edit')cotForm(x);
   if(b.dataset.action==='cot-enviar')envioCotacaoForm(x);
+  if(b.dataset.action==='cot-comparar')compararCotacao(x);
+  if(b.dataset.action==='cot-aprovar-vencedora')aprovarProposta(b.dataset.id);
   if(b.dataset.action==='cot-aprovar')approveCot(x.id);
   if(b.dataset.action==='cot-ped')location.href=`pedidos-compra.html?novo=1&cotId=${encodeURIComponent(x.id)}&fornecedorId=${encodeURIComponent(x.fornecedorId||'')}`;
 });

@@ -70,6 +70,21 @@ service cloud.firestore {
       allow delete: if isAdmin() || (isCashier() && resource.data.status == 'CANCELADA');
     }
 
+    match /cotacoesCompra/{id} {
+      allow read: if isOperator() || isWaiter();
+      allow create, update: if isOperator();
+      allow delete: if isAdmin();
+    }
+
+    match /cotacoesFornecedores/{token} {
+      allow read: if true;
+      allow create: if isOperator();
+      allow update: if request.resource.data.token == token
+                    && request.resource.data.cotacaoId == resource.data.cotacaoId
+                    && request.resource.data.fornecedorId == resource.data.fornecedorId;
+      allow delete: if isAdmin();
+    }
+
     match /pedidosCompra/{id} {
       allow read: if isOperator() || isWaiter();
       allow create, update: if isOperator();
@@ -86,6 +101,11 @@ service cloud.firestore {
     match /caixas/{id} {
       allow read: if isCashier();
       allow create, update: if isCashier();
+      allow delete: if isAdmin();
+    }
+
+    match /contasPagar/{id} {
+      allow read, create, update: if isCashier();
       allow delete: if isAdmin();
     }
 

@@ -40,11 +40,13 @@ const MENU = [
     ['caixa.html','bi-cash-stack','Caixa','caixa'],
     ['caixa-delivery.html','bi-bicycle','Caixa Delivery','caixa-delivery'],
     ['financeiro.html','bi-wallet2','Financeiro','financeiro'],
+    ['contas-pagar.html','bi-file-earmark-text','Contas a pagar','contas-pagar'],
     ['fechamento.html','bi-clipboard2-check','Fechamento','fechamento']
   ]},
   { section: 'GESTÃO', items: [
     ['relatorios.html','bi-bar-chart-line','Relatórios','relatorios'],
     ['fiscal.html','bi-receipt','Fiscal','fiscal'],
+    ['nfe-recebidas.html','bi-file-earmark-check','NF-e recebidas','nfe-recebidas'],
     ['usuarios.html','bi-person-badge','Usuários','usuarios'],
     ['configuracoes.html','bi-gear','Configurações','configuracoes']
   ]}

@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NeoScale | Responder cotação</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<style>
+*{box-sizing:border-box}body{margin:0;background:#f4f8f6;color:#173b32;font-family:Inter,Arial,sans-serif}.wrap{max-width:980px;margin:0 auto;padding:24px}.card{background:#fff;border:1px solid #dce9e4;border-radius:18px;box-shadow:0 10px 30px rgba(20,70,55,.07);padding:24px;margin-bottom:18px}h1{margin:0 0 6px;font-size:25px}.muted{color:#6b7f78;font-size:13px}.brand{color:#008b68;font-weight:800;letter-spacing:.04em}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.full{grid-column:1/-1}label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.input{width:100%;height:42px;border:1px solid #cfe0da;border-radius:10px;padding:0 12px;font-size:14px;background:#fff}.items{width:100%;border-collapse:collapse}.items th,.items td{padding:12px 9px;border-bottom:1px solid #e7efec;text-align:left;font-size:13px}.items th{font-size:11px;text-transform:uppercase;color:#698078}.price{width:150px}.summary{display:flex;justify-content:flex-end;gap:30px;flex-wrap:wrap}.sum strong{display:block;font-size:19px}.btn{border:0;border-radius:10px;padding:12px 18px;background:#008b68;color:#fff;font-weight:800;cursor:pointer}.btn:disabled{opacity:.6}.alert{padding:12px 14px;border-radius:10px;background:#fff8e8;border:1px solid #f2dfaa;color:#795b13;font-size:13px}.ok{background:#edf9f3;border-color:#bfe5d3;color:#166b4f}.error{background:#fff0f0;border-color:#efc3c3;color:#9a2e2e}.winner-note{margin-top:12px;color:#5d716a;font-size:12px}@media(max-width:700px){.grid{grid-template-columns:1fr}.wrap{padding:14px}.card{padding:16px}.items{min-width:720px}.table-scroll{overflow:auto}.price{width:120px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="brand">NEOSCALE · SUPRIMENTOS</div>
+    <h1 id="titulo">Responder solicitação de cotação</h1>
+    <div class="muted" id="subtitulo">Carregando...</div>
+  </div>
+  <div id="app"></div>
+</div>
+<script type="module" src="js/cotacao-fornecedor.js"></script>
+</body></html>
