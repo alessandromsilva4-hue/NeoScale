@@ -108,3 +108,74 @@ btnTestarImpressora?.addEventListener("click", async () => {
     }
 });
 carregarConfiguracao();
+
+// =========================================================
+// GERENCIAMENTO DE IMPRESSORAS E BALANÇAS
+// =========================================================
+const listaImpressorasConfig = document.getElementById("listaImpressorasConfig");
+const listaBalancasConfig = document.getElementById("listaBalancasConfig");
+const btnAdicionarImpressora = document.getElementById("btnAdicionarImpressora");
+const btnAdicionarBalanca = document.getElementById("btnAdicionarBalanca");
+
+let impressorasConfig = [];
+let balancasConfig = [];
+
+async function carregarEquipamentos() {
+    try {
+        const snap = await getDoc(doc(db, "configuracoes", "equipamentos"));
+        const dados = snap.exists() ? snap.data() : {};
+        impressorasConfig = Array.isArray(dados.impressoras) ? dados.impressoras : [];
+        balancasConfig = Array.isArray(dados.balancas) ? dados.balancas : [];
+    } catch (e) {
+        console.error("Erro ao carregar equipamentos:", e);
+        impressorasConfig = [];
+        balancasConfig = [];
+    }
+    renderEquipamentos();
+}
+
+function renderEquipamentos() {
+    if (listaImpressorasConfig) {
+        listaImpressorasConfig.innerHTML = impressorasConfig.length ? impressorasConfig.map((x,i)=>`
+            <div class="device-row" data-index="${i}">
+                <div><label>Nome</label><input data-field="nome" value="${esc(x.nome)}" placeholder="Impressora 01"></div>
+                <div><label>IP</label><input data-field="ip" value="${esc(x.ip)}" placeholder="192.168.1.100"></div>
+                <div><label>Porta</label><input data-field="porta" type="number" min="1" max="65535" value="${Number(x.porta)||9100}"></div>
+                <div><label>Status</label><select data-field="ativa"><option value="true" ${x.ativa!==false?'selected':''}>Ativa</option><option value="false" ${x.ativa===false?'selected':''}>Inativa</option></select></div>
+                <div class="device-actions"><button class="device-save" type="button" data-save-printer="${i}"><i class="bi bi-check2"></i> Salvar</button><button class="device-delete" type="button" data-delete-printer="${i}"><i class="bi bi-trash"></i></button></div>
+            </div>`).join("") : '<div class="device-empty">Nenhuma impressora cadastrada. Clique em “Adicionar impressora”.</div>';
+    }
+    if (listaBalancasConfig) {
+        listaBalancasConfig.innerHTML = balancasConfig.length ? balancasConfig.map((x,i)=>`
+            <div class="device-row scale" data-index="${i}">
+                <div><label>Nome</label><input data-field="nome" value="${esc(x.nome)}" placeholder="Balança 01"></div>
+                <div><label>Modelo / conexão</label><input data-field="modelo" value="${esc(x.modelo)}" placeholder="Toledo / USB / Serial"></div>
+                <div><label>Status</label><select data-field="ativa"><option value="true" ${x.ativa!==false?'selected':''}>Ativa</option><option value="false" ${x.ativa===false?'selected':''}>Inativa</option></select></div>
+                <div class="device-actions"><button class="device-save" type="button" data-save-scale="${i}"><i class="bi bi-check2"></i> Salvar</button><button class="device-delete" type="button" data-delete-scale="${i}"><i class="bi bi-trash"></i></button></div>
+            </div>`).join("") : '<div class="device-empty">Nenhuma balança cadastrada. Clique em “Adicionar balança”.</div>';
+    }
+}
+
+function esc(v){return String(v??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");}
+
+async function salvarEquipamentos(){
+    await setDoc(doc(db,"configuracoes","equipamentos"),{impressoras:impressorasConfig,balancas:balancasConfig,atualizadoEm:new Date()},{merge:true});
+    renderEquipamentos();
+}
+
+btnAdicionarImpressora?.addEventListener("click",()=>{impressorasConfig.push({nome:`Impressora ${String(impressorasConfig.length+1).padStart(2,"0")}`,ip:"",porta:9100,ativa:true});renderEquipamentos();});
+btnAdicionarBalanca?.addEventListener("click",()=>{balancasConfig.push({nome:`Balança ${String(balancasConfig.length+1).padStart(2,"0")}`,modelo:"",ativa:true});renderEquipamentos();});
+
+listaImpressorasConfig?.addEventListener("click",async e=>{
+    const save=e.target.closest("[data-save-printer]"), del=e.target.closest("[data-delete-printer]");
+    if(save){const i=Number(save.dataset.savePrinter), row=save.closest(".device-row"); impressorasConfig[i]={nome:row.querySelector('[data-field="nome"]').value.trim(),ip:row.querySelector('[data-field="ip"]').value.trim(),porta:Number(row.querySelector('[data-field="porta"]').value)||9100,ativa:row.querySelector('[data-field="ativa"]').value==="true"}; await salvarEquipamentos();}
+    if(del){impressorasConfig.splice(Number(del.dataset.deletePrinter),1);await salvarEquipamentos();}
+});
+
+listaBalancasConfig?.addEventListener("click",async e=>{
+    const save=e.target.closest("[data-save-scale]"), del=e.target.closest("[data-delete-scale]");
+    if(save){const i=Number(save.dataset.saveScale), row=save.closest(".device-row"); balancasConfig[i]={nome:row.querySelector('[data-field="nome"]').value.trim(),modelo:row.querySelector('[data-field="modelo"]').value.trim(),ativa:row.querySelector('[data-field="ativa"]').value==="true"}; await salvarEquipamentos();}
+    if(del){balancasConfig.splice(Number(del.dataset.deleteScale),1);await salvarEquipamentos();}
+});
+
+carregarEquipamentos();

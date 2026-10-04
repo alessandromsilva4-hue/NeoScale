@@ -20,6 +20,7 @@
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
     <link rel="stylesheet" href="css/tema-verde.css">
+<link rel="stylesheet" href="css/historico-melhorado.css">
 </head>
 
 
@@ -58,9 +59,27 @@ Registro das refeições pesadas
 
 
 
-<section class="table-card">
+<section class="table-card historico-filtros-card">
 
+<div class="historico-filtros">
+  <div class="historico-filtro">
+    <label for="dataInicio">Data inicial</label>
+    <input type="date" id="dataInicio">
+  </div>
+  <div class="historico-filtro">
+    <label for="dataFim">Data final</label>
+    <input type="date" id="dataFim">
+  </div>
+  <button type="button" class="btn-filtro ativo" data-periodo="hoje">Hoje</button>
+  <button type="button" class="btn-filtro" data-periodo="7">7 dias</button>
+  <button type="button" class="btn-filtro" data-periodo="30">30 dias</button>
+  <button type="button" class="btn-filtro" data-periodo="todos">Todos</button>
+  <button type="button" class="btn-limpar" id="limparFiltro">Limpar</button>
+</div>
 
+<div class="historico-resumo" id="historicoResumo">0 registros encontrados</div>
+
+<div class="table-scroll">
 <table>
 
 
@@ -102,7 +121,7 @@ Frase
 
 
 </table>
-
+</div>
 
 </section>
 

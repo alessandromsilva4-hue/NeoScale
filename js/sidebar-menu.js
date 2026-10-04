@@ -23,6 +23,8 @@ const MENU = [
   ]},
   { section: 'OPERAÇÃO', items: [
     ['cozinha.html','bi-display','Produção / KDS','cozinha'],
+    ['reposicao-buffet.html','bi-bell','Reposição do Buffet','reposicao-buffet'],
+    ['reposicao-cozinha.html','bi-arrow-repeat','Painel de Reposição','reposicao-cozinha'],
     ['estoque.html','bi-boxes','Estoque','estoque'],
     { href:'compras.html', icon:'bi-cart3', label:'Compras', key:'compras', children:[
       ['compras.html','bi-grid-1x2','Visão geral','compras'],

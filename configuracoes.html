@@ -13,6 +13,9 @@
     <link rel="stylesheet" href="css/tabela.css">
     <link rel="icon" type="image/png" href="img/favicon.png">
     <link rel="stylesheet" href="css/tema-verde.css">
+<style>
+.section-heading-row{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}.section-heading-row h3{margin:0 0 5px}.section-heading-row p{margin:0;color:#64748b;font-size:13px}.btn-secondary-config{border:1px solid #cbd5e1;background:#fff;color:#0f172a;border-radius:10px;padding:10px 14px;font-weight:700;cursor:pointer}.btn-secondary-config:hover{background:#f8fafc}.device-list{display:grid;gap:12px}.device-row{display:grid;grid-template-columns:1.2fr 1.5fr 100px 100px auto;gap:10px;align-items:end;padding:14px;border:1px solid #e2e8f0;border-radius:12px;background:#f8fafc}.device-row.scale{grid-template-columns:1.2fr 1.5fr 1.2fr auto}.device-row label{font-size:12px;font-weight:700;color:#475569;display:block;margin-bottom:5px}.device-row input,.device-row select{width:100%;box-sizing:border-box;padding:9px 10px;border:1px solid #cbd5e1;border-radius:8px;background:#fff}.device-actions{display:flex;gap:7px}.device-actions button{border:0;border-radius:8px;padding:9px 10px;cursor:pointer}.device-save{background:#16a34a;color:#fff}.device-delete{background:#fee2e2;color:#b91c1c}.device-empty{padding:18px;border:1px dashed #cbd5e1;border-radius:12px;color:#64748b;text-align:center}@media(max-width:800px){.section-heading-row{align-items:flex-start;flex-direction:column}.device-row,.device-row.scale{grid-template-columns:1fr}.device-actions{justify-content:flex-end}}
+</style>
 </head>
 <body>
     <div class="layout">
@@ -23,6 +26,32 @@
                 <h2>Configurações</h2>
                 <p>Personalização do NeoScale</p>
             </header>
+
+            <section class="form-card device-config-card">
+                <div class="section-heading-row">
+                    <div>
+                        <h3>Impressoras</h3>
+                        <p>Cadastre cada impressora térmica e defina IP, porta e status.</p>
+                    </div>
+                    <button id="btnAdicionarImpressora" class="btn-secondary-config" type="button"><i class="bi bi-plus-lg"></i> Adicionar impressora</button>
+                </div>
+                <div id="listaImpressorasConfig" class="device-list">
+                    <div class="device-empty">Nenhuma impressora cadastrada.</div>
+                </div>
+            </section>
+
+            <section class="form-card device-config-card">
+                <div class="section-heading-row">
+                    <div>
+                        <h3>Balanças</h3>
+                        <p>Cadastre as balanças utilizadas nas estações de pesagem.</p>
+                    </div>
+                    <button id="btnAdicionarBalanca" class="btn-secondary-config" type="button"><i class="bi bi-plus-lg"></i> Adicionar balança</button>
+                </div>
+                <div id="listaBalancasConfig" class="device-list">
+                    <div class="device-empty">Nenhuma balança cadastrada.</div>
+                </div>
+            </section>
 
             <section class="form-card">
                 <h3>Dados do Restaurante</h3>

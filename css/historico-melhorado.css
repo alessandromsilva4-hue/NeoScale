@@ -1,0 +1,12 @@
+
+.historico-filtros-card{padding:18px!important;margin-bottom:18px}
+.historico-filtros{display:flex;align-items:end;gap:10px;flex-wrap:wrap}
+.historico-filtro{display:flex;flex-direction:column;gap:5px}
+.historico-filtro label{font-size:12px;font-weight:700;color:#64748b}
+.historico-filtro input{height:40px;border:1px solid #dbe5df;border-radius:9px;padding:0 10px;background:#fff;color:#0f172a}
+.btn-filtro,.btn-limpar{height:40px;border:1px solid #dbe5df;border-radius:9px;padding:0 14px;background:#fff;color:#334155;font-weight:700;cursor:pointer}
+.btn-filtro.ativo{background:#0f9f67;border-color:#0f9f67;color:#fff}
+.btn-limpar{margin-left:auto}
+.historico-resumo{margin-top:14px;font-size:13px;color:#64748b;font-weight:700}
+.table-scroll{overflow:auto}.historico-vazio{text-align:center!important;padding:28px!important;color:#94a3b8}
+@media(max-width:700px){.historico-filtro{flex:1;min-width:140px}.btn-filtro,.btn-limpar{flex:1}.btn-limpar{margin-left:0}}

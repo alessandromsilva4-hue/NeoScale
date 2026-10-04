@@ -1,2 +1,27 @@
-<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"><title>NeoScale | Relatórios</title><link rel="icon" href="img/favicon.png"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css"><link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css">
-<link rel="stylesheet" href="css/tema-verde.css"><style>.module-page{min-height:80vh;display:grid;place-items:center}.module-card{max-width:650px;width:100%;padding:42px;text-align:center;background:#fff;border:1px solid #e6ecef;border-radius:20px;box-shadow:0 12px 35px rgba(18,35,45,.06)}.module-card i{font-size:42px;color:#087a57}.module-card h2{margin:15px 0 8px}.module-card p{color:#71808a;line-height:1.6}.module-card a{display:inline-flex;margin-top:20px;padding:11px 17px;border-radius:10px;background:#087a57;color:#fff;text-decoration:none;font-weight:700;font-size:12px}</style></head><body><div class="layout"><aside class="sidebar" data-sidebar></aside><main class="content module-page"><section class="module-card"><i class="bi bi-bar-chart-line"></i><h2>Relatórios</h2><p>Visão gerencial das vendas e da operação.</p><p><strong>Módulo preparado na nova arquitetura do NeoScale.</strong><br>A lógica operacional existente será conectada a esta central sem perder os fluxos atuais.</p><a href="central.html">Voltar para a Central</a></section></main></div><script src="js/sidebar-menu.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('relatorios');</script></body></html>
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NeoScale | Relatórios</title>
+<link rel="icon" href="img/favicon.png">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/tema-verde.css"><link rel="stylesheet" href="css/relatorios.css">
+</head>
+<body>
+<div class="layout"><aside class="sidebar" data-sidebar></aside>
+<main class="content relatorios-page">
+<div class="relatorios-shell">
+<header class="rel-header"><div><p class="rel-kicker">NeoScale · Gestão</p><h1>Relatórios</h1><p>Visão gerencial das vendas, faturamento, comandas e saída de produtos.</p></div><div class="rel-actions"><button class="rel-btn" id="relImprimir"><i class="bi bi-printer"></i> Imprimir</button><button class="rel-btn primary" id="relExportar"><i class="bi bi-download"></i> Exportar CSV</button></div></header>
+<section class="rel-filter">
+<div class="rel-field rel-report-select"><label>Relatório</label><select id="relTipo"><option value="comandas">Comandas</option><option value="vendas-loja">Vendas da loja</option><option value="vendas-delivery">Vendas delivery</option><option value="faturamento">Faturamento</option><option value="saida-produtos">Saída de produtos</option></select></div>
+<div class="rel-field"><label>Data inicial</label><input type="date" id="relInicio"></div><div class="rel-field"><label>Data final</label><input type="date" id="relFim"></div>
+<div class="rel-field" id="statusField"><label>Status</label><select id="relStatus"><option value="TODOS">Todos</option><option value="ABERTA">Abertas</option><option value="FINALIZADA">Finalizadas</option><option value="CANCELADA">Canceladas</option><option value="TRANSFERIDA">Transferidas</option></select></div>
+<div class="rel-field" id="tipoField"><label>Tipo</label><select id="relComandaTipo"><option value="TODOS">Todos</option><option value="PESAGEM">Pesagem</option><option value="PROVISORIA">Provisória</option><option value="DIRETA">Direta</option></select></div>
+<div class="rel-field rel-search"><label>Buscar</label><input id="relBusca" type="search" placeholder="Produto, operador, plataforma..."></div>
+<button class="rel-btn primary" id="relAplicar"><i class="bi bi-funnel"></i> Aplicar</button><button class="rel-btn" id="relHoje">Hoje</button>
+</section>
+<section class="rel-kpis" id="relKpis"></section>
+<section class="rel-card full" id="relMainCard"><div class="rel-card-head"><div><h2 id="relTitulo">Relatório de Comandas</h2><p id="periodoLabel">Período selecionado</p></div><span class="rel-status" id="relStatusLabel">Todos</span></div><div id="relConteudo"></div><div class="rel-footer-note" id="relRodape">—</div></section>
+</div></main></div>
+<script src="js/sidebar-menu.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('relatorios');</script><script type="module" src="js/relatorios.js"></script>
+</body></html>

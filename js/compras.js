@@ -81,21 +81,71 @@ let cnpjTimer=null;
 function formatCnpj(v){ const d=String(v||'').replace(/\D/g,'').slice(0,14); return d.length<=2?d:d.length<=5?`${d.slice(0,2)}.${d.slice(2)}`:d.length<=8?`${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5)}`:d.length<=12?`${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8)}`:`${d.slice(0,2)}.${d.slice(2,5)}.${d.slice(5,8)}/${d.slice(8,12)}-${d.slice(12,14)}`; }
 function scheduleCnpjLookup(){ clearTimeout(cnpjTimer); const digits=$('fornecedorCnpj')?.value.replace(/\D/g,''); if(digits.length===14) cnpjTimer=setTimeout(()=>lookupCnpj(false),450); else if($('cnpjStatus')) $('cnpjStatus').textContent='Digite o CNPJ completo para consultar'; }
 function setField(name,value){ const el=body.querySelector(`[name="${name}"]`); if(el && value!==undefined && value!==null && String(value).trim()!=='') el.value=value; }
+function validarCnpj(cnpj){
+  const d=String(cnpj||'').replace(/\D/g,'');
+  if(d.length!==14 || /^([0-9])\1{13}$/.test(d)) return false;
+  let sum=0, weight=5;
+  for(let i=0;i<12;i++){ sum+=Number(d[i])*weight; weight=weight===2?9:weight-1; }
+  let r=sum%11, dig=r<2?0:11-r;
+  if(dig!==Number(d[12])) return false;
+  sum=0; weight=6;
+  for(let i=0;i<13;i++){ sum+=Number(d[i])*weight; weight=weight===2?9:weight-1; }
+  r=sum%11; dig=r<2?0:11-r;
+  return dig===Number(d[13]);
+}
+function mapCnpjWs(d){
+  const e=d?.estabelecimento||{};
+  return {
+    razao_social:d?.razao_social,
+    nome_fantasia:e.nome_fantasia,
+    ddd_telefone_1:e.ddd1 && e.telefone1 ? `${e.ddd1}${e.telefone1}` : e.telefone1,
+    ddd_telefone_2:e.ddd2 && e.telefone2 ? `${e.ddd2}${e.telefone2}` : e.telefone2,
+    email:e.email,
+    cep:e.cep,
+    descricao_tipo_logradouro:e.tipo_logradouro,
+    logradouro:e.logradouro,
+    numero:e.numero,
+    complemento:e.complemento,
+    bairro:e.bairro,
+    municipio:e.cidade?.nome,
+    uf:e.estado?.sigla,
+    descricao_situacao_cadastral:e.situacao_cadastral,
+    data_inicio_atividade:e.data_inicio_atividade,
+    natureza_juridica:d?.natureza_juridica?.descricao,
+    porte:d?.porte?.descricao,
+    capital_social:d?.capital_social,
+    cnae_fiscal_principal:e.atividade_principal?.id,
+    cnae_fiscal_descricao:e.atividade_principal?.descricao
+  };
+}
+async function fetchCnpj(url){
+  const res=await fetch(url,{headers:{Accept:'application/json'},cache:'no-store'});
+  if(!res.ok) throw new Error(res.status===404?'CNPJ não encontrado.':res.status===400?'CNPJ inválido.':res.status===429?'Limite de consultas atingido. Tente novamente em instantes.':'Não foi possível consultar agora.');
+  return res.json();
+}
 async function lookupCnpj(force=false){
   const input=$('fornecedorCnpj'); if(!input) return; const cnpj=input.value.replace(/\D/g,''); if(cnpj.length!==14) return;
-  const statusEl=$('cnpjStatus'); if(statusEl) statusEl.textContent='Consultando CNPJ...';
+  const statusEl=$('cnpjStatus'); if(statusEl){ statusEl.textContent='Consultando CNPJ...'; statusEl.classList.remove('success'); }
+  if(!validarCnpj(cnpj)){ if(statusEl) statusEl.textContent='CNPJ inválido. Confira os números digitados.'; return; }
   try{
-    const res=await fetch(`https://brasilapi.com.br/cnpj/v1/${cnpj}`,{headers:{Accept:'application/json'}});
-    if(!res.ok) throw new Error(res.status===404?'CNPJ não encontrado.':res.status===400?'CNPJ inválido.':'Não foi possível consultar agora.');
-    const d=await res.json();
+    let d;
+    let fonte='BrasilAPI';
+    try { d=await fetchCnpj(`https://brasilapi.com.br/cnpj/v1/${cnpj}`); }
+    catch(primaryErr) {
+      try { d=mapCnpjWs(await fetchCnpj(`https://publica.cnpj.ws/cnpj/${cnpj}`)); fonte='CNPJ.ws'; }
+      catch(fallbackErr) {
+        const msg=primaryErr?.message||fallbackErr?.message||'Não foi possível consultar agora.';
+        throw new Error(msg==='CNPJ não encontrado.' && fallbackErr?.message==='CNPJ não encontrado.' ? 'CNPJ não encontrado nas bases de consulta.' : 'Não foi possível consultar o CNPJ agora. Tente novamente em alguns segundos.');
+      }
+    }
     setField('razaoSocial',d.razao_social); setField('nomeFantasia',d.nome_fantasia);
     setField('telefone',[d.ddd_telefone_1,d.ddd_telefone_2].filter(Boolean).join(' / ')); setField('email',d.email||d.correio_eletronico);
     setField('cep',d.cep); setField('endereco',[d.descricao_tipo_logradouro,d.logradouro].filter(Boolean).join(' ')); setField('numeroEndereco',d.numero);
     setField('complemento',d.complemento); setField('bairro',d.bairro); setField('cidade',d.municipio); setField('uf',d.uf);
     setField('situacaoCadastral',d.descricao_situacao_cadastral||d.situacao_cadastral); setField('dataAbertura',d.data_inicio_atividade||d.data_situacao_cadastral);
-    setField('naturezaJuridica',d.natureza_juridica); setField('porte',d.porte); setField('capitalSocial',d.capital_social);
+    setField('naturezaJuridica',d.natureza_juridica?.descricao||d.natureza_juridica); setField('porte',d.porte?.descricao||d.porte); setField('capitalSocial',d.capital_social);
     const cnae=d.cnae_fiscal_principal; const cnaeDesc=d.cnae_fiscal_descricao; setField('cnaePrincipal',cnae ? `${cnae}${cnaeDesc?' - '+cnaeDesc:''}` : '');
-    if(statusEl){ statusEl.textContent=`✓ Empresa encontrada${d.descricao_situacao_cadastral?` · ${d.descricao_situacao_cadastral}`:''}`; statusEl.classList.add('success'); }
+    if(statusEl){ statusEl.textContent=`✓ Empresa encontrada${d.descricao_situacao_cadastral?` · ${d.descricao_situacao_cadastral}`:''} · ${fonte}`; statusEl.classList.add('success'); }
   }catch(err){ if(statusEl){ statusEl.textContent=err.message||'Não foi possível consultar o CNPJ.'; statusEl.classList.remove('success'); } if(force) console.warn('Consulta de CNPJ:',err); }
 }
 function cotForm(c={}) {

@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>NeoScale | Reposição do Buffet</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/tema-verde.css"><link rel="stylesheet" href="css/modulo-operacional.css"><link rel="stylesheet" href="css/reposicao.css">
+</head>
+<body class="reposicao-body">
+<div class="layout"><aside class="sidebar" data-sidebar></aside><main class="content reposicao-content">
+<header class="rep-head"><div><span class="rep-eyebrow">OPERAÇÃO DO BUFFET</span><h1>Solicitar reposição</h1><p>Escolha o que precisa e envie para a cozinha.</p></div><div class="rep-head-actions"><button class="sound-btn" id="btnSomPronto"><i class="bi bi-volume-up-fill"></i> Ativar alerta de pronto</button><a class="rep-link" href="reposicao-cozinha.html"><i class="bi bi-display"></i> Painel da cozinha</a></div></header>
+<section class="rep-panel"><div class="field-row"><label>Local do buffet<select id="buffetLocal"><option>Buffet 01</option><option>Buffet 02</option><option>Buffet 03</option></select></label></div>
+<div class="rep-grid" id="itensGrid"></div><button type="button" class="add-prato-btn" id="btnAdicionarPrato"><i class="bi bi-plus-circle-fill"></i><span><strong>Adicionar outro prato</strong><small>Cadastre um prato que não está na lista</small></span></button>
+<div class="rep-summary"><div><strong id="resumoCount">0 itens</strong><span id="resumoTexto">Nenhum item selecionado.</span></div><button id="btnSolicitar" disabled><i class="bi bi-send-fill"></i> Solicitar reposição</button></div></section>
+<section class="rep-history"><div class="section-title"><h2>Minhas solicitações</h2><span>Últimas solicitações deste dispositivo</span></div><div id="historicoRep" class="rep-history-list"></div></section>
+</main></div>
+<script type="module" src="js/reposicao-buffet.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('reposicao-buffet');</script><script src="js/sidebar-menu.js"></script>
+</body></html>

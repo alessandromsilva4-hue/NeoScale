@@ -3,10 +3,11 @@ import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase
 import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 const ROTAS_POR_PERFIL = {
-    ADMINISTRADOR: ["dashboard", "central", "clientes", "mesas", "comandas", "ficha-tecnica", "pesagem", "pdv", "caixa", "caixa-delivery", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "usuarios", "fiscal", "delivery", "cozinha", "estoque", "compras", "relatorios", "quiosque", "garcom"],
-    CAIXA: ["dashboard", "central", "clientes", "comandas", "pdv", "caixa", "caixa-delivery", "historico", "delivery", "cozinha", "garcom"],
-    OPERADOR: ["dashboard", "central", "pesagem", "comandas", "historico", "delivery", "cozinha"],
-    GARCOM: ["dashboard", "central", "garcom", "comandas"]
+    ADMINISTRADOR: ["dashboard", "central", "clientes", "mesas", "comandas", "ficha-tecnica", "pesagem", "pdv", "caixa", "caixa-delivery", "financeiro", "fechamento", "produtos", "historico", "configuracoes", "usuarios", "fiscal", "delivery", "cozinha", "estoque", "compras", "relatorios", "quiosque", "garcom", "reposicao-buffet", "reposicao-cozinha"],
+    CAIXA: ["dashboard", "central", "clientes", "comandas", "pdv", "caixa", "caixa-delivery", "historico", "delivery", "cozinha", "garcom", "reposicao-buffet", "reposicao-cozinha"],
+    OPERADOR: ["dashboard", "central", "pesagem", "comandas", "historico", "delivery", "cozinha", "reposicao-buffet", "reposicao-cozinha"],
+    GARCOM: ["dashboard", "central", "garcom", "comandas"],
+    REPOSITOR: ["dashboard", "central", "reposicao-buffet", "reposicao-cozinha"]
 };
 
 async function obterPerfil(uid) {
