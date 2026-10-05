@@ -69,11 +69,9 @@ document.addEventListener('click',async e=>{
   }
 });
 audioPronto=new Audio(AUDIO_PRONTO_URL);audioPronto.preload='auto';audioPronto.loop=true;audioPronto.volume=1;
-// Não liberar o áudio em qualquer toque na tela: isso fazia o som disparar
-// quando o repositor apenas tocava nos cards dos pratos. O desbloqueio fica
-// restrito a ações explícitas de áudio/envio.
+// O navegador pode bloquear autoplay. Assim que o operador tocar/clicar na tela, liberamos o áudio e repetimos o alerta pendente.
 const liberarAudio=()=>{if(!somAtivo)return;try{audioPronto.play().then(()=>{audioPronto.pause();audioPronto.currentTime=0;if(alertaPendente)tocarAlertaPronto()}).catch(()=>{});}catch(e){}};
-$('btnSomPronto')?.addEventListener('click',liberarAudio,{once:false});
-$('btnSolicitar')?.addEventListener('click',liberarAudio,{once:false});
+document.addEventListener('pointerdown',liberarAudio,{passive:true});
+document.addEventListener('keydown',liberarAudio,{passive:true});
 atualizarBotaoSom();
 render();historico();
