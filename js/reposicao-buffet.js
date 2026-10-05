@@ -51,12 +51,15 @@ $('itensGrid').addEventListener('click',e=>{const b=e.target.closest('[data-qty]
 $('btnAdicionarPrato')?.addEventListener('click',abrirCadastroPrato);
 $('btnSolicitar').addEventListener('click',async()=>{const btn=$('btnSolicitar');btn.disabled=true;try{const local=$('buffetLocal').value;const lista=[...selecionados.entries()].map(([nome,quantidade])=>({nome,quantidade}));await addDoc(collection(db,'reposicoesBuffet'),{local,itens:lista,status:'NOVO',origem:'BUFFET',dispositivoId:deviceId,criadoEm:serverTimestamp(),atualizadoEm:serverTimestamp()});selecionados.clear();render();alert('Solicitação enviada para a cozinha.');}catch(e){console.error(e);alert('Não foi possível enviar a solicitação.');btn.disabled=false}});
 function data(v){return v?.toDate?v.toDate():v?.seconds?new Date(v.seconds*1000):new Date(v||Date.now())}
-function historico(){const q=query(collection(db,'reposicoesBuffet'),where('dispositivoId','==',deviceId));onSnapshot(q,s=>{const docs=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>data(b.criadoEm)-data(a.criadoEm));let tocou=false;let existePronto=false;docs.forEach(x=>{const anterior=statusAnterior.get(x.id);if(x.status==='PRONTO')existePronto=true;if(x.status==='PRONTO'&&((anterior&&anterior!=='PRONTO'&&anterior!=='ENTREGUE')||(!anterior&&!primeiraCarga)))tocou=true;statusAnterior.set(x.id,x.status)});if((tocou||existePronto)&&somAtivo)tocarAlertaPronto();$('historicoRep').innerHTML=docs.slice(0,20).map(x=>{const status={NOVO:'Solicitado',PREPARO:'Em preparo',PRONTO:'PRONTO — RETIRAR NO BUFFET',ENTREGUE:'Entregue'}[x.status]||x.status;return `<div class="rep-history-card ${x.status==='PRONTO'?'is-pronto':''}"><div><strong>${x.local||'Buffet'}</strong><span>${(x.itens||[]).map(i=>`${i.quantidade}x ${i.nome}`).join(' · ')}</span></div><b class="status ${String(x.status||'').toLowerCase()}">${status}</b><div class="rep-history-side"><time>${data(x.criadoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</time>${x.status==='PRONTO'?'<button type="button" class="btn-retirar-reposicao" data-retirar-id="'+x.id+'"><i class="bi bi-check2-circle"></i> Retirei a reposição</button>':''}</div></div>`}).join('')||'<div class="rep-empty">Nenhuma solicitação ainda.</div>';primeiraCarga=false},e=>{console.error('Erro ao acompanhar reposições:',e);$('historicoRep').innerHTML='<div class="rep-empty">Não foi possível acompanhar as solicitações. Verifique a conexão.</div>'})}
+function historico(){const q=query(collection(db,'reposicoesBuffet'),where('dispositivoId','==',deviceId));onSnapshot(q,s=>{const docs=s.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>data(b.criadoEm)-data(a.criadoEm));let tocou=false;docs.forEach(x=>{const anterior=statusAnterior.get(x.id);if(x.status==='PRONTO'&&anterior&&anterior!=='PRONTO'&&anterior!=='ENTREGUE')tocou=true;statusAnterior.set(x.id,x.status)});if(tocou&&somAtivo)tocarAlertaPronto();$('historicoRep').innerHTML=docs.slice(0,20).map(x=>{const status={NOVO:'Solicitado',PREPARO:'Em preparo',PRONTO:'PRONTO — RETIRAR NO BUFFET',ENTREGUE:'Entregue'}[x.status]||x.status;return `<div class="rep-history-card ${x.status==='PRONTO'?'is-pronto':''}"><div><strong>${x.local||'Buffet'}</strong><span>${(x.itens||[]).map(i=>`${i.quantidade}x ${i.nome}`).join(' · ')}</span></div><b class="status ${String(x.status||'').toLowerCase()}">${status}</b><div class="rep-history-side"><time>${data(x.criadoEm).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</time>${x.status==='PRONTO'?'<button type="button" class="btn-retirar-reposicao" data-retirar-id="'+x.id+'"><i class="bi bi-check2-circle"></i> Retirei a reposição</button>':''}</div></div>`}).join('')||'<div class="rep-empty">Nenhuma solicitação ainda.</div>';primeiraCarga=false},e=>{console.error('Erro ao acompanhar reposições:',e);$('historicoRep').innerHTML='<div class="rep-empty">Não foi possível acompanhar as solicitações. Verifique a conexão.</div>'})}
 $('btnSomPronto')?.addEventListener('click',alternarSom);
 document.addEventListener('click',async e=>{
   const btn=e.target.closest('[data-retirar-id]');
   if(!btn)return;
   const id=btn.dataset.retirarId;
+  // Para o alerta imediatamente ao confirmar a retirada. Não esperamos o Firestore.
+  // Assim o áudio nunca continua tocando enquanto a atualização da solicitação é salva.
+  pararAlertaPronto();
   btn.disabled=true;
   btn.innerHTML='<i class="bi bi-hourglass-split"></i> Registrando...';
   try{
@@ -69,9 +72,11 @@ document.addEventListener('click',async e=>{
   }
 });
 audioPronto=new Audio(AUDIO_PRONTO_URL);audioPronto.preload='auto';audioPronto.loop=true;audioPronto.volume=1;
-// O navegador pode bloquear autoplay. Assim que o operador tocar/clicar na tela, liberamos o áudio e repetimos o alerta pendente.
-const liberarAudio=()=>{if(!somAtivo)return;try{audioPronto.play().then(()=>{audioPronto.pause();audioPronto.currentTime=0;if(alertaPendente)tocarAlertaPronto()}).catch(()=>{});}catch(e){}};
-document.addEventListener('pointerdown',liberarAudio,{passive:true});
-document.addEventListener('keydown',liberarAudio,{passive:true});
+// No celular, o primeiro toque do operador apenas desbloqueia o áudio de forma SILENCIOSA.
+// Nunca reproduzimos o alerta nesse gesto; o som audível só é iniciado quando uma reposição entra em PRONTO.
+let audioDesbloqueado=false;
+const desbloquearAudioSilencioso=()=>{if(audioDesbloqueado||!audioPronto)return;try{audioPronto.muted=true;const p=audioPronto.play();if(p&&p.then)p.then(()=>{audioPronto.pause();audioPronto.currentTime=0;audioPronto.muted=false;audioDesbloqueado=true}).catch(()=>{audioPronto.muted=false});}catch(e){audioPronto.muted=false}};
+document.addEventListener('pointerdown',desbloquearAudioSilencioso,{passive:true,once:true});
+document.addEventListener('touchstart',desbloquearAudioSilencioso,{passive:true,once:true});
 atualizarBotaoSom();
 render();historico();
