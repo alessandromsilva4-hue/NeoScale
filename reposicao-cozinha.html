@@ -1,16 +1,46 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>NeoScale | Painel de Reposição</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NeoScale | Painel de Reposição TV</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
-<link rel="stylesheet" href="css/style.css"><link rel="stylesheet" href="css/sidebar.css"><link rel="stylesheet" href="css/tema-verde.css"><link rel="stylesheet" href="css/modulo-operacional.css"><link rel="stylesheet" href="css/reposicao.css">
+<link rel="stylesheet" href="css/reposicao.css">
 </head>
-<body class="reposicao-body cozinha-rep-body">
-<div class="layout"><aside class="sidebar" data-sidebar></aside><main class="content reposicao-content">
-<header class="rep-head"><div><span class="rep-eyebrow">OPERAÇÃO DA COZINHA</span><h1>Painel de reposição</h1><p>Solicitações do buffet em tempo real.</p></div><div class="rep-head-actions"><button class="sound-btn" id="btnSom"><i class="bi bi-volume-up-fill"></i> Ativar som</button><span class="online"><i></i> Tempo real</span></div></header>
-<section class="rep-kpis"><div><b id="kpiNovos">0</b><span>Novas</span></div><div><b id="kpiPreparo">0</b><span>Em preparo</span></div><div><b id="kpiProntos">0</b><span>Prontas</span></div></section>
-<section class="rep-board"><div class="rep-column novo"><header><div><span>NOVAS SOLICITAÇÕES</span><h2>Aguardando cozinha</h2></div><b id="countNovo">0</b></header><div id="listaNovo" class="rep-list"></div></div><div class="rep-column preparo"><header><div><span>EM PREPARO</span><h2>Produzindo</h2></div><b id="countPreparo">0</b></header><div id="listaPreparo" class="rep-list"></div></div><div class="rep-column pronto"><header><div><span>PRONTAS</span><h2>Aguardando entrega</h2></div><b id="countPronto">0</b></header><div id="listaPronto" class="rep-list"></div></div></section>
-</main></div>
-<script type="module" src="js/reposicao-cozinha.js"></script><script type="module">import { protegerPagina } from './js/sessao.js'; protegerPagina('reposicao-cozinha');</script><script src="js/sidebar-menu.js"></script>
-</body></html>
+<body class="rep-tv-body">
+<main class="rep-tv">
+  <header class="rep-tv-head">
+    <div>
+      <span class="rep-tv-eyebrow">OPERAÇÃO DA COZINHA</span>
+      <h1>Painel de reposição</h1>
+      <p>Reposição do buffet em tempo real.</p>
+    </div>
+    <div class="rep-tv-live"><i></i> Aceite automático <span>•</span> Tempo real</div>
+  </header>
+
+  <section class="rep-tv-kpis" aria-label="Resumo das reposições">
+    <div class="rep-tv-kpi"><b id="kpiNovos">0</b><span>Novas</span><i class="bi bi-bell"></i></div>
+    <div class="rep-tv-kpi active"><b id="kpiPreparo">0</b><span>Em preparo</span><i class="bi bi-fire"></i></div>
+    <div class="rep-tv-kpi"><b id="kpiEntregues">0</b><span>Entregues</span><i class="bi bi-check2-circle"></i></div>
+  </section>
+
+  <section class="rep-tv-board">
+    <article class="rep-tv-column novas">
+      <header><div><span>NOVAS</span><h2>Aceite automático</h2></div><b id="countNovo">0</b></header>
+      <div id="listaNovo" class="rep-tv-list"><div class="rep-tv-empty">Aguardando solicitação.</div></div>
+    </article>
+
+    <article class="rep-tv-column preparo">
+      <header><div><span>EM PREPARO</span><h2>Produzindo</h2></div><b id="countPreparo">0</b></header>
+      <div id="listaPreparo" class="rep-tv-list"><div class="rep-tv-empty">Nenhuma reposição em preparo.</div></div>
+    </article>
+
+    <article class="rep-tv-column entregues">
+      <header><div><span>ENTREGUE</span><h2>Aguardando próxima reposição</h2></div><b id="countEntregue">0</b></header>
+      <div id="listaEntregue" class="rep-tv-list"><div class="rep-tv-empty">Nenhuma solicitação entregue.</div></div>
+    </article>
+  </section>
+</main>
+<script type="module" src="js/reposicao-cozinha.js"></script>
+</body>
+</html>
