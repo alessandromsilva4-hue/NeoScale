@@ -198,8 +198,9 @@ async function criarEEnviarProposta(cotacaoId, fornecedorId, canal){
   if(!c||!f||!req) throw new Error('Cotação, fornecedor ou requisição não encontrado.');
   let proposta=state.propostas.find(p=>p.cotacaoId===cotacaoId&&p.fornecedorId===fornecedorId&&p.status!=='RECUSADA');
   if(!proposta){
-    const ref=doc(collection(db,'cotacoesFornecedores'));
-    proposta={id:ref.id,token:tokenSeguro(),cotacaoId,reqId:req.id,reqNumero:req.numero||'',cotacaoNumero:c.numero||'',fornecedorId,fornecedorNome:f.razaoSocial||f.nome||'',itens:(req.itens||[]).map(i=>({produtoId:i.produtoId,produtoNome:i.produtoNome,quantidade:num(i.quantidade),unidade:i.unidadeCompra||(i.tipoVenda==='peso'?'kg':'un.'),precoUnitario:0,subtotal:0})),valorProdutos:0,frete:0,totalFinal:0,prazoEntrega:'',condicaoPagamento:'',observacoes:'',status:'ENVIADA',criadoEm:serverTimestamp(),atualizadoEm:serverTimestamp()};
+    const token=tokenSeguro();
+    const ref=doc(db,'cotacoesFornecedores',token);
+    proposta={id:ref.id,token,cotacaoId,reqId:req.id,reqNumero:req.numero||'',cotacaoNumero:c.numero||'',fornecedorId,fornecedorNome:f.razaoSocial||f.nome||'',itens:(req.itens||[]).map(i=>({produtoId:i.produtoId,produtoNome:i.produtoNome,quantidade:num(i.quantidade),unidade:i.unidadeCompra||(i.tipoVenda==='peso'?'kg':'un.'),precoUnitario:0,subtotal:0})),valorProdutos:0,frete:0,totalFinal:0,prazoEntrega:'',condicaoPagamento:'',observacoes:'',status:'ENVIADA',criadoEm:serverTimestamp(),atualizadoEm:serverTimestamp()};
     await setDoc(ref,proposta);
   }
   const url=new URL('cotacao-fornecedor.html',location.href); url.searchParams.set('token',proposta.token);

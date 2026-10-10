@@ -9,6 +9,7 @@ const campos = {
     modeloBalanca: document.getElementById("modeloBalanca"),
     modoImpressao: document.getElementById("modoImpressao"),
     servidorImpressao: document.getElementById("servidorImpressao"),
+    chaveServidorImpressao: document.getElementById("chaveServidorImpressao"),
     ipImpressora: document.getElementById("ipImpressora"),
     portaImpressora: document.getElementById("portaImpressora"),
     mensagemComanda: document.getElementById("mensagemComanda"),
@@ -29,6 +30,7 @@ function obterDadosFormulario() {
         balanca: campos.modeloBalanca.value.trim(),
         modoImpressao: campos.modoImpressao.value || "navegador",
         servidorImpressao: campos.servidorImpressao.value.trim(),
+        chaveServidorImpressao: campos.chaveServidorImpressao.value.trim(),
         ipImpressora: campos.ipImpressora.value.trim(),
         portaImpressora: Math.min(65535, Math.max(1, Number(campos.portaImpressora.value || 9100))),
         mensagem: campos.mensagemComanda.value.trim(),
@@ -73,6 +75,7 @@ async function carregarConfiguracao() {
         campos.modeloBalanca.value = dados.balanca || "";
         campos.modoImpressao.value = dados.modoImpressao || "navegador";
         campos.servidorImpressao.value = dados.servidorImpressao || "";
+        campos.chaveServidorImpressao.value = dados.chaveServidorImpressao || "";
         campos.ipImpressora.value = dados.ipImpressora || "";
         campos.portaImpressora.value = dados.portaImpressora || 9100;
         campos.mensagemComanda.value = dados.mensagem || "";

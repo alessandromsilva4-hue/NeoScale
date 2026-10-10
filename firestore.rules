@@ -77,11 +77,22 @@ service cloud.firestore {
     }
 
     match /cotacoesFornecedores/{token} {
-      allow read: if true;
+      // O ID do documento é o próprio token do link enviado ao fornecedor.
+      // O fornecedor consegue ler somente sua cotação, sem listar a coleção.
+      allow get: if resource.data.token == token;
+      allow list: if isOperator();
       allow create: if isOperator();
-      allow update: if request.resource.data.token == token
-                    && request.resource.data.cotacaoId == resource.data.cotacaoId
-                    && request.resource.data.fornecedorId == resource.data.fornecedorId;
+      allow update: if isOperator() || (
+                      request.resource.data.token == resource.data.token
+                      && resource.data.token == token
+                      && request.resource.data.cotacaoId == resource.data.cotacaoId
+                      && request.resource.data.fornecedorId == resource.data.fornecedorId
+                      && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                        'itens', 'valorProdutos', 'frete', 'totalFinal',
+                        'prazoEntrega', 'condicaoPagamento', 'observacoes',
+                        'status', 'respondidaEm', 'atualizadoEm'
+                      ])
+                    );
       allow delete: if isAdmin();
     }
 

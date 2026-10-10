@@ -181,7 +181,8 @@ async function imprimirDireto(bytes, config) {
         headers: {
             "Content-Type": "application/octet-stream",
             "X-Printer-IP": String(config.ipImpressora || ""),
-            "X-Printer-Port": String(config.portaImpressora || 9100)
+            "X-Printer-Port": String(config.portaImpressora || 9100),
+            "X-Printer-Key": String(config.chaveServidorImpressao || "")
         },
         body: bytes
     });

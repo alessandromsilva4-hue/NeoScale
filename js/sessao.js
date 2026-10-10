@@ -24,9 +24,14 @@ export function protegerPagina(pagina) {
 
         try {
             const perfil = await obterPerfil(usuario.uid);
-            // Durante a migração, os usuários já existentes continuam operando.
-            // Ao publicar as novas regras, crie o perfil de cada usuário no Firestore.
-            if (perfil && perfil.ativo === false) {
+            if (!perfil) {
+                await signOut(auth);
+                alert("Seu acesso ainda não possui um perfil autorizado. Procure o administrador do restaurante.");
+                window.location.replace("index.html");
+                return;
+            }
+
+            if (perfil.ativo === false) {
                 await signOut(auth);
                 alert("Este acesso está desativado. Procure o administrador do restaurante.");
                 window.location.replace("index.html");
@@ -34,14 +39,21 @@ export function protegerPagina(pagina) {
             }
             // Aceita perfis antigos e novos (ex.: GARCOM, GARÇOM, garcom, "Garçom").
             // O valor armazenado no Firestore é normalizado antes da checagem de rotas.
-            const valorFuncao = perfil?.funcao ?? perfil?.perfil ?? perfil?.role ?? "ADMINISTRADOR";
+            const valorFuncao = perfil.funcao ?? perfil.perfil ?? perfil.role;
             const funcao = String(valorFuncao)
                 .normalize("NFD")
                 .replace(/[\u0300-\u036f]/g, "")
                 .replace(/[^A-Za-z0-9]/g, "")
                 .toUpperCase();
 
-            if (!(ROTAS_POR_PERFIL[funcao] || []).includes(pagina)) {
+            if (!ROTAS_POR_PERFIL[funcao]) {
+                await signOut(auth);
+                alert("O perfil deste acesso é inválido. Procure o administrador do restaurante.");
+                window.location.replace("index.html");
+                return;
+            }
+
+            if (!ROTAS_POR_PERFIL[funcao].includes(pagina)) {
                 alert("Seu perfil não tem permissão para acessar esta tela.");
                 window.location.replace("dashboard.html");
             }
@@ -57,13 +69,6 @@ export function protegerPagina(pagina) {
             evento.stopImmediatePropagation();
             encerrarSessao().catch((erro) => console.error("Não foi possível encerrar a sessão.", erro));
         }, true);
-    });
-
-    document.querySelectorAll(".sidebar-footer button").forEach((botao) => {
-        botao.addEventListener("click", (evento) => {
-            evento.preventDefault();
-            encerrarSessao().catch((erro) => console.error("Não foi possível encerrar a sessão.", erro));
-        });
     });
 }
 
